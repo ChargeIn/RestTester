@@ -1,0 +1,15 @@
+<svg width="40" height="40" viewBox="0 0 50 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <text x="-2" y="29" fill="url(#paint0_linear)" font-size="22px">{</text>
+    <text x="37" y="29" fill="url(#paint0_linear)" font-size="22px">}</text>
+    <text x="11" y="50%" fill="url(#paint0_linear)" font-size="12">Rest</text>
+    <text x="10" y="30" fill="url(#paint0_linear)" font-size="9">Helper</text>
+
+    <defs>
+        <linearGradient id="paint0_linear" x1="2.94192" y1="4.89955" x2="37.7772" y2="39.7345"
+                        gradientUnits="userSpaceOnUse">
+            <stop offset="0.15937" stop-color="#3BEA62"/>
+            <stop offset="0.5404" stop-color="#3C99CC"/>
+            <stop offset="0.93739" stop-color="#6B57FF"/>
+        </linearGradient>
+    </defs>
+</svg>

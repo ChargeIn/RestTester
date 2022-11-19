@@ -1,4 +1,4 @@
-package com.flop.resttester.tree;
+package com.flop.resttester.requesttree;
 
 import com.flop.resttester.RequestType;
 

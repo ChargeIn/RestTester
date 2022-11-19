@@ -1,4 +1,4 @@
-package com.flop.resttester.tree;
+package com.flop.resttester.requesttree;
 
 import com.flop.resttester.RequestType;
 import com.flop.resttester.RestTesterNotifier;
@@ -52,6 +52,16 @@ public class RequestTreeHandler {
         TreeModel model = new DefaultTreeModel(this.root);
         this.tree.setModel(model);
         this.tree.setRootVisible(false);
+    }
+
+    public void addSelectionListener(RequestTreeSelectionListener rtsl) {
+        this.tree.addTreeSelectionListener((selection) -> {
+            RequestTreeNode node = (RequestTreeNode) selection.getPath().getLastPathComponent();
+            if (node != null) {
+                rtsl.valueChanged(node.getRequestData());
+            } else {
+            }
+        });
     }
 
     public void addRequest(String url, RequestType type) {
@@ -329,5 +339,11 @@ public class RequestTreeHandler {
         }
 
         return newNode;
+    }
+
+    public void removeSelection() {
+        if (this.tree.getSelectionPath() == null) {
+            return;
+        }
     }
 }

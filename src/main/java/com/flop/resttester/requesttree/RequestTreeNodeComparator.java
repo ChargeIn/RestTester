@@ -1,4 +1,4 @@
-package com.flop.resttester.tree;
+package com.flop.resttester.requesttree;
 
 import javax.swing.tree.TreeNode;
 import java.util.Comparator;

@@ -3,13 +3,13 @@
   <grid id="27dc6" binding="myToolWindowContent" layout-manager="GridLayoutManager" row-count="3" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
-      <xy x="20" y="20" width="500" height="612"/>
+      <xy x="20" y="20" width="500" height="667"/>
     </constraints>
     <properties/>
     <border type="none"/>
     <children>
       <grid id="eafff" binding="requestInputPanel" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-        <margin top="0" left="0" bottom="0" right="0"/>
+        <margin top="0" left="8" bottom="0" right="10"/>
         <constraints>
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <minimum-size width="-1" height="100"/>
@@ -22,7 +22,7 @@
         <children>
           <component id="2cecc" class="javax.swing.JTextField" binding="urlInputField">
             <constraints>
-              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="8" fill="1" indent="0" use-parent-layout="false">
                 <preferred-size width="150" height="-1"/>
               </grid>
             </constraints>
@@ -33,32 +33,38 @@
           <component id="9dd7f" class="javax.swing.JComboBox" binding="requestTypeComboBox">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false">
-                <minimum-size width="90" height="-1"/>
+                <minimum-size width="90" height="30"/>
                 <preferred-size width="90" height="30"/>
-                <maximum-size width="90" height="-1"/>
+                <maximum-size width="90" height="30"/>
               </grid>
             </constraints>
             <properties>
               <model/>
+              <requestFocusEnabled value="true"/>
             </properties>
           </component>
-          <component id="27dc3" class="javax.swing.JButton" binding="sendButton">
+          <component id="e745c" class="com.flop.resttester.components.ActionButton" binding="sendButton" custom-create="true">
             <constraints>
-              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false">
-                <minimum-size width="70" height="-1"/>
-                <preferred-size width="70" height="-1"/>
-                <maximum-size width="70" height="-1"/>
+              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false">
+                <minimum-size width="44" height="30"/>
+                <preferred-size width="44" height="30"/>
+                <maximum-size width="44" height="30"/>
               </grid>
             </constraints>
             <properties>
-              <text value="Send"/>
+              <alignmentY value="0.5"/>
+              <autoscrolls value="false"/>
+              <borderPainted value="true"/>
+              <contentAreaFilled value="false"/>
+              <rolloverEnabled value="true"/>
+              <text value=""/>
             </properties>
           </component>
         </children>
       </grid>
       <tabbedpane id="fa971" binding="bodyTabbedPane">
         <constraints>
-          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="5" hsize-policy="5" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <preferred-size width="200" height="200"/>
           </grid>
         </constraints>
@@ -75,17 +81,29 @@
             <children>
               <scrollpane id="c9e8b">
                 <constraints>
-                  <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                  <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="5" hsize-policy="5" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <component id="8d9e4" class="javax.swing.JTree" binding="requestTree">
+                  <grid id="6cb5d" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                    <margin top="5" left="0" bottom="5" right="0"/>
                     <constraints/>
                     <properties>
-                      <autoscrolls value="false"/>
+                      <doubleBuffered value="true"/>
                     </properties>
-                  </component>
+                    <border type="none"/>
+                    <children>
+                      <component id="8d9e4" class="javax.swing.JTree" binding="requestTree">
+                        <constraints>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <autoscrolls value="false"/>
+                        </properties>
+                      </component>
+                    </children>
+                  </grid>
                 </children>
               </scrollpane>
               <grid id="aff0a" binding="treeActionBar" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
@@ -96,19 +114,29 @@
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <component id="df6bc" class="com.intellij.openapi.actionSystem.impl.ActionButton" binding="removeTreeSelectionButton" custom-create="true">
-                    <constraints>
-                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="8" fill="2" indent="0" use-parent-layout="false">
-                        <preferred-size width="16" height="-1"/>
-                      </grid>
-                    </constraints>
-                    <properties/>
-                  </component>
                   <hspacer id="9ccd1">
                     <constraints>
                       <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                     </constraints>
                   </hspacer>
+                  <component id="681d2" class="com.flop.resttester.components.ActionButton" binding="removeTreeSelectionButton" custom-create="true">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false">
+                        <minimum-size width="30" height="30"/>
+                        <preferred-size width="30" height="30"/>
+                        <maximum-size width="30" height="30"/>
+                      </grid>
+                    </constraints>
+                    <properties>
+                      <alignmentX value="0.5"/>
+                      <alignmentY value="0.5"/>
+                      <autoscrolls value="false"/>
+                      <borderPainted value="false"/>
+                      <contentAreaFilled value="false"/>
+                      <rolloverEnabled value="true"/>
+                      <text value=""/>
+                    </properties>
+                  </component>
                 </children>
               </grid>
             </children>
@@ -173,7 +201,7 @@
             <children>
               <scrollpane id="635aa" binding="resultScrollPane">
                 <constraints>
-                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="5" hsize-policy="5" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties/>
                 <border type="none"/>
@@ -196,19 +224,24 @@
             <properties/>
             <border type="none"/>
             <children>
-              <scrollpane id="a24ab">
+              <component id="703d" class="javax.swing.JTable" binding="variableTable" custom-create="true">
                 <constraints>
-                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
                 </constraints>
-                <properties/>
-                <border type="none"/>
-                <children>
-                  <component id="a2651" class="javax.swing.JTable" binding="variableTable" custom-create="true">
-                    <constraints/>
-                    <properties/>
-                  </component>
-                </children>
-              </scrollpane>
+                <properties>
+                  <alignmentX value="0.5"/>
+                  <alignmentY value="0.5"/>
+                  <autoCreateColumnsFromModel value="false"/>
+                  <autoCreateRowSorter value="true"/>
+                  <autoscrolls value="true"/>
+                  <enabled value="true"/>
+                  <intercellSpacing width="1" height="1"/>
+                </properties>
+                <clientProperties>
+                  <Table.isFileList class="java.lang.Boolean" value="false"/>
+                  <html.disable class="java.lang.Boolean" value="false"/>
+                </clientProperties>
+              </component>
             </children>
           </grid>
         </children>
@@ -236,13 +269,23 @@
             <properties/>
             <border type="none"/>
             <children>
-              <component id="b4b7b" class="com.intellij.openapi.actionSystem.impl.ActionButton" binding="saveButton" custom-create="true">
+              <component id="4a591" class="com.flop.resttester.components.ActionButton" binding="saveButton" custom-create="true">
                 <constraints>
-                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false">
-                    <preferred-size width="16" height="16"/>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false">
+                    <minimum-size width="30" height="30"/>
+                    <preferred-size width="30" height="30"/>
+                    <maximum-size width="30" height="30"/>
                   </grid>
                 </constraints>
-                <properties/>
+                <properties>
+                  <alignmentX value="0.5"/>
+                  <alignmentY value="0.5"/>
+                  <autoscrolls value="false"/>
+                  <borderPainted value="false"/>
+                  <contentAreaFilled value="false"/>
+                  <rolloverEnabled value="true"/>
+                  <text value=""/>
+                </properties>
               </component>
             </children>
           </grid>

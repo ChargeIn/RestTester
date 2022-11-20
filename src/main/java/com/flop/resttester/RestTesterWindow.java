@@ -1,36 +1,31 @@
 package com.flop.resttester;
 
+import com.flop.resttester.components.ActionButton;
+import com.flop.resttester.request.RequestData;
+import com.flop.resttester.request.RequestThread;
+import com.flop.resttester.request.RequestType;
 import com.flop.resttester.requesttree.RequestTreeHandler;
 import com.flop.resttester.requesttree.RequestTreeNodeData;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.ActivityTracker;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.Presentation;
-import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.table.JBTable;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class RestTesterWindow {
     private JPanel myToolWindowContent;
     private JTextField urlInputField;
     private JComboBox<RequestType> requestTypeComboBox;
-    private JButton sendButton;
     private JTextPane resultTextPane;
     private JTabbedPane bodyTabbedPane;
     private JScrollPane resultScrollPane;
     private JTree requestTree;
     private ActionButton removeTreeSelectionButton;
     private ActionButton saveButton;
+    private ActionButton sendButton;
     private JPanel requestInputPanel;
     private JPanel topPanel;
     private JPanel Variables;
@@ -38,10 +33,13 @@ public class RestTesterWindow {
     private JPanel treeActionBar;
     private final RequestTreeHandler treeHandler;
 
+    // logic variables
+    private static int RESULT_TAB_PANE = 3;
+    private RequestThread requestThread;
+    private Timer loadingTimer = new Timer();
+
     public RestTesterWindow(ToolWindow toolWindow, Project project) {
         this.setUpRequestTypes();
-
-        sendButton.addActionListener(e -> this.sendRequest());
 
         this.treeHandler = new RequestTreeHandler(this.requestTree, project);
         this.treeHandler.addSelectionListener(this::updateInputs);
@@ -58,23 +56,38 @@ public class RestTesterWindow {
     }
 
     private void sendRequest() {
-        try {
-            URL url = new URL(this.urlInputField.getText());
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setRequestMethod(this.requestTypeComboBox.getSelectedItem().toString());
-
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuilder content = new StringBuilder();
-            while ((inputLine = in.readLine()) != null) {
-                content.append(inputLine).append("\n");
-            }
-            in.close();
-
-            this.resultTextPane.setText(content.toString());
-        } catch (Exception e) {
-
+        if (this.requestThread != null) {
+            // old request is still running
+            this.requestThread.stopRequest();
+            this.resultTextPane.setText("Canceled after " + this.requestThread.getElapsedTime() + "econds.");
+            this.requestThread = null;
+            this.sendButton.setIcon(AllIcons.Actions.Execute);
+            this.loadingTimer.cancel();
+            return;
         }
+
+        this.resultTextPane.setText("Loading...");
+        this.bodyTabbedPane.setSelectedIndex(RestTesterWindow.RESULT_TAB_PANE);
+
+        this.loadingTimer = new Timer();
+        this.loadingTimer.schedule(new TimerTask() {
+            public void run() {
+                if (RestTesterWindow.this.requestThread != null) {
+                    RestTesterWindow.this.resultTextPane.setText("Loading...   " + RestTesterWindow.this.requestThread.getElapsedTime());
+                }
+            }
+        }, 0, 100);
+
+        RequestData data = new RequestData(this.urlInputField.getText(), this.requestTypeComboBox.getSelectedItem().toString());
+
+        this.requestThread = new RequestThread(data, (success, context) -> {
+            this.requestThread = null;
+            this.loadingTimer.cancel();
+            this.resultTextPane.setText(context);
+            this.sendButton.setIcon(AllIcons.Actions.Execute);
+        });
+
+        this.requestThread.start();
     }
 
     private void saveRequest() {
@@ -88,49 +101,35 @@ public class RestTesterWindow {
     }
 
     private void createUIComponents() {
-        this.setUpRemoveButton();
-        this.setUpSaveButton();
-        this.createVariableTable();
+        this.setupRemoveButton();
+        this.setupSaveButton();
+        this.setupSendButton();
+        this.setupVariableTable();
     }
 
-    private void createVariableTable() {
+    private void setupVariableTable() {
         this.variableTable = new JBTable();
     }
 
-    private void setUpRemoveButton() {
-        AnAction action = new AnAction() {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                RestTesterWindow.this.treeHandler.removeSelection();
-            }
-        };
-
-        Presentation p = new Presentation();
-        p.setIcon(AllIcons.Vcs.Remove);
-
-        this.removeTreeSelectionButton = new ActionButton(action, p, "", new Dimension(16, 16));
+    private void setupRemoveButton() {
+        this.removeTreeSelectionButton = new ActionButton("", AllIcons.Vcs.Remove);
+        this.removeTreeSelectionButton.addActionListener((e) -> this.treeHandler.removeSelection());
+        this.removeTreeSelectionButton.setEnabled(false);
     }
 
-    private void setUpSaveButton() {
-        AnAction action = new AnAction() {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                RestTesterWindow.this.saveRequest();
-            }
+    private void setupSaveButton() {
+        this.saveButton = new ActionButton("", AllIcons.Actions.AddToDictionary);
+        this.saveButton.addActionListener((e) -> this.saveRequest());
+    }
 
-            @Override
-            public void update(@NotNull AnActionEvent e) {
-                ActivityTracker.getInstance().inc();
-                this.setEnabledInModalContext(true);
-                e.getPresentation().setEnabledAndVisible(true);
-            }
-        };
+    private void setupSendButton() {
+        this.sendButton = new ActionButton("", AllIcons.Actions.Execute);
+        this.sendButton.setRolloverEnabled(true);
+        this.sendButton.addActionListener((e) -> {
+            this.sendButton.setIcon(AllIcons.Actions.Suspend);
+            this.sendRequest();
+        });
 
-        Presentation p = new Presentation();
-        p.setIcon(AllIcons.Actions.AddToDictionary);
-        p.setEnabledAndVisible(true);
-
-        this.saveButton = new ActionButton(action, p, "", new Dimension(32, 32));
     }
 
     public void setUpRequestTypes() {

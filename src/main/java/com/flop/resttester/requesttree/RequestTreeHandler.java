@@ -1,7 +1,7 @@
 package com.flop.resttester.requesttree;
 
-import com.flop.resttester.RequestType;
 import com.flop.resttester.RestTesterNotifier;
+import com.flop.resttester.request.RequestType;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -19,11 +19,13 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class RequestTreeHandler {
 
     private static final String SAVE_FOLDER_STR = ".rest-tester";
     private static final String SAVE_FILE_STR = "requestTree.json";
+    private static final String VERSION = "1.0";
 
     private final JTree tree;
 
@@ -57,9 +59,10 @@ public class RequestTreeHandler {
     public void addSelectionListener(RequestTreeSelectionListener rtsl) {
         this.tree.addTreeSelectionListener((selection) -> {
             RequestTreeNode node = (RequestTreeNode) selection.getPath().getLastPathComponent();
-            if (node != null) {
+            if (node != null && !node.getRequestData().isGroup()) {
                 rtsl.valueChanged(node.getRequestData());
             } else {
+                // TODO
             }
         });
     }
@@ -82,12 +85,17 @@ public class RequestTreeHandler {
             }
         }
 
+        // add new base group and add node
+        RequestTreeNodeData newGroupData = new RequestTreeNodeData(newNodeData.getPathForDepth(0));
+        RequestTreeNode newGroup = new RequestTreeNode(newGroupData);
+
         RequestTreeNode newNode = new RequestTreeNode(newNodeData);
-        root.add(newNode);
+        newGroup.add(newNode);
+        root.add(newGroup);
 
 
         // make sure the root is expanded
-        this.tree.expandPath(new TreePath(root.getPath()));
+        this.tree.expandPath(new TreePath(newGroup.getPath()));
         this.tree.updateUI();
         this.saveTree();
     }
@@ -206,7 +214,21 @@ public class RequestTreeHandler {
         try {
             JsonElement file = JsonParser.parseReader(new InputStreamReader(new FileInputStream(saveFile)));
 
-            JsonArray nodesArray = file.getAsJsonArray();
+            JsonObject wrapper = file.getAsJsonObject();
+
+            JsonElement jVersion = wrapper.get("version");
+            if (jVersion == null || !Objects.equals(jVersion.getAsString(), RequestTreeHandler.VERSION)) {
+                return;
+            }
+
+            JsonElement jNodes = wrapper.get("nodes");
+
+            if (jNodes == null) {
+                RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not find node array in save file.");
+                return;
+            }
+
+            JsonArray nodesArray = jNodes.getAsJsonArray();
 
             for (int i = 0; i < nodesArray.size(); i++) {
                 this.root.add(this.json2TreeNode(nodesArray.get(i).getAsJsonObject()));
@@ -216,6 +238,8 @@ public class RequestTreeHandler {
             for (RequestTreeNode node : this.nodes2Expand) {
                 this.tree.expandPath(new TreePath(node.getPath()));
             }
+            // root must always be expanded
+            this.tree.expandPath(new TreePath(this.root.getPath()));
             this.tree.updateUI();
 
         } catch (Exception e) {
@@ -247,7 +271,11 @@ public class RequestTreeHandler {
             jNodes.add(jChild);
         }
 
-        String jsonString = jNodes.toString();
+        JsonObject wrapper = new JsonObject();
+        wrapper.addProperty("version", RequestTreeHandler.VERSION);
+        wrapper.add("nodes", jNodes);
+
+        String jsonString = wrapper.toString();
 
         try (PrintWriter output = new PrintWriter(saveFile)) {
             output.write(jsonString);
@@ -342,8 +370,31 @@ public class RequestTreeHandler {
     }
 
     public void removeSelection() {
-        if (this.tree.getSelectionPath() == null) {
+        TreePath path = this.tree.getSelectionPath();
+
+        if (path == null) {
             return;
+        }
+
+        RequestTreeNode node = (RequestTreeNode) path.getLastPathComponent();
+        if (node != null) {
+            RequestTreeNode parent = (RequestTreeNode) node.getParent();
+            node.removeFromParent();
+
+            // remove all empty parents
+            while (parent != null && !parent.isRoot()) {
+                if (parent.getChildCount() == 0) {
+                    RequestTreeNode p = (RequestTreeNode) parent.getParent();
+                    parent.removeFromParent();
+                    parent = p;
+                } else {
+                    parent = null;
+                }
+            }
+
+            this.tree.removeSelectionPath(this.tree.getSelectionPath());
+            this.tree.updateUI();
+            this.saveTree();
         }
     }
 }

@@ -1,6 +1,6 @@
 package com.flop.resttester.requesttree;
 
-import com.flop.resttester.RequestType;
+import com.flop.resttester.request.RequestType;
 
 import java.net.URL;
 import java.util.stream.Collectors;

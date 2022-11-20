@@ -1,4 +1,4 @@
-package com.flop.resttester;
+package com.flop.resttester.request;
 
 public enum RequestType {
     GET,

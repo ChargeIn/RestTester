@@ -9,9 +9,11 @@ import com.flop.resttester.requesttree.RequestTreeNodeData;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -28,13 +30,14 @@ public class RestTesterWindow {
     private ActionButton sendButton;
     private JPanel requestInputPanel;
     private JPanel topPanel;
-    private JPanel Variables;
+    private JPanel variablePanel;
     private JTable variableTable;
     private JPanel treeActionBar;
+    private JScrollPane variableScrollPane;
     private final RequestTreeHandler treeHandler;
 
     // logic variables
-    private static int RESULT_TAB_PANE = 3;
+    private static int RESULT_TAB_PANE = 4;
     private RequestThread requestThread;
     private Timer loadingTimer = new Timer();
 
@@ -108,7 +111,17 @@ public class RestTesterWindow {
     }
 
     private void setupVariableTable() {
-        this.variableTable = new JBTable();
+        this.variableScrollPane = new JBScrollPane();
+        DefaultTableModel model = new DefaultTableModel();
+        this.variableTable = new JBTable(model);
+        this.variableTable.setBorder(BorderFactory.createEmptyBorder());
+        this.variableScrollPane.setBorder(BorderFactory.createEmptyBorder());
+        this.variableScrollPane.add(this.variableTable);
+
+        model.addColumn("Key");
+        model.addColumn("Value");
+
+        model.addRow(new Object[]{"", ""});
     }
 
     private void setupRemoveButton() {

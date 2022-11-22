@@ -224,7 +224,7 @@ public class RequestTreeHandler {
             JsonElement jNodes = wrapper.get("nodes");
 
             if (jNodes == null) {
-                RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not find node array in save file.");
+                RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not find node array in tree save file.");
                 return;
             }
 
@@ -256,7 +256,7 @@ public class RequestTreeHandler {
 
         if (!saveFolder.exists()) {
             if (!saveFolder.mkdir()) {
-                RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not create save folder.");
+                RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not create tree save folder.");
             }
         }
 
@@ -280,7 +280,7 @@ public class RequestTreeHandler {
         try (PrintWriter output = new PrintWriter(saveFile)) {
             output.write(jsonString);
         } catch (Exception ex) {
-            RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not create save file. " + ex.getMessage());
+            RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not create tree save file. " + ex.getMessage());
         }
     }
 

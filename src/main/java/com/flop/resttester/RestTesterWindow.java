@@ -1,6 +1,8 @@
 package com.flop.resttester;
 
 import com.flop.resttester.components.ActionButton;
+import com.flop.resttester.components.UrlInputHandler;
+import com.flop.resttester.environment.VariablesHandler;
 import com.flop.resttester.request.RequestData;
 import com.flop.resttester.request.RequestThread;
 import com.flop.resttester.request.RequestType;
@@ -19,7 +21,7 @@ import java.util.TimerTask;
 
 public class RestTesterWindow {
     private JPanel myToolWindowContent;
-    private JTextField urlInputField;
+    private JTextPane urlInputField;
     private JComboBox<RequestType> requestTypeComboBox;
     private JTextPane resultTextPane;
     private JTabbedPane bodyTabbedPane;
@@ -34,9 +36,12 @@ public class RestTesterWindow {
     private JTable variableTable;
     private JPanel treeActionBar;
     private JScrollPane variableScrollPane;
-    private final RequestTreeHandler treeHandler;
 
     // logic variables
+    private final RequestTreeHandler treeHandler;
+    private final VariablesHandler variablesHandler;
+
+    private final UrlInputHandler urlInputHandler;
     private static int RESULT_TAB_PANE = 4;
     private RequestThread requestThread;
     private Timer loadingTimer = new Timer();
@@ -46,6 +51,10 @@ public class RestTesterWindow {
 
         this.treeHandler = new RequestTreeHandler(this.requestTree, project);
         this.treeHandler.addSelectionListener(this::updateInputs);
+
+        this.variablesHandler = new VariablesHandler(this.variableTable, project);
+
+        this.urlInputHandler = new UrlInputHandler(this.urlInputField);
     }
 
     private void updateInputs(RequestTreeNodeData data) {
@@ -81,7 +90,10 @@ public class RestTesterWindow {
             }
         }, 0, 100);
 
-        RequestData data = new RequestData(this.urlInputField.getText(), this.requestTypeComboBox.getSelectedItem().toString());
+        String rawUrl = this.urlInputField.getText();
+        String url = this.variablesHandler.replaceVariables(rawUrl);
+
+        RequestData data = new RequestData(url, this.requestTypeComboBox.getSelectedItem().toString());
 
         this.requestThread = new RequestThread(data, (success, context) -> {
             this.requestThread = null;
@@ -120,8 +132,6 @@ public class RestTesterWindow {
 
         model.addColumn("Key");
         model.addColumn("Value");
-
-        model.addRow(new Object[]{"", ""});
     }
 
     private void setupRemoveButton() {

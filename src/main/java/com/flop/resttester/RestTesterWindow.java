@@ -1,5 +1,6 @@
 package com.flop.resttester;
 
+import com.flop.resttester.auth.AuthWindow;
 import com.flop.resttester.components.ActionButton;
 import com.flop.resttester.components.UrlInputHandler;
 import com.flop.resttester.environment.VariablesHandler;
@@ -36,15 +37,17 @@ public class RestTesterWindow {
     private JTable variableTable;
     private JPanel treeActionBar;
     private JScrollPane variableScrollPane;
+    private JScrollPane authScrollPane;
 
     // logic variables
     private final RequestTreeHandler treeHandler;
     private final VariablesHandler variablesHandler;
 
     private final UrlInputHandler urlInputHandler;
-    private static int RESULT_TAB_PANE = 4;
+    private static final int RESULT_TAB_PANE = 4;
     private RequestThread requestThread;
     private Timer loadingTimer = new Timer();
+    private AuthWindow authWindow;
 
     public RestTesterWindow(ToolWindow toolWindow, Project project) {
         this.setUpRequestTypes();

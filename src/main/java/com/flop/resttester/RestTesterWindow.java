@@ -54,7 +54,7 @@ public class RestTesterWindow {
 
         this.variablesHandler = new VariablesHandler(this.variableTable, project);
 
-        this.urlInputHandler = new UrlInputHandler(this.urlInputField);
+        this.urlInputHandler = new UrlInputHandler(this.urlInputField, this.variablesHandler);
     }
 
     private void updateInputs(RequestTreeNodeData data) {

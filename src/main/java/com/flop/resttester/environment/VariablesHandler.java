@@ -54,7 +54,7 @@ public class VariablesHandler {
             }
         }
 
-        if (e.getFirstRow() == e.getLastRow() && key.isEmpty() && value.isEmpty()) {
+        if (e.getLastRow() == this.model.getRowCount() && e.getFirstRow() == e.getLastRow() && key.isEmpty() && value.isEmpty()) {
             // last row update event
             return;
         }
@@ -90,7 +90,7 @@ public class VariablesHandler {
             } else {
                 if (isCloseMatch(url, i)) {
                     closed = true;
-                    toReplace.add(url.substring(start, i));
+                    toReplace.add(url.substring(start - 2, i + 2));
                     i += 2;
                     continue;
                 }
@@ -99,9 +99,10 @@ public class VariablesHandler {
         }
 
         List<String> errorKeys = new ArrayList<>();
-        for (String key : toReplace) {
+        for (String variables : toReplace) {
+            String key = variables.substring(2, variables.length() - 2).trim();
             if (this.variables.containsKey(key)) {
-                url = url.replace(key, this.variables.getOrDefault(key.trim(), ""));
+                url = url.replace(variables, this.variables.getOrDefault(key, ""));
             } else {
                 errorKeys.add(key);
             }
@@ -269,5 +270,9 @@ public class VariablesHandler {
 
     public Map<String, String> getVariables() {
         return this.variables;
+    }
+
+    public boolean valid(String key) {
+        return this.variables.containsKey(key);
     }
 }

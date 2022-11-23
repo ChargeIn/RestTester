@@ -7,6 +7,7 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.*;
+import java.awt.*;
 
 public class UrlInputHandler {
 
@@ -16,10 +17,16 @@ public class UrlInputHandler {
     private final AttributeSet variableAttr;
     private final AttributeSet bracketAttr;
 
+    private final AttributeSet invalidAttr;
+
     private String text;
 
-    public UrlInputHandler(JTextPane pane) {
+    private final VariablesHandler variablesHandler;
+
+    public UrlInputHandler(JTextPane pane, VariablesHandler variablesHandler) {
         this.pane = pane;
+        this.variablesHandler = variablesHandler;
+
         this.pane.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedBorder(),
                 BorderFactory.createEmptyBorder(3, 6, 3, 6)));
@@ -30,10 +37,15 @@ public class UrlInputHandler {
         this.defaultStyle.addAttribute(StyleConstants.FontFamily, UIManager.getFont("TextField.font").getFamily());
 
         StyleContext scVariables = StyleContext.getDefaultStyleContext();
-        this.variableAttr = scVariables.addAttribute(this.defaultStyle, StyleConstants.Foreground, JBColor.CYAN);
+        JBColor variableColor = new JBColor(new Color(132, 16, 148), new Color(152, 118, 170));
+        this.variableAttr = scVariables.addAttribute(this.defaultStyle, StyleConstants.Foreground, variableColor);
 
         StyleContext scBrackets = StyleContext.getDefaultStyleContext();
-        this.bracketAttr = scBrackets.addAttribute(this.defaultStyle, StyleConstants.Foreground, JBColor.ORANGE);
+        JBColor bracketColor = new JBColor(new Color(154, 110, 58), new Color(204, 120, 50));
+        this.bracketAttr = scBrackets.addAttribute(this.defaultStyle, StyleConstants.Foreground, bracketColor);
+
+        StyleContext scInvalid = StyleContext.getDefaultStyleContext();
+        this.invalidAttr = scInvalid.addAttribute(this.defaultStyle, StyleConstants.Foreground, JBColor.RED);
 
         this.pane.getDocument().addDocumentListener(new DocumentListener() {
             @Override
@@ -81,7 +93,10 @@ public class UrlInputHandler {
                     } else {
                         if (VariablesHandler.isCloseMatch(text, i)) {
                             closed = true;
-                            doc.setCharacterAttributes(start, i, this.variableAttr, true);
+
+                            boolean valid = this.variablesHandler.valid(text.substring(start, i).trim());
+
+                            doc.setCharacterAttributes(start, i, valid ? this.variableAttr : this.invalidAttr, true);
                             doc.setCharacterAttributes(i, i + 2, this.bracketAttr, true);
                             i += 2;
                             start = i;

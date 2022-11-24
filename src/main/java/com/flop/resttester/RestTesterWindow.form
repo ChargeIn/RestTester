@@ -1,68 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.flop.resttester.RestTesterWindow">
-  <grid id="27dc6" binding="myToolWindowContent" layout-manager="GridLayoutManager" row-count="3" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="27dc6" binding="myToolWindowContent" layout-manager="GridLayoutManager" row-count="4" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
-      <xy x="20" y="20" width="500" height="667"/>
+      <xy x="20" y="20" width="538" height="667"/>
     </constraints>
     <properties/>
     <border type="none"/>
     <children>
-      <grid id="eafff" binding="requestInputPanel" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-        <margin top="0" left="8" bottom="0" right="10"/>
+      <tabbedpane id="fa971" binding="bottomTabbedPane">
         <constraints>
-          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <minimum-size width="-1" height="100"/>
-            <preferred-size width="334" height="78"/>
-            <maximum-size width="-1" height="100"/>
-          </grid>
-        </constraints>
-        <properties/>
-        <border type="none"/>
-        <children>
-          <component id="9dd7f" class="javax.swing.JComboBox" binding="requestTypeComboBox">
-            <constraints>
-              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false">
-                <minimum-size width="90" height="30"/>
-                <preferred-size width="90" height="30"/>
-                <maximum-size width="90" height="30"/>
-              </grid>
-            </constraints>
-            <properties>
-              <model/>
-              <requestFocusEnabled value="true"/>
-            </properties>
-          </component>
-          <component id="e745c" class="com.flop.resttester.components.ActionButton" binding="sendButton" custom-create="true">
-            <constraints>
-              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false">
-                <minimum-size width="44" height="30"/>
-                <preferred-size width="44" height="30"/>
-                <maximum-size width="44" height="30"/>
-              </grid>
-            </constraints>
-            <properties>
-              <alignmentY value="0.5"/>
-              <autoscrolls value="false"/>
-              <borderPainted value="true"/>
-              <contentAreaFilled value="false"/>
-              <rolloverEnabled value="true"/>
-              <text value=""/>
-            </properties>
-          </component>
-          <component id="538c7" class="javax.swing.JTextPane" binding="urlInputField">
-            <constraints>
-              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="8" fill="1" indent="0" use-parent-layout="false">
-                <preferred-size width="150" height="-1"/>
-              </grid>
-            </constraints>
-            <properties/>
-          </component>
-        </children>
-      </grid>
-      <tabbedpane id="fa971" binding="bodyTabbedPane">
-        <constraints>
-          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="5" hsize-policy="5" anchor="0" fill="3" indent="0" use-parent-layout="false">
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="5" hsize-policy="5" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <preferred-size width="200" height="200"/>
           </grid>
         </constraints>
@@ -156,34 +104,9 @@
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <nested-form id="d5bf9" form-file="com/flop/resttester/auth/AuthWindow.form">
+                  <nested-form id="d5bf9" form-file="com/flop/resttester/auth/AuthenticationWindow.form" binding="authWindow">
                     <constraints/>
                   </nested-form>
-                </children>
-              </scrollpane>
-            </children>
-          </grid>
-          <grid id="f974e" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-            <margin top="0" left="0" bottom="0" right="0"/>
-            <constraints>
-              <tabbedpane title="Params"/>
-            </constraints>
-            <properties/>
-            <border type="none"/>
-            <children>
-              <scrollpane id="e7963">
-                <constraints>
-                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties/>
-                <border type="none"/>
-                <children>
-                  <component id="bcdb4" class="javax.swing.JTextPane">
-                    <constraints/>
-                    <properties>
-                      <editable value="false"/>
-                    </properties>
-                  </component>
                 </children>
               </scrollpane>
             </children>
@@ -228,6 +151,54 @@
                       <Table.isFileList class="java.lang.Boolean" value="false"/>
                       <html.disable class="java.lang.Boolean" value="false"/>
                     </clientProperties>
+                  </component>
+                </children>
+              </scrollpane>
+            </children>
+          </grid>
+          <grid id="f974e" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+            <margin top="0" left="0" bottom="0" right="0"/>
+            <constraints>
+              <tabbedpane title="Params"/>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <scrollpane id="e7963">
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="bcdb4" class="javax.swing.JTextPane">
+                    <constraints/>
+                    <properties>
+                      <editable value="false"/>
+                    </properties>
+                  </component>
+                </children>
+              </scrollpane>
+            </children>
+          </grid>
+          <grid id="f77a3" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+            <margin top="0" left="0" bottom="0" right="0"/>
+            <constraints>
+              <tabbedpane title="Body"/>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <scrollpane id="1989">
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <component id="f8854" class="javax.swing.JTextArea" binding="bodyTextInput">
+                    <constraints/>
+                    <properties/>
                   </component>
                 </children>
               </scrollpane>
@@ -303,6 +274,95 @@
               </component>
             </children>
           </grid>
+        </children>
+      </grid>
+      <grid id="eafff" binding="requestInputPanel" layout-manager="GridLayoutManager" row-count="2" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="8" bottom="0" right="10"/>
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
+            <minimum-size width="-1" height="80"/>
+            <preferred-size width="334" height="78"/>
+            <maximum-size width="-1" height="80"/>
+          </grid>
+        </constraints>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="9dd7f" class="javax.swing.JComboBox" binding="requestTypeComboBox">
+            <constraints>
+              <grid row="0" column="0" row-span="2" col-span="1" vsize-policy="1" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false">
+                <minimum-size width="90" height="30"/>
+                <preferred-size width="90" height="30"/>
+                <maximum-size width="90" height="30"/>
+              </grid>
+            </constraints>
+            <properties>
+              <model/>
+              <requestFocusEnabled value="true"/>
+            </properties>
+          </component>
+          <component id="e745c" class="com.flop.resttester.components.ActionButton" binding="sendButton" custom-create="true">
+            <constraints>
+              <grid row="0" column="2" row-span="2" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false">
+                <minimum-size width="44" height="30"/>
+                <preferred-size width="44" height="30"/>
+                <maximum-size width="44" height="30"/>
+              </grid>
+            </constraints>
+            <properties>
+              <alignmentY value="0.5"/>
+              <autoscrolls value="false"/>
+              <borderPainted value="true"/>
+              <contentAreaFilled value="false"/>
+              <rolloverEnabled value="true"/>
+              <text value=""/>
+            </properties>
+          </component>
+          <component id="538c7" class="javax.swing.JTextPane" binding="urlInputField">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="150" height="-1"/>
+              </grid>
+            </constraints>
+            <properties/>
+          </component>
+        </children>
+      </grid>
+      <grid id="5cdb1" layout-manager="GridLayoutManager" row-count="1" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="15" bottom="0" right="0"/>
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="5" anchor="0" fill="1" indent="0" use-parent-layout="false">
+            <minimum-size width="-1" height="50"/>
+            <preferred-size width="-1" height="50"/>
+            <maximum-size width="-1" height="50"/>
+          </grid>
+        </constraints>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="d3ffb" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Authentication"/>
+            </properties>
+          </component>
+          <hspacer id="e6a0b">
+            <constraints>
+              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </hspacer>
+          <component id="dc317" class="javax.swing.JComboBox" binding="authComboBox">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <minimum-size width="175" height="-1"/>
+                <preferred-size width="175" height="-1"/>
+                <maximum-size width="175" height="-1"/>
+              </grid>
+            </constraints>
+            <properties/>
+          </component>
         </children>
       </grid>
     </children>

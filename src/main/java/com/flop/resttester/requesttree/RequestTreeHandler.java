@@ -1,6 +1,7 @@
 package com.flop.resttester.requesttree;
 
 import com.flop.resttester.RestTesterNotifier;
+import com.flop.resttester.auth.AuthenticationData;
 import com.flop.resttester.request.RequestType;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -67,9 +68,9 @@ public class RequestTreeHandler {
         });
     }
 
-    public void addRequest(String url, RequestType type) {
+    public void addRequest(String url, RequestType type, AuthenticationData data) {
 
-        RequestTreeNodeData newNodeData = new RequestTreeNodeData(url, type);
+        RequestTreeNodeData newNodeData = new RequestTreeNodeData(url, type, data);
         String basePath = newNodeData.getPathForDepth(0);
 
         RequestTreeNode root = (RequestTreeNode) this.tree.getModel().getRoot();
@@ -231,7 +232,14 @@ public class RequestTreeHandler {
             JsonArray nodesArray = jNodes.getAsJsonArray();
 
             for (int i = 0; i < nodesArray.size(); i++) {
-                this.root.add(this.json2TreeNode(nodesArray.get(i).getAsJsonObject()));
+                JsonObject obj = nodesArray.get(i).getAsJsonObject();
+                RequestTreeNode newNode = RequestTreeNode.createFromJson(obj);
+                this.root.add(newNode);
+
+                if (obj.has("expanded")) {
+                    this.nodes2Expand.add(newNode);
+                }
+
             }
 
 
@@ -267,7 +275,7 @@ public class RequestTreeHandler {
 
         RequestTreeNode root = (RequestTreeNode) this.tree.getModel().getRoot();
         for (int i = 0; i < root.getChildCount(); i++) {
-            JsonObject jChild = this.treeNode2JSON((RequestTreeNode) root.getChildAt(i));
+            JsonObject jChild = ((RequestTreeNode) root.getChildAt(i)).getAsJson(this.tree);
             jNodes.add(jChild);
         }
 
@@ -284,92 +292,7 @@ public class RequestTreeHandler {
         }
     }
 
-    private JsonObject treeNode2JSON(RequestTreeNode node) {
-        RequestTreeNodeData data = node.getRequestData();
-
-        JsonObject jNode = new JsonObject();
-        jNode.addProperty("url", data.getUrl());
-        jNode.addProperty("depth", data.getDepth());
-
-        if (data.getType() != null) {
-            jNode.addProperty("type", data.getType().toString());
-        }
-
-        if (node.getChildCount() > 0) {
-            jNode.addProperty("expanded", this.tree.isExpanded(new TreePath(node.getPath())));
-            JsonArray childArray = new JsonArray();
-
-            for (int i = 0; i < node.getChildCount(); i++) {
-                childArray.add(this.treeNode2JSON((RequestTreeNode) node.getChildAt(i)));
-            }
-            jNode.add("children", childArray);
-        }
-
-        return jNode;
-    }
-
-    private RequestTreeNode json2TreeNode(JsonObject obj) {
-        JsonElement jUrl = obj.get("url");
-        if (jUrl == null) {
-            throw new RuntimeException("Node element has no url.");
-        }
-        String url = jUrl.getAsString();
-
-
-        RequestType type = null;
-        JsonElement jType = obj.get("type");
-        if (jType != null) {
-            type = RequestType.valueOf(jType.getAsString());
-        }
-
-
-        JsonElement jDepth = obj.get("depth");
-        if (jDepth == null) {
-            throw new RuntimeException("Node element has no depth attribute.");
-        }
-        int depth = jDepth.getAsInt();
-
-        boolean expanded = false;
-        JsonElement jExpanded = obj.get("expanded");
-        if (jExpanded != null) {
-            expanded = jExpanded.getAsBoolean();
-        }
-
-        List<RequestTreeNode> childNodes = new ArrayList<>();
-        JsonElement jChildren = obj.get("children");
-        if (jChildren != null) {
-
-            JsonArray childArray = jChildren.getAsJsonArray();
-
-            for (int i = 0; i < childArray.size(); i++) {
-                childNodes.add(this.json2TreeNode(childArray.get(i).getAsJsonObject()));
-            }
-        }
-
-        RequestTreeNodeData data;
-        if (type != null) {
-            data = new RequestTreeNodeData(url, type);
-        } else {
-            data = new RequestTreeNodeData(url);
-        }
-        data.setDepth(depth);
-
-        RequestTreeNode newNode = new RequestTreeNode(data);
-
-        if (!childNodes.isEmpty()) {
-            for (RequestTreeNode child : childNodes) {
-                newNode.add(child);
-            }
-        }
-
-        if (expanded) {
-            this.nodes2Expand.add(newNode);
-        }
-
-        return newNode;
-    }
-
-    public void removeSelection() {
+    public void deleteSelection() {
         TreePath path = this.tree.getSelectionPath();
 
         if (path == null) {

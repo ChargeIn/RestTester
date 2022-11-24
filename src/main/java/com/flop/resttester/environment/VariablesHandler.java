@@ -70,7 +70,7 @@ public class VariablesHandler {
         this.saveTable();
     }
 
-    public String replaceVariables(String url) {
+    public String replaceVariables(String string) {
 
         int start = 0;
         int i = 0;
@@ -79,18 +79,18 @@ public class VariablesHandler {
 
         boolean closed = true;
 
-        while (i < url.length()) {
+        while (i < string.length()) {
             if (closed) {
-                if (isOpenMatch(url, i)) {
+                if (isOpenMatch(string, i)) {
                     closed = false;
                     i += 2;
                     start = i;
                     continue;
                 }
             } else {
-                if (isCloseMatch(url, i)) {
+                if (isCloseMatch(string, i)) {
                     closed = true;
-                    toReplace.add(url.substring(start - 2, i + 2));
+                    toReplace.add(string.substring(start - 2, i + 2));
                     i += 2;
                     continue;
                 }
@@ -102,7 +102,7 @@ public class VariablesHandler {
         for (String variables : toReplace) {
             String key = variables.substring(2, variables.length() - 2).trim();
             if (this.variables.containsKey(key)) {
-                url = url.replace(variables, this.variables.getOrDefault(key, ""));
+                string = string.replace(variables, this.variables.getOrDefault(key, ""));
             } else {
                 errorKeys.add(key);
             }
@@ -112,7 +112,7 @@ public class VariablesHandler {
             RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not find replacements for following variables: " + String.join(", ", errorKeys));
         }
 
-        return url;
+        return string;
     }
 
     public static boolean isOpenMatch(String url, int start) {

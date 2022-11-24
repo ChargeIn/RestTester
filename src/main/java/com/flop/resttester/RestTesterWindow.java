@@ -1,6 +1,7 @@
 package com.flop.resttester;
 
-import com.flop.resttester.auth.AuthWindow;
+import com.flop.resttester.auth.AuthenticationData;
+import com.flop.resttester.auth.AuthenticationWindow;
 import com.flop.resttester.components.ActionButton;
 import com.flop.resttester.components.UrlInputHandler;
 import com.flop.resttester.environment.VariablesHandler;
@@ -17,6 +18,8 @@ import com.intellij.ui.table.JBTable;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -25,7 +28,7 @@ public class RestTesterWindow {
     private JTextPane urlInputField;
     private JComboBox<RequestType> requestTypeComboBox;
     private JTextPane resultTextPane;
-    private JTabbedPane bodyTabbedPane;
+    private JTabbedPane bottomTabbedPane;
     private JScrollPane resultScrollPane;
     private JTree requestTree;
     private ActionButton removeTreeSelectionButton;
@@ -38,16 +41,18 @@ public class RestTesterWindow {
     private JPanel treeActionBar;
     private JScrollPane variableScrollPane;
     private JScrollPane authScrollPane;
+    private AuthenticationWindow authWindow;
+    private JComboBox<AuthenticationData> authComboBox;
+    private JTextArea bodyTextInput;
 
     // logic variables
     private final RequestTreeHandler treeHandler;
     private final VariablesHandler variablesHandler;
 
     private final UrlInputHandler urlInputHandler;
-    private static final int RESULT_TAB_PANE = 4;
+    private static final int RESULT_TAB_PANE = 5;
     private RequestThread requestThread;
     private Timer loadingTimer = new Timer();
-    private AuthWindow authWindow;
 
     public RestTesterWindow(ToolWindow toolWindow, Project project) {
         this.setUpRequestTypes();
@@ -58,6 +63,20 @@ public class RestTesterWindow {
         this.variablesHandler = new VariablesHandler(this.variableTable, project);
 
         this.urlInputHandler = new UrlInputHandler(this.urlInputField, this.variablesHandler);
+
+        this.authWindow.setProject(project);
+        this.authWindow.setAuthenticationListChangeListener(this::updateAuthBox);
+        this.updateAuthBox(new ArrayList<>());
+    }
+
+    private void updateAuthBox(List<AuthenticationData> data) {
+        this.authComboBox.removeAll();
+        this.authComboBox.addItem(new AuthenticationData("None", "", ""));
+
+        for (AuthenticationData datum : data) {
+            this.authComboBox.addItem(datum);
+        }
+        this.authComboBox.setSelectedIndex(0);
     }
 
     private void updateInputs(RequestTreeNodeData data) {
@@ -82,7 +101,7 @@ public class RestTesterWindow {
         }
 
         this.resultTextPane.setText("Loading...");
-        this.bodyTabbedPane.setSelectedIndex(RestTesterWindow.RESULT_TAB_PANE);
+        this.bottomTabbedPane.setSelectedIndex(RestTesterWindow.RESULT_TAB_PANE);
 
         this.loadingTimer = new Timer();
         this.loadingTimer.schedule(new TimerTask() {
@@ -95,8 +114,17 @@ public class RestTesterWindow {
 
         String rawUrl = this.urlInputField.getText();
         String url = this.variablesHandler.replaceVariables(rawUrl);
+        String body = this.bodyTextInput.getText();
 
-        RequestData data = new RequestData(url, this.requestTypeComboBox.getSelectedItem().toString());
+        AuthenticationData authData = (AuthenticationData) this.authComboBox.getSelectedItem();
+        AuthenticationData replaceData = authData.createReplacedClone(this.variablesHandler);
+
+        RequestData data = new RequestData(
+                url,
+                (RequestType) this.requestTypeComboBox.getSelectedItem(),
+                authData,
+                body
+        );
 
         this.requestThread = new RequestThread(data, (success, context) -> {
             this.requestThread = null;
@@ -115,7 +143,8 @@ public class RestTesterWindow {
             return;
         }
         RequestType type = (RequestType) this.requestTypeComboBox.getSelectedItem();
-        this.treeHandler.addRequest(url, type);
+        AuthenticationData authData = (AuthenticationData) this.authComboBox.getSelectedItem();
+        this.treeHandler.addRequest(url, type, authData);
     }
 
     private void createUIComponents() {
@@ -139,7 +168,7 @@ public class RestTesterWindow {
 
     private void setupRemoveButton() {
         this.removeTreeSelectionButton = new ActionButton("", AllIcons.Vcs.Remove);
-        this.removeTreeSelectionButton.addActionListener((e) -> this.treeHandler.removeSelection());
+        this.removeTreeSelectionButton.addActionListener((e) -> this.treeHandler.deleteSelection());
         this.removeTreeSelectionButton.setEnabled(false);
     }
 

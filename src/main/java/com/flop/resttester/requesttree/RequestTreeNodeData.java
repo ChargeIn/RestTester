@@ -1,5 +1,6 @@
 package com.flop.resttester.requesttree;
 
+import com.flop.resttester.auth.AuthenticationData;
 import com.flop.resttester.request.RequestType;
 
 import java.net.URL;
@@ -17,13 +18,16 @@ public class RequestTreeNodeData {
 
     private String[] pathElements;
 
+    private AuthenticationData authData;
+
     // group nodes
     public RequestTreeNodeData(String url) {
         this.setUrl(url);
     }
 
-    public RequestTreeNodeData(String url, RequestType type) {
+    public RequestTreeNodeData(String url, RequestType type, AuthenticationData authData) {
         this.type = type;
+        this.authData = authData;
         this.setUrl(url);
     }
 
@@ -108,5 +112,9 @@ public class RequestTreeNodeData {
         // updating depth is not needed
         this.setType(newNodeData.getType());
         this.setUrl(newNodeData.getUrl());
+    }
+
+    public AuthenticationData getAuthenticationData() {
+        return this.authData;
     }
 }

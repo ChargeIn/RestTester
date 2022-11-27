@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.flop.resttester.RestTesterWindow">
+  <grid id="27dc6" binding="myToolWindowContent" layout-manager="GridLayoutManager" row-count="5" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+    <margin top="0" left="0" bottom="0" right="0"/>
+    <constraints>
+      <xy x="20" y="20" width="696" height="667"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <grid id="78094" binding="topPanel" layout-manager="GridLayoutManager" row-count="1" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="10" left="15" bottom="0" right="5"/>
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <hspacer id="f2fd8">
+            <constraints>
+              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </hspacer>
+          <grid id="8029f" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+            <margin top="0" left="0" bottom="0" right="0"/>
+            <constraints>
+              <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="-1" height="30"/>
+              </grid>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <component id="4a591" class="com.flop.resttester.components.ActionButton" binding="saveButton" custom-create="true">
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false">
+                    <minimum-size width="30" height="30"/>
+                    <preferred-size width="30" height="30"/>
+                    <maximum-size width="30" height="30"/>
+                  </grid>
+                </constraints>
+                <properties>
+                  <alignmentX value="0.5"/>
+                  <alignmentY value="0.5"/>
+                  <autoscrolls value="false"/>
+                  <borderPainted value="false"/>
+                  <contentAreaFilled value="false"/>
+                  <rolloverEnabled value="true"/>
+                  <text value=""/>
+                </properties>
+              </component>
+            </children>
+          </grid>
+          <component id="a1209" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Name"/>
+            </properties>
+          </component>
+          <component id="7b926" class="javax.swing.JTextField" binding="nameInputField">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="150" height="-1"/>
+              </grid>
+            </constraints>
+            <properties/>
+          </component>
+        </children>
+      </grid>
+      <grid id="eafff" binding="requestInputPanel" layout-manager="GridLayoutManager" row-count="2" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="8" bottom="0" right="10"/>
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
+            <minimum-size width="-1" height="80"/>
+            <preferred-size width="334" height="78"/>
+            <maximum-size width="-1" height="80"/>
+          </grid>
+        </constraints>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="9dd7f" class="javax.swing.JComboBox" binding="requestTypeComboBox">
+            <constraints>
+              <grid row="0" column="0" row-span="2" col-span="1" vsize-policy="1" hsize-policy="0" anchor="0" fill="1" indent="0" use-parent-layout="false">
+                <minimum-size width="90" height="30"/>
+                <preferred-size width="90" height="30"/>
+                <maximum-size width="90" height="30"/>
+              </grid>
+            </constraints>
+            <properties>
+              <model/>
+              <requestFocusEnabled value="true"/>
+            </properties>
+          </component>
+          <component id="e745c" class="com.flop.resttester.components.ActionButton" binding="sendButton" custom-create="true">
+            <constraints>
+              <grid row="0" column="2" row-span="2" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false">
+                <minimum-size width="44" height="30"/>
+                <preferred-size width="44" height="30"/>
+                <maximum-size width="44" height="30"/>
+              </grid>
+            </constraints>
+            <properties>
+              <alignmentY value="0.5"/>
+              <autoscrolls value="false"/>
+              <borderPainted value="true"/>
+              <contentAreaFilled value="false"/>
+              <rolloverEnabled value="true"/>
+              <text value=""/>
+            </properties>
+          </component>
+          <component id="538c7" class="javax.swing.JTextPane" binding="urlInputField">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="7" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="150" height="-1"/>
+              </grid>
+            </constraints>
+            <properties/>
+          </component>
+        </children>
+      </grid>
+      <grid id="5cdb1" layout-manager="GridLayoutManager" row-count="1" column-count="5" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="15" bottom="0" right="15"/>
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="5" anchor="0" fill="1" indent="0" use-parent-layout="false">
+            <minimum-size width="-1" height="50"/>
+            <preferred-size width="-1" height="50"/>
+            <maximum-size width="-1" height="50"/>
+          </grid>
+        </constraints>
+        <properties/>
+        <border type="none"/>
+        <children>
+          <component id="d3ffb" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Authentication"/>
+            </properties>
+          </component>
+          <hspacer id="e6a0b">
+            <constraints>
+              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </hspacer>
+          <component id="dc317" class="javax.swing.JComboBox" binding="authComboBox">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <minimum-size width="175" height="-1"/>
+                <preferred-size width="175" height="-1"/>
+                <maximum-size width="175" height="-1"/>
+              </grid>
+            </constraints>
+            <properties/>
+          </component>
+        </children>
+      </grid>
+      <splitpane id="75a11" binding="splitPane">
+        <constraints>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <dividerSize value="0"/>
+          <orientation value="0"/>
+          <resizeWeight value="0.4"/>
+        </properties>
+        <border type="none"/>
+        <children>
+          <tabbedpane id="c4ff" binding="bottomTabbedPane">
+            <constraints>
+              <splitpane position="right"/>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <grid id="c62d9" layout-manager="GridLayoutManager" row-count="2" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <tabbedpane title="Requests"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <scrollpane id="8ee53">
+                    <constraints>
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="5" hsize-policy="5" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <grid id="3cb29" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                        <margin top="5" left="0" bottom="5" right="0"/>
+                        <constraints/>
+                        <properties>
+                          <doubleBuffered value="true"/>
+                        </properties>
+                        <border type="none"/>
+                        <children>
+                          <component id="dd593" class="javax.swing.JTree" binding="requestTree">
+                            <constraints>
+                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                            </constraints>
+                            <properties>
+                              <autoscrolls value="false"/>
+                            </properties>
+                          </component>
+                        </children>
+                      </grid>
+                    </children>
+                  </scrollpane>
+                  <grid id="8d0a9" binding="treeActionBar" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                    <margin top="0" left="0" bottom="0" right="0"/>
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="5" hsize-policy="5" anchor="0" fill="3" indent="0" use-parent-layout="true">
+                        <maximum-size width="-1" height="30"/>
+                      </grid>
+                    </constraints>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <hspacer id="993f8">
+                        <constraints>
+                          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                      </hspacer>
+                      <component id="bc3b2" class="com.flop.resttester.components.ActionButton" binding="removeTreeSelectionButton" custom-create="true">
+                        <constraints>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false">
+                            <minimum-size width="30" height="30"/>
+                            <preferred-size width="30" height="30"/>
+                            <maximum-size width="30" height="30"/>
+                          </grid>
+                        </constraints>
+                        <properties>
+                          <alignmentX value="0.5"/>
+                          <alignmentY value="0.5"/>
+                          <autoscrolls value="false"/>
+                          <borderPainted value="false"/>
+                          <contentAreaFilled value="false"/>
+                          <rolloverEnabled value="true"/>
+                          <text value=""/>
+                        </properties>
+                      </component>
+                    </children>
+                  </grid>
+                </children>
+              </grid>
+              <grid id="22937" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <tabbedpane title="Auth"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <scrollpane id="95606" binding="authScrollPane">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="5" hsize-policy="5" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <nested-form id="d5bf9" form-file="com/flop/resttester/auth/AuthenticationWindow.form" binding="authWindow">
+                        <constraints/>
+                      </nested-form>
+                    </children>
+                  </scrollpane>
+                </children>
+              </grid>
+              <grid id="f24bf" binding="variablePanel" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <tabbedpane title="Variables"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <scrollpane id="4c60" binding="variableScrollPane" custom-create="true">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="5" hsize-policy="5" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <alignmentX value="0.5"/>
+                      <alignmentY value="0.5"/>
+                      <autoscrolls value="false"/>
+                      <visible value="true"/>
+                      <wheelScrollingEnabled value="true"/>
+                    </properties>
+                    <border type="none"/>
+                    <children>
+                      <component id="703d" class="javax.swing.JTable" binding="variableTable" custom-create="true">
+                        <constraints/>
+                        <properties>
+                          <alignmentX value="1.0"/>
+                          <alignmentY value="1.0"/>
+                          <autoCreateColumnsFromModel value="false"/>
+                          <autoCreateRowSorter value="true"/>
+                          <autoscrolls value="true"/>
+                          <enabled value="true"/>
+                          <intercellSpacing width="10" height="0"/>
+                          <preferredScrollableViewportSize width="-1" height="-1"/>
+                          <preferredSize width="-1" height="-1"/>
+                          <requestFocusEnabled value="false"/>
+                          <rowMargin value="0"/>
+                        </properties>
+                        <clientProperties>
+                          <Table.isFileList class="java.lang.Boolean" value="false"/>
+                          <html.disable class="java.lang.Boolean" value="false"/>
+                        </clientProperties>
+                      </component>
+                    </children>
+                  </scrollpane>
+                </children>
+              </grid>
+            </children>
+          </tabbedpane>
+          <tabbedpane id="80f58" binding="topTabbedPane">
+            <constraints>
+              <splitpane position="left"/>
+            </constraints>
+            <properties/>
+            <border type="none"/>
+            <children>
+              <grid id="654f6" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <tabbedpane title="Params"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <scrollpane id="aa2b3" binding="paramsScrollPane" custom-create="true">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <component id="8506e" class="javax.swing.JTable" binding="paramsTable" custom-create="true">
+                        <constraints/>
+                        <properties>
+                          <alignmentX value="1.0"/>
+                          <alignmentY value="1.0"/>
+                          <autoCreateColumnsFromModel value="false"/>
+                          <autoCreateRowSorter value="true"/>
+                          <autoscrolls value="true"/>
+                          <enabled value="true"/>
+                          <intercellSpacing width="10" height="0"/>
+                          <preferredScrollableViewportSize width="-1" height="-1"/>
+                          <preferredSize width="-1" height="-1"/>
+                          <requestFocusEnabled value="false"/>
+                          <rowMargin value="0"/>
+                        </properties>
+                        <clientProperties>
+                          <Table.isFileList class="java.lang.Boolean" value="false"/>
+                          <html.disable class="java.lang.Boolean" value="false"/>
+                        </clientProperties>
+                      </component>
+                    </children>
+                  </scrollpane>
+                </children>
+              </grid>
+              <grid id="c4b6" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <tabbedpane title="Body"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <scrollpane id="59b29">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <component id="74652" class="javax.swing.JTextArea" binding="bodyTextInput">
+                        <constraints/>
+                        <properties/>
+                      </component>
+                    </children>
+                  </scrollpane>
+                </children>
+              </grid>
+              <grid id="b9afe" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                <margin top="0" left="0" bottom="0" right="0"/>
+                <constraints>
+                  <tabbedpane title="Result"/>
+                </constraints>
+                <properties/>
+                <border type="none"/>
+                <children>
+                  <scrollpane id="2ffe2" binding="resultScrollPane">
+                    <constraints>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="5" hsize-policy="5" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties/>
+                    <border type="none"/>
+                    <children>
+                      <component id="34afe" class="javax.swing.JTextPane" binding="resultTextPane">
+                        <constraints/>
+                        <properties>
+                          <editable value="false"/>
+                        </properties>
+                      </component>
+                    </children>
+                  </scrollpane>
+                </children>
+              </grid>
+            </children>
+          </tabbedpane>
+        </children>
+      </splitpane>
+    </children>
+  </grid>
+</form>

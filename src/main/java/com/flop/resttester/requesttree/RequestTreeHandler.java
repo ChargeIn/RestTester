@@ -70,7 +70,6 @@ public class RequestTreeHandler {
     }
 
     public void addRequest(String url, String tag, RequestType type, AuthenticationData data, List<QueryParam> params) {
-
         RequestTreeNodeData newNodeData = new RequestTreeNodeData(url, tag, type, data.getName(), params);
         String basePath = newNodeData.getPathForDepth(0);
 
@@ -94,7 +93,6 @@ public class RequestTreeHandler {
         RequestTreeNode newNode = new RequestTreeNode(newNodeData);
         newGroup.add(newNode);
         root.add(newGroup);
-
 
         // make sure the root is expanded
         this.tree.expandPath(new TreePath(newGroup.getPath()));
@@ -150,13 +148,12 @@ public class RequestTreeHandler {
                     RequestTreeNode child = ((RequestTreeNode) node.getChildAt(i));
                     RequestTreeNodeData childNodeData = child.getRequestData();
 
-
                     String p = childNodeData.getPathForDepth(depth);
 
                     if (p != null && p.equals(newNodeData.getPathForDepth(depth))) {
                         this.addEntry(child, newNodeData, depth, pathToNewGroup);
                         return;
-                    } else if (p == null && newNodeData.getPathForDepth(depth) == null) {
+                    } else if (p == null && newNodeData.getPathForDepth(depth) == null && childNodeData.getID().equals(newNodeData.getID())) {
                         // special case if both nodes are equal the group name
                         nodeData.update(newNodeData);
                         return;
@@ -200,19 +197,16 @@ public class RequestTreeHandler {
         }
 
         File saveFolder = new File(this.project.getBasePath(), RequestTreeHandler.SAVE_FOLDER_STR);
-
         if (!saveFolder.exists()) {
             return;
         }
 
         File saveFile = new File(saveFolder, RequestTreeHandler.SAVE_FILE_STR);
-
         if (!saveFile.exists()) {
             return;
         }
 
         this.nodes2Expand = new ArrayList<>();
-
         try {
             JsonElement file = JsonParser.parseReader(new InputStreamReader(new FileInputStream(saveFile)));
 
@@ -240,9 +234,7 @@ public class RequestTreeHandler {
                 if (obj.has("expanded")) {
                     this.nodes2Expand.add(newNode);
                 }
-
             }
-
 
             for (RequestTreeNode node : this.nodes2Expand) {
                 this.tree.expandPath(new TreePath(node.getPath()));
@@ -268,10 +260,7 @@ public class RequestTreeHandler {
                 RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not create tree save folder.");
             }
         }
-
         File saveFile = new File(saveFolder, RequestTreeHandler.SAVE_FILE_STR);
-
-
         JsonArray jNodes = new JsonArray();
 
         RequestTreeNode root = (RequestTreeNode) this.tree.getModel().getRoot();

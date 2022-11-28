@@ -13,6 +13,7 @@ import javax.swing.tree.TreePath;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 public class RequestTreeNode extends DefaultMutableTreeNode {
     private final Comparator<TreeNode> comparator = new RequestTreeNodeComparator();
@@ -42,14 +43,14 @@ public class RequestTreeNode extends DefaultMutableTreeNode {
         }
         String tag = obj.get("tag").getAsString();
 
-        if(!obj.has("params")) {
-            throw new RuntimeException("Node element has no query params.");
-        }
-        JsonArray jParams = obj.get("params").getAsJsonArray();
+        List<QueryParam> params = null;
+        if(obj.has("params")) {
+            params = new ArrayList<>();
+            JsonArray jParams = obj.get("params").getAsJsonArray();
 
-        List<QueryParam> params = new ArrayList<>();
-        for(int i = 0; i < jParams.size(); i++) {
-            params.add(QueryParam.createFromJson(jParams.get(i).getAsJsonObject()));
+            for(int i = 0; i < jParams.size(); i++) {
+                params.add(QueryParam.createFromJson(jParams.get(i).getAsJsonObject()));
+            }
         }
 
         RequestType type = null;
@@ -78,7 +79,7 @@ public class RequestTreeNode extends DefaultMutableTreeNode {
         }
 
         RequestTreeNodeData data;
-        if (type != null && authDataKey != null) {
+        if (type != null && authDataKey != null && params != null) {
             data = new RequestTreeNodeData(url, tag, type, authDataKey, params);
         } else {
             data = new RequestTreeNodeData(url);
@@ -103,15 +104,19 @@ public class RequestTreeNode extends DefaultMutableTreeNode {
         jNode.addProperty("tag", data.getTag());
         jNode.addProperty("depth", data.getDepth());
 
-        JsonArray jParams = new JsonArray();
-
-        for(QueryParam param: data.getParams()) {
-            jParams.add(param.getAsJson());
-        }
-        jNode.add("params", jParams);
-
         if (data.getType() != null) {
             jNode.addProperty("type", data.getType().toString());
+        }
+
+        if(data.getParams() != null) {
+            JsonArray jParams = new JsonArray();
+
+            for(QueryParam param: data.getParams()) {
+                if(!Objects.equals(param.key, "")){
+                    jParams.add(param.getAsJson());
+                }
+            }
+            jNode.add("params", jParams);
         }
 
         if (this.getChildCount() > 0) {

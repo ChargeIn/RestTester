@@ -2,6 +2,7 @@ package com.flop.resttester.request;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,17 +11,23 @@ public class QueryParameterHandler {
     private final JTable table;
     private final DefaultTableModel model;
 
+    private TableModelListener listener = this::tableChanged;
+
     public QueryParameterHandler(JTable table) {
         this.table = table;
         this.model = (DefaultTableModel) this.table.getModel();
         this.model.addRow(new String[]{"", ""});
 
-        this.model.addTableModelListener(this::tableChanged);
+        this.model.addTableModelListener(this.listener);
     }
 
     public void tableChanged(TableModelEvent e) {
-        int lastRow = this.model.getRowCount() - 1;
+        if(this.model.getRowCount() == 0) {
+            this.model.addRow(new String[]{"", ""});
+            return;
+        }
 
+        int lastRow = this.model.getRowCount() - 1;
         String key = (String) this.model.getValueAt(lastRow, 0);
         String value = (String) this.model.getValueAt(lastRow, 1);
 
@@ -28,11 +35,6 @@ public class QueryParameterHandler {
             if (!key.isEmpty() || !value.isEmpty()) {
                 this.model.addRow(new String[]{"", ""});
             }
-        }
-
-        if (e.getLastRow() == this.model.getRowCount() && e.getFirstRow() == e.getLastRow() && key.isEmpty() && value.isEmpty()) {
-            // last row update event
-            return;
         }
     }
 
@@ -51,10 +53,17 @@ public class QueryParameterHandler {
     }
 
     public void loadParams(List<QueryParam> params) {
-        this.model.setColumnCount(0);
+        this.model.removeTableModelListener(this.listener);
+
+        while(this.model.getRowCount() > 0){
+            this.model.removeRow(0);
+        }
 
         for (QueryParam param : params) {
             this.model.addRow(new String[]{param.key, param.value});
         }
+        this.model.addRow(new String[] { "", "" });
+
+        this.model.addTableModelListener(this.listener);
     }
 }

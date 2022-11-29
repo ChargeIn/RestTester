@@ -8,7 +8,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 
 import javax.swing.*;
@@ -45,17 +44,13 @@ public class RequestTreeHandler {
     }
 
     private void initTree() {
-        UIManager.put("Tree.closedIcon", AllIcons.Nodes.Folder);
-        UIManager.put("Tree.openIcon", AllIcons.Nodes.Folder);
-        UIManager.put("Tree.leafIcon", AllIcons.Javaee.WebService);
-        this.tree.updateUI();
-
-        this.root = new RequestTreeNode("");
-
         this.tree.removeAll();
+        this.root = new RequestTreeNode(new RequestTreeNodeData(""));
         TreeModel model = new DefaultTreeModel(this.root);
         this.tree.setModel(model);
         this.tree.setRootVisible(false);
+        this.tree.setCellRenderer(new RequestTreeCellRenderer());
+        this.tree.updateUI();
     }
 
     public void addSelectionListener(RequestTreeSelectionListener rtsl) {
@@ -155,7 +150,7 @@ public class RequestTreeHandler {
                         return;
                     } else if (p == null && newNodeData.getPathForDepth(depth) == null && childNodeData.getID().equals(newNodeData.getID())) {
                         // special case if both nodes are equal the group name
-                        nodeData.update(newNodeData);
+                        childNodeData.update(newNodeData);
                         return;
                     }
                 }

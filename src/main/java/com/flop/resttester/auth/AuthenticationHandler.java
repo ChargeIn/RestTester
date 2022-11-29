@@ -5,7 +5,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 
 import javax.swing.*;
@@ -88,11 +87,7 @@ public class AuthenticationHandler {
     }
 
     private void initTree() {
-        UIManager.put("Tree.closedIcon", AllIcons.Nodes.Folder);
-        UIManager.put("Tree.openIcon", AllIcons.Nodes.Folder);
-        UIManager.put("Tree.leafIcon", AllIcons.CodeWithMe.CwmPermissions);
-
-        this.root = new AuthenticationNode("");
+        this.root = new AuthenticationNode(new AuthenticationData("", ""));
 
         this.tree.removeAll();
         TreeModel model = new DefaultTreeModel(this.root);
@@ -100,6 +95,7 @@ public class AuthenticationHandler {
         this.tree.setRootVisible(false);
         this.tree.expandPath(new TreePath(this.root.getPath()));
         this.tree.setBorder(BorderFactory.createEmptyBorder());
+        this.tree.setCellRenderer(new AuthenticationTreeCellRenderer());
         this.tree.updateUI();
 
         this.tree.addTreeSelectionListener((e) ->

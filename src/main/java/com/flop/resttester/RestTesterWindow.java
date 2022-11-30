@@ -90,11 +90,23 @@ public class RestTesterWindow {
     }
 
     private void updateInputs(RequestTreeNodeData data) {
+        if(data.isGroup()) {
+            return;
+        }
+
         this.urlInputField.setText(data.getUrl());
         this.nameInputField.setText(data.getTag());
         this.removeTreeSelectionButton.setEnabled(true);
         this.removeTreeSelectionButton.updateUI();
         this.paramHandler.loadParams(data.getParams());
+        this.bodyTextInput.setText(data.getBody());
+
+        for(int i = 0; i < this.requestTypeComboBox.getItemCount(); i++) {
+            if(data.getType() == this.requestTypeComboBox.getItemAt(i)){
+                this.requestTypeComboBox.setSelectedIndex(i);
+                break;
+            }
+        }
 
         for (int i = 0; i < this.authComboBox.getItemCount(); i++) {
             if (this.authComboBox.getItemAt(i).getName().equals(data.getAuthenticationDataKey())) {
@@ -106,7 +118,6 @@ public class RestTesterWindow {
         if (this.project != null) {
             RestTesterNotifier.notifyError(this.project, "Could not find authentication data with name " + data.getAuthenticationDataKey());
         }
-
         this.authComboBox.setSelectedIndex(0);
     }
 
@@ -172,7 +183,9 @@ public class RestTesterWindow {
         AuthenticationData authData = (AuthenticationData) this.authComboBox.getSelectedItem();
         String tag = this.nameInputField.getText();
         List<QueryParam> params = this.paramHandler.getParams();
-        this.treeHandler.addRequest(url, tag, type, authData, params);
+        String body = this.bodyTextInput.getText();
+        RequestTreeNodeData newNodeData = new RequestTreeNodeData(url, tag, type, authData.getName(), params, body);
+        this.treeHandler.addRequest(newNodeData);
     }
 
     private void createUIComponents() {

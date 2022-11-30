@@ -26,16 +26,26 @@ public class RequestTreeNodeData {
 
     private List<QueryParam> params;
 
+    private String body;
+
     // group nodes
     public RequestTreeNodeData(String url) {
         this.setUrl(url);
     }
 
-    public RequestTreeNodeData(String url, String tag, RequestType type, String authDataKey, List<QueryParam> params) {
+    public RequestTreeNodeData(
+            String url,
+            String tag,
+            RequestType type,
+            String authDataKey,
+            List<QueryParam> params,
+            String body
+    ) {
         this.type = type;
         this.tag = tag;
         this.authDataKey = authDataKey;
         this.params = params;
+        this.body = body;
         this.setUrl(url);
     }
 
@@ -131,10 +141,12 @@ public class RequestTreeNodeData {
         this.type = type;
     }
 
-    public void update(RequestTreeNodeData newNodeData) {
-        // updating depth is not needed
-        this.setType(newNodeData.getType());
-        this.setUrl(newNodeData.getUrl());
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
     }
 
     public String getAuthenticationDataKey() {
@@ -147,5 +159,16 @@ public class RequestTreeNodeData {
 
     public List<QueryParam> getParams() {
         return this.params;
+    }
+
+    public void setParams(List<QueryParam> params) {
+        this.params = params;
+    }
+    public void update(RequestTreeNodeData newNodeData) {
+        // only need to update non id related fields
+        this.setBody(newNodeData.getBody());
+        this.setParams(newNodeData.getParams());
+        this.setType(newNodeData.getType());
+        this.setUrl(newNodeData.getUrl());
     }
 }

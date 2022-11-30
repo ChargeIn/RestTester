@@ -56,16 +56,11 @@ public class RequestTreeHandler {
     public void addSelectionListener(RequestTreeSelectionListener rtsl) {
         this.tree.addTreeSelectionListener((selection) -> {
             RequestTreeNode node = (RequestTreeNode) selection.getPath().getLastPathComponent();
-            if (node != null && !node.getRequestData().isGroup()) {
-                rtsl.valueChanged(node.getRequestData());
-            } else {
-                // TODO
-            }
+            rtsl.valueChanged(node.getRequestData());
         });
     }
 
-    public void addRequest(String url, String tag, RequestType type, AuthenticationData data, List<QueryParam> params) {
-        RequestTreeNodeData newNodeData = new RequestTreeNodeData(url, tag, type, data.getName(), params);
+    public void addRequest(RequestTreeNodeData newNodeData) {
         String basePath = newNodeData.getPathForDepth(0);
 
         RequestTreeNode root = (RequestTreeNode) this.tree.getModel().getRoot();
@@ -133,7 +128,7 @@ public class RequestTreeHandler {
             nodeData.setDepth(depth);
             RequestTreeNode newNode = new RequestTreeNode(newNodeData);
 
-            nodeToExpand = this.createGroupNode(pathToNewGroup, startDepth + 1, parent, node, newNode);
+            nodeToExpand = this.createGroupNode(pathToNewGroup, startDepth, parent, node, newNode);
 
         } else {
             if (depth == nodeData.getMaxDepth()) {

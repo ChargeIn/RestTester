@@ -78,9 +78,14 @@ public class RequestTreeNode extends DefaultMutableTreeNode {
             authDataKey = obj.get("authKey").getAsString();
         }
 
+        String body = null;
+        if(obj.has("body")) {
+            body = obj.get("body").getAsString();
+        }
+
         RequestTreeNodeData data;
-        if (type != null && authDataKey != null && params != null) {
-            data = new RequestTreeNodeData(url, tag, type, authDataKey, params);
+        if (type != null && authDataKey != null && params != null && body != null) {
+            data = new RequestTreeNodeData(url, tag, type, authDataKey, params, body);
         } else {
             data = new RequestTreeNodeData(url);
         }
@@ -132,6 +137,10 @@ public class RequestTreeNode extends DefaultMutableTreeNode {
         if (data.getAuthenticationDataKey() != null) {
             String authKey = data.getAuthenticationDataKey();
             jNode.addProperty("authKey", authKey);
+        }
+
+        if(data.getBody() != null) {
+            jNode.addProperty("body", data.getBody());
         }
 
         return jNode;

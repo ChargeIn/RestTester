@@ -30,6 +30,7 @@ public class UrlInputHandler {
         this.pane.setBorder(BorderFactory.createCompoundBorder(
                 new RoundedBorder(),
                 BorderFactory.createEmptyBorder(3, 6, 3, 6)));
+        this.pane.setEditorKit(new WrapEditorKit());
 
         this.defaultStyle = this.pane.addStyle("Default", null);
         this.defaultStyle.addAttribute(StyleConstants.Foreground, JBColor.foreground());
@@ -110,5 +111,57 @@ public class UrlInputHandler {
             }
             doc.setCharacterAttributes(start, text.length(), this.defaultStyle, true);
         });
+    }
+
+    static class WrapEditorKit extends StyledEditorKit {
+
+        ViewFactory defaultFactory = new WrapColumnFactory();
+
+        public ViewFactory getViewFactory() {
+            return defaultFactory;
+        }
+
+    }
+
+    static class WrapColumnFactory implements ViewFactory {
+
+        public View create(Element elem) {
+            String kind = elem.getName();
+            if (kind != null) {
+                switch (kind) {
+                    case AbstractDocument.ContentElementName:
+                        return new WrapLabelView(elem);
+                    case AbstractDocument.ParagraphElementName:
+                        return new ParagraphView(elem);
+                    case AbstractDocument.SectionElementName:
+                        return new BoxView(elem, View.Y_AXIS);
+                    case StyleConstants.ComponentElementName:
+                        return new ComponentView(elem);
+                    case StyleConstants.IconElementName:
+                        return new IconView(elem);
+                }
+            }
+
+            // default to text display
+            return new LabelView(elem);
+        }
+    }
+
+    static class WrapLabelView extends LabelView {
+
+        public WrapLabelView(Element elem) {
+            super(elem);
+        }
+
+        public float getMinimumSpan(int axis) {
+            switch (axis) {
+                case View.X_AXIS:
+                    return 0;
+                case View.Y_AXIS:
+                    return super.getMinimumSpan(axis);
+                default:
+                    throw new IllegalArgumentException("Invalid axis: " + axis);
+            }
+        }
     }
 }

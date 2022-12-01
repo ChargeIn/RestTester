@@ -1,5 +1,6 @@
 package com.flop.resttester;
 
+import com.flop.resttester.auth.AuthenticationWindow;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
@@ -24,12 +25,17 @@ public class RestTesterFactory implements PersistentStateComponent<RestTesterSta
 
     }
 
-
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
-        RestTesterWindow myToolWindow = new RestTesterWindow(toolWindow, project);
         ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
-        Content content = contentFactory.createContent(myToolWindow.getContent(), "Rest Tester", false);
-        toolWindow.getContentManager().addContent(content);
+
+        AuthenticationWindow authWindow = new AuthenticationWindow(project);
+        Content authContent = contentFactory.createContent(authWindow.getContent(), "Authentication", false);
+
+        RestTesterWindow myToolWindow = new RestTesterWindow(project, authWindow);
+        Content requestContent = contentFactory.createContent(myToolWindow.getContent(), "Request", false);
+
+        toolWindow.getContentManager().addContent(requestContent);
+        toolWindow.getContentManager().addContent(authContent);
     }
 }

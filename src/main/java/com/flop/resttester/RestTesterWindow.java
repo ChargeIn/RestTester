@@ -36,8 +36,6 @@ public class RestTesterWindow {
     private JPanel variablePanel;
     private JTable variableTable;
     private JScrollPane variableScrollPane;
-    private JScrollPane authScrollPane;
-    private AuthenticationWindow authWindow;
     private JComboBox<AuthenticationData> authComboBox;
     private JTextArea bodyTextInput;
     private JTextField nameInputField;
@@ -58,9 +56,9 @@ public class RestTesterWindow {
     private static final int RESULT_TAB_PANE = 2;
     private RequestThread requestThread;
     private Timer loadingTimer = new Timer();
-    private Project project;
+    private final Project project;
 
-    public RestTesterWindow(ToolWindow toolWindow, Project project) {
+    public RestTesterWindow(Project project, AuthenticationWindow authWindow) {
         this.project = project;
         this.setUpRequestTypes();
 
@@ -74,8 +72,7 @@ public class RestTesterWindow {
 
         this.urlInputHandler = new UrlInputHandler(this.urlInputField, this.variablesHandler);
 
-        this.authWindow.setProject(project);
-        this.authWindow.setAuthenticationListChangeListener(this::updateAuthBox);
+        authWindow.setAuthenticationListChangeListener(this::updateAuthBox);
         this.updateAuthBox(new ArrayList<>());
     }
 

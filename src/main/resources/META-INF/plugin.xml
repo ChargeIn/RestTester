@@ -8,7 +8,7 @@
     <name>RestTester</name>
 
     <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
-    <vendor email="florian.plesker@web.de" url="https://www.yourcompany.com">Florian Plesker</vendor>
+    <vendor email="florian.plesker@web.de" url="https://github.com/ChargeIn">Florian Plesker</vendor>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
@@ -26,7 +26,7 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow id="Rest Tester" secondary="false" icon="AllIcons.General.Modified" anchor="right"
+        <toolWindow id="Rest Tester" secondary="false" icon="AllIcons.Actions.InlayGlobe" anchor="right"
                     factoryClass="com.flop.resttester.RestTesterFactory"/>
 
         <notificationGroup id="Rest Tester Notification Group"

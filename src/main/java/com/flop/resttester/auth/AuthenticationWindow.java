@@ -32,13 +32,17 @@ public class AuthenticationWindow {
 
     private AuthenticationListChangeListener authenticationListChangeListener;
 
-    public AuthenticationWindow() {
+    public AuthenticationWindow(Project project) {
         this.loadTypeBox();
         this.updateInputFields();
 
         this.treeScrollPane.setBorder(BorderFactory.createEmptyBorder());
-
         this.saveButton.addActionListener((e) -> this.save());
+
+        this.project = project;
+        this.authenticationHandler = new AuthenticationHandler(this.authTree, project);
+        this.authenticationHandler.setAuthenticationTreeSelectionListener(this::updateInputFields);
+        this.authenticationHandler.setAuthenticationListChangeListener(this::updateAuthenticationList);
     }
 
     public void setAuthenticationListChangeListener(AuthenticationListChangeListener authenticationListChangeListener) {
@@ -86,13 +90,6 @@ public class AuthenticationWindow {
             }
             this.authenticationHandler.saveAuthData(new AuthenticationData(name, token, ""));
         }
-    }
-
-    public void setProject(Project project) {
-        this.project = project;
-        this.authenticationHandler = new AuthenticationHandler(this.authTree, project);
-        this.authenticationHandler.setAuthenticationTreeSelectionListener(this::updateInputFields);
-        this.authenticationHandler.setAuthenticationListChangeListener(this::updateAuthenticationList);
     }
 
     public JPanel getContent() {

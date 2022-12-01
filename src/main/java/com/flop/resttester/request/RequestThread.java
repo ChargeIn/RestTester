@@ -14,12 +14,14 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class RequestThread extends Thread {
     private boolean stopped = false;
     private final RequestData data;
-
     private long startTime = 0;
 
     private final RequestFinishedListener finishedListener;
@@ -34,7 +36,20 @@ public class RequestThread extends Thread {
     public void run() {
         this.startTime = System.currentTimeMillis();
         try {
-            URL url = new URL(this.data.url);
+            StringBuilder urlString = new StringBuilder(this.data.url);
+
+            if (this.data.queryParams != null) {
+                List<QueryParam> params = this.data.queryParams.stream().filter(param -> !param.key.isEmpty()).collect(Collectors.toList());
+
+                if (params.size() > 0) {
+                    urlString.append('?');
+                    for (QueryParam param : params) {
+                        urlString.append(param.key).append('=').append(URLEncoder.encode(param.value, StandardCharsets.UTF_8));
+                    }
+                }
+            }
+
+            URL url = new URL(urlString.toString());
             HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
             httpCon.setRequestMethod(this.data.type.toString());
 
@@ -55,7 +70,7 @@ public class RequestThread extends Thread {
             if (this.data.type == RequestType.PATCH || this.data.type == RequestType.POST) {
                 httpCon.setDoOutput(true);
                 OutputStream os = httpCon.getOutputStream();
-                OutputStreamWriter osw = new OutputStreamWriter(os, "UTF-8");
+                OutputStreamWriter osw = new OutputStreamWriter(os, StandardCharsets.UTF_8);
                 osw.write(this.data.body);
                 osw.flush();
                 osw.close();

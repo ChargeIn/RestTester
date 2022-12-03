@@ -1,4 +1,4 @@
-package com.flop.resttester.environment;
+package com.flop.resttester.variables;
 
 import com.flop.resttester.RestTesterNotifier;
 import com.google.gson.JsonArray;

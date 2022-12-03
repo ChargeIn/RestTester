@@ -160,7 +160,7 @@
       </grid>
       <splitpane id="75a11" binding="splitPane">
         <constraints>
-          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="5" hsize-policy="5" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
           <dividerSize value="0"/>
@@ -191,24 +191,12 @@
                     <properties/>
                     <border type="none"/>
                     <children>
-                      <grid id="3cb29" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                        <margin top="5" left="0" bottom="5" right="0"/>
+                      <component id="f27cc" class="javax.swing.JTree" binding="requestTree">
                         <constraints/>
                         <properties>
-                          <doubleBuffered value="true"/>
+                          <autoscrolls value="false"/>
                         </properties>
-                        <border type="none"/>
-                        <children>
-                          <component id="dd593" class="javax.swing.JTree" binding="requestTree">
-                            <constraints>
-                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                            </constraints>
-                            <properties>
-                              <autoscrolls value="false"/>
-                            </properties>
-                          </component>
-                        </children>
-                      </grid>
+                      </component>
                     </children>
                   </scrollpane>
                   <grid id="8d0a9" binding="treeActionBar" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
@@ -246,51 +234,6 @@
                       </component>
                     </children>
                   </grid>
-                </children>
-              </grid>
-              <grid id="f24bf" binding="variablePanel" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                <margin top="0" left="0" bottom="0" right="0"/>
-                <constraints>
-                  <tabbedpane title="Variables"/>
-                </constraints>
-                <properties/>
-                <border type="none"/>
-                <children>
-                  <scrollpane id="4c60" binding="variableScrollPane" custom-create="true">
-                    <constraints>
-                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="5" hsize-policy="5" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties>
-                      <alignmentX value="0.5"/>
-                      <alignmentY value="0.5"/>
-                      <autoscrolls value="false"/>
-                      <visible value="true"/>
-                      <wheelScrollingEnabled value="true"/>
-                    </properties>
-                    <border type="none"/>
-                    <children>
-                      <component id="703d" class="javax.swing.JTable" binding="variableTable" custom-create="true">
-                        <constraints/>
-                        <properties>
-                          <alignmentX value="1.0"/>
-                          <alignmentY value="1.0"/>
-                          <autoCreateColumnsFromModel value="false"/>
-                          <autoCreateRowSorter value="true"/>
-                          <autoscrolls value="true"/>
-                          <enabled value="true"/>
-                          <intercellSpacing width="10" height="0"/>
-                          <preferredScrollableViewportSize width="-1" height="-1"/>
-                          <preferredSize width="-1" height="-1"/>
-                          <requestFocusEnabled value="false"/>
-                          <rowMargin value="0"/>
-                        </properties>
-                        <clientProperties>
-                          <Table.isFileList class="java.lang.Boolean" value="false"/>
-                          <html.disable class="java.lang.Boolean" value="false"/>
-                        </clientProperties>
-                      </component>
-                    </children>
-                  </scrollpane>
                 </children>
               </grid>
             </children>

@@ -4,13 +4,13 @@ import com.flop.resttester.auth.AuthenticationData;
 import com.flop.resttester.auth.AuthenticationWindow;
 import com.flop.resttester.components.ActionButton;
 import com.flop.resttester.components.UrlInputHandler;
-import com.flop.resttester.environment.VariablesHandler;
+import com.flop.resttester.variables.VariablesHandler;
+import com.flop.resttester.variables.VariablesWindow;
 import com.flop.resttester.request.*;
 import com.flop.resttester.requesttree.RequestTreeHandler;
 import com.flop.resttester.requesttree.RequestTreeNodeData;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 
@@ -33,9 +33,6 @@ public class RestTesterWindow {
     private ActionButton sendButton;
     private JPanel requestInputPanel;
     private JPanel topPanel;
-    private JPanel variablePanel;
-    private JTable variableTable;
-    private JScrollPane variableScrollPane;
     private JComboBox<AuthenticationData> authComboBox;
     private JTextArea bodyTextInput;
     private JTextField nameInputField;
@@ -58,7 +55,7 @@ public class RestTesterWindow {
     private Timer loadingTimer = new Timer();
     private final Project project;
 
-    public RestTesterWindow(Project project, AuthenticationWindow authWindow) {
+    public RestTesterWindow(Project project, AuthenticationWindow authWindow, VariablesWindow varWindow) {
         this.project = project;
         this.setUpRequestTypes();
 
@@ -67,9 +64,9 @@ public class RestTesterWindow {
         this.treeHandler = new RequestTreeHandler(this.requestTree, project);
         this.treeHandler.addSelectionListener(this::updateInputs);
 
-        this.variablesHandler = new VariablesHandler(this.variableTable, project);
         this.paramHandler = new QueryParameterHandler(this.paramsTable);
 
+        this.variablesHandler = varWindow.getVariablesHandler();
         this.urlInputHandler = new UrlInputHandler(this.urlInputField, this.variablesHandler);
 
         authWindow.setAuthenticationListChangeListener(this::updateAuthBox);
@@ -189,7 +186,6 @@ public class RestTesterWindow {
         this.setupRemoveButton();
         this.setupSaveButton();
         this.setupSendButton();
-        this.setupVariableTable();
         this.setupParamsTable();
     }
 
@@ -200,18 +196,6 @@ public class RestTesterWindow {
         this.paramsTable.setBorder(BorderFactory.createEmptyBorder());
         this.paramsScrollPane.setBorder(BorderFactory.createEmptyBorder());
         this.paramsScrollPane.add(this.paramsTable);
-
-        model.addColumn("Key");
-        model.addColumn("Value");
-    }
-
-    private void setupVariableTable() {
-        this.variableScrollPane = new JBScrollPane();
-        DefaultTableModel model = new DefaultTableModel();
-        this.variableTable = new JBTable(model);
-        this.variableTable.setBorder(BorderFactory.createEmptyBorder());
-        this.variableScrollPane.setBorder(BorderFactory.createEmptyBorder());
-        this.variableScrollPane.add(this.variableTable);
 
         model.addColumn("Key");
         model.addColumn("Value");

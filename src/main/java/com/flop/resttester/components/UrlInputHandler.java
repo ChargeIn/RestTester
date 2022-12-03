@@ -1,6 +1,6 @@
 package com.flop.resttester.components;
 
-import com.flop.resttester.environment.VariablesHandler;
+import com.flop.resttester.variables.VariablesHandler;
 import com.intellij.ui.JBColor;
 
 import javax.swing.*;

@@ -1,6 +1,6 @@
 package com.flop.resttester.auth;
 
-import com.flop.resttester.environment.VariablesHandler;
+import com.flop.resttester.variables.VariablesHandler;
 import com.google.gson.JsonObject;
 
 public class AuthenticationData {

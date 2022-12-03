@@ -36,7 +36,6 @@ public class AuthenticationWindow {
         this.loadTypeBox();
         this.updateInputFields();
 
-        this.treeScrollPane.setBorder(BorderFactory.createEmptyBorder());
         this.saveButton.addActionListener((e) -> this.save());
 
         this.project = project;

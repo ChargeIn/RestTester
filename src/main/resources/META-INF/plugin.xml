@@ -32,5 +32,14 @@
         <notificationGroup id="Rest Tester Notification Group"
                            displayType="BALLOON"
                            key="notification.group.name"/>
+
+        <applicationService
+                serviceImplementation="com.flop.resttester.settings.RestTesterSettingsState"/>
+
+        <applicationConfigurable
+                parentId="tools"
+                instance="com.flop.resttester.settings.RestTesterSettingsConfigurable"
+                id="com.flop.resttester.settings.RestTesterSettingsConfigurable"
+                displayName="Rest Tester Settings"/>
     </extensions>
 </idea-plugin>

@@ -9,20 +9,22 @@ public class RequestData {
     public RequestType type;
     public String body;
     public AuthenticationData authData;
-
     public List<QueryParam> queryParams;
+    public boolean validateSSL;
 
     public RequestData(
             String url,
             RequestType type,
             AuthenticationData authData,
             String body,
-            List<QueryParam> queryParams
+            List<QueryParam> queryParams,
+            boolean validateSSL
     ) {
         this.url = url;
         this.type = type;
         this.authData = authData;
         this.body = body;
         this.queryParams = queryParams;
+        this.validateSSL = validateSSL;
     }
 }

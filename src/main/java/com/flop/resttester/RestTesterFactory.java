@@ -14,18 +14,7 @@ import com.intellij.ui.content.ContentFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@State(name = "RestTester", storages = {@Storage(StoragePathMacros.WORKSPACE_FILE)})
-public class RestTesterFactory implements PersistentStateComponent<RestTesterState>, ToolWindowFactory {
-    @Override
-    public @Nullable RestTesterState getState() {
-        return new RestTesterState();
-    }
-
-    @Override
-    public void loadState(@NotNull RestTesterState state) {
-
-    }
-
+public class RestTesterFactory implements ToolWindowFactory {
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();

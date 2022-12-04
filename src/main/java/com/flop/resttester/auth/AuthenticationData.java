@@ -92,8 +92,10 @@ public class AuthenticationData {
 
     public AuthenticationData createReplacedClone(VariablesHandler variablesHandler) {
         AuthenticationData data = new AuthenticationData(this.name, "");
-        data.username = variablesHandler.replaceVariables(data.username);
-        data.password = variablesHandler.replaceVariables(data.password);
+        data.username = variablesHandler.replaceVariables(this.username);
+        data.password = variablesHandler.replaceVariables(this.password);
+        data.token = variablesHandler.replaceVariables(this.token);
+        data.type = this.type;
         return data;
     }
 }

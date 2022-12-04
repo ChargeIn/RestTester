@@ -8,11 +8,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import org.apache.commons.codec.binary.Base64;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSession;
+import java.io.*;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -31,27 +32,55 @@ public class RequestThread extends Thread {
         this.finishedListener = finishedListener;
     }
 
-
     @Override
     public void run() {
         this.startTime = System.currentTimeMillis();
-        try {
-            StringBuilder urlString = new StringBuilder(this.data.url);
 
-            if (this.data.queryParams != null) {
-                List<QueryParam> params = this.data.queryParams.stream().filter(param -> !param.key.isEmpty()).collect(Collectors.toList());
+        StringBuilder urlString = new StringBuilder(this.data.url);
 
-                if (params.size() > 0) {
-                    urlString.append('?');
-                    for (QueryParam param : params) {
-                        urlString.append(param.key).append('=').append(URLEncoder.encode(param.value, StandardCharsets.UTF_8));
+        if (this.data.queryParams != null) {
+            List<QueryParam> params = this.data.queryParams.stream().filter(param -> !param.key.isEmpty()).collect(Collectors.toList());
+
+            if (params.size() > 0) {
+                urlString.append('?');
+                boolean first = true;
+                for (QueryParam param : params) {
+                    if(first) {
+                        first = false;
+                    } else {
+                        urlString.append("&");
                     }
+                    urlString.append(param.key).append('=').append(URLEncoder.encode(param.value, StandardCharsets.UTF_8));
                 }
             }
+        }
 
-            URL url = new URL(urlString.toString());
-            HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
+        URL url;
+        try {
+            url = new URL(urlString.toString());
+        } catch (MalformedURLException e) {
+            if (!this.stopped) {
+                this.finishedListener.onRequestFinished(-1, e.getMessage());
+            }
+            return;
+        }
+
+        HttpURLConnection httpCon;
+        try {
+            httpCon = (HttpURLConnection) url.openConnection();
+        } catch (IOException e) {
+            if (!this.stopped) {
+                this.finishedListener.onRequestFinished(-1, e.getMessage());
+            }
+            return;
+        }
+
+        try {
             httpCon.setRequestMethod(this.data.type.toString());
+
+            if(!data.validateSSL && httpCon instanceof  HttpsURLConnection){
+                ((HttpsURLConnection) httpCon).setHostnameVerifier((hostname, sslSession) -> true);
+            }
 
             if (this.data.authData != null) {
                 AuthenticationData authData = this.data.authData;
@@ -79,8 +108,15 @@ public class RequestThread extends Thread {
 
             httpCon.connect();
 
+            int responseCode = httpCon.getResponseCode();
+            InputStream inputStream;
+            if (200 <= responseCode && responseCode <= 299) {
+                inputStream = httpCon.getInputStream();
+            } else {
+                inputStream = httpCon.getErrorStream();
+            }
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(httpCon.getInputStream()));
+            BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
             String inputLine;
             StringBuilder content = new StringBuilder();
             while ((inputLine = in.readLine()) != null) {
@@ -101,7 +137,17 @@ public class RequestThread extends Thread {
             }
         } catch (Exception e) {
             if (!this.stopped) {
-                this.finishedListener.onRequestFinished(-1, e.getMessage());
+                try {
+                    this.finishedListener.onRequestFinished(httpCon.getResponseCode(), e.getMessage());
+                } catch (IOException ex) {
+                    String message = e.getMessage();
+
+                    if(message.equals("No subject alternative names present")) {
+                        this.finishedListener.onRequestFinished(-1, "No subject alternative names present.\n\nTry changing the rest tester setting (in the Intellij Settings Menu) to allow request without ssl validation.");
+                        return;
+                    }
+                    this.finishedListener.onRequestFinished(-1, e.getMessage());
+                }
             }
         }
     }

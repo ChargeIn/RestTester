@@ -4,6 +4,7 @@ import com.flop.resttester.auth.AuthenticationData;
 import com.flop.resttester.auth.AuthenticationWindow;
 import com.flop.resttester.components.ActionButton;
 import com.flop.resttester.components.UrlInputHandler;
+import com.flop.resttester.settings.RestTesterSettingsState;
 import com.flop.resttester.variables.VariablesHandler;
 import com.flop.resttester.variables.VariablesWindow;
 import com.flop.resttester.request.*;
@@ -17,6 +18,7 @@ import com.intellij.ui.table.JBTable;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -42,7 +44,7 @@ public class RestTesterWindow {
     private JScrollPane resultScrollPane;
     private JTable paramsTable;
     private JScrollPane paramsScrollPane;
-    private JTextField resultCodeField;
+    private JTextArea resultCodeField;
     private JScrollPane treeScrollPane;
     private JScrollPane settingsScrollPane;
 
@@ -57,6 +59,8 @@ public class RestTesterWindow {
     private RequestThread requestThread;
     private Timer loadingTimer = new Timer();
     private final Project project;
+
+    private RestTesterSettingsState state = RestTesterSettingsState.getInstance();
 
     public RestTesterWindow(Project project, AuthenticationWindow authWindow, VariablesWindow varWindow) {
         this.project = project;
@@ -167,7 +171,8 @@ public class RestTesterWindow {
                 (RequestType) this.requestTypeComboBox.getSelectedItem(),
                 replaceData,
                 body,
-                this.paramHandler.getParams()
+                this.paramHandler.getParams(),
+                this.state.validateSSL
         );
 
         this.requestThread = new RequestThread(data, (code, context) -> {
@@ -176,13 +181,7 @@ public class RestTesterWindow {
             this.resultTextPane.setText(context);
             this.sendButton.setIcon(AllIcons.Actions.Execute);
 
-            if(code == -1){
-                this.resultCodeField.setText("Failed");
-                this.resultCodeField.setBackground(JBColor.red);
-            } else {
-                this.resultCodeField.setText(String.valueOf(code));
-                this.resultCodeField.setBackground(JBColor.green);
-            }
+            this.updateResponseCode(code);
         });
 
         this.requestThread.start();
@@ -249,5 +248,37 @@ public class RestTesterWindow {
         this.requestTypeComboBox.addItem(RequestType.DELETE);
         this.requestTypeComboBox.addItem(RequestType.PATCH);
         this.requestTypeComboBox.setSelectedIndex(0);
+    }
+
+    private void updateResponseCode(int code) {
+        String text = code + " ";
+        Color color;
+
+        if(code == -1) {
+            text += "Failed";
+            color = JBColor.red;
+        } else if(code < 200) {
+            text += "Info";
+            color = JBColor.cyan;
+        } else if(code < 300) {
+            text += "Success";
+            color = new Color(17, 169, 19);
+        } else if(code < 400) {
+            text += "Redirect";
+            color = JBColor.orange;
+        } else if(code < 500) {
+            text += "Client Error";
+            color = JBColor.red;
+        } else if(code < 600) {
+            text += "Server Error";
+            color = JBColor.red;
+        } else {
+            text += "Unknown";
+            color = JBColor.red;
+        }
+
+        this.resultCodeField.setText(text);
+        this.resultCodeField.setBackground(color);
+        this.resultCodeField.setForeground(Color.white);
     }
 }

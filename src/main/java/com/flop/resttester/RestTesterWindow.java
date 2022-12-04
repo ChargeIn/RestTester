@@ -11,6 +11,7 @@ import com.flop.resttester.requesttree.RequestTreeHandler;
 import com.flop.resttester.requesttree.RequestTreeNodeData;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 
@@ -26,7 +27,6 @@ public class RestTesterWindow {
     private JTextPane urlInputField;
     private JComboBox<RequestType> requestTypeComboBox;
     private JTextPane resultTextPane;
-    private JTabbedPane bottomTabbedPane;
     private JTree requestTree;
     private ActionButton removeTreeSelectionButton;
     private ActionButton saveButton;
@@ -42,6 +42,9 @@ public class RestTesterWindow {
     private JScrollPane resultScrollPane;
     private JTable paramsTable;
     private JScrollPane paramsScrollPane;
+    private JTextField resultCodeField;
+    private JScrollPane treeScrollPane;
+    private JScrollPane settingsScrollPane;
 
     // logic variables
     private final RequestTreeHandler treeHandler;
@@ -50,7 +53,7 @@ public class RestTesterWindow {
     private final QueryParameterHandler paramHandler;
 
     private final UrlInputHandler urlInputHandler;
-    private static final int RESULT_TAB_PANE = 2;
+    private static final int RESULT_TAB_PANE = 3;
     private RequestThread requestThread;
     private Timer loadingTimer = new Timer();
     private final Project project;
@@ -69,8 +72,18 @@ public class RestTesterWindow {
         this.variablesHandler = varWindow.getVariablesHandler();
         this.urlInputHandler = new UrlInputHandler(this.urlInputField, this.variablesHandler);
 
-        authWindow.setAuthenticationListChangeListener(this::updateAuthBox);
+        this.bodyTextInput.setBackground(JBColor.background());
         this.updateAuthBox(new ArrayList<>());
+        authWindow.setAuthenticationListChangeListener(this::updateAuthBox);
+
+        this.setupStyles();
+    }
+
+    public void setupStyles() {
+        this.treeActionBar.setBorder(BorderFactory.createLineBorder(JBColor.border()));
+        this.treeScrollPane.setBorder(BorderFactory.createEmptyBorder());
+
+        this.settingsScrollPane.setBorder(BorderFactory.createEmptyBorder());
     }
 
     private void updateAuthBox(List<AuthenticationData> data) {
@@ -103,14 +116,14 @@ public class RestTesterWindow {
         }
 
         for (int i = 0; i < this.authComboBox.getItemCount(); i++) {
-            if (this.authComboBox.getItemAt(i).getName().equals(data.getAuthenticationDataKey())) {
+            if (this.authComboBox.getItemAt(i).getName().equals(data.setAuthenticationDataKey())) {
                 this.authComboBox.setSelectedIndex(i);
                 return;
             }
         }
 
         if (this.project != null) {
-            RestTesterNotifier.notifyError(this.project, "Could not find authentication data with name " + data.getAuthenticationDataKey());
+            RestTesterNotifier.notifyError(this.project, "Could not find authentication data with name " + data.setAuthenticationDataKey());
         }
         this.authComboBox.setSelectedIndex(0);
     }
@@ -157,11 +170,19 @@ public class RestTesterWindow {
                 this.paramHandler.getParams()
         );
 
-        this.requestThread = new RequestThread(data, (success, context) -> {
+        this.requestThread = new RequestThread(data, (code, context) -> {
             this.requestThread = null;
             this.loadingTimer.cancel();
             this.resultTextPane.setText(context);
             this.sendButton.setIcon(AllIcons.Actions.Execute);
+
+            if(code == -1){
+                this.resultCodeField.setText("Failed");
+                this.resultCodeField.setBackground(JBColor.red);
+            } else {
+                this.resultCodeField.setText(String.valueOf(code));
+                this.resultCodeField.setBackground(JBColor.green);
+            }
         });
 
         this.requestThread.start();

@@ -4,7 +4,6 @@ import com.flop.resttester.request.QueryParam;
 import com.flop.resttester.request.RequestType;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -149,8 +148,12 @@ public class RequestTreeNodeData {
         this.body = body;
     }
 
-    public String getAuthenticationDataKey() {
+    public String setAuthenticationDataKey() {
         return this.authDataKey;
+    }
+
+    public void setAuthenticationDataKey(String key){
+        this.authDataKey = key;
     }
 
     public String getTag() {
@@ -170,5 +173,6 @@ public class RequestTreeNodeData {
         this.setParams(newNodeData.getParams());
         this.setType(newNodeData.getType());
         this.setUrl(newNodeData.getUrl());
+        this.setAuthenticationDataKey(newNodeData.setAuthenticationDataKey());
     }
 }

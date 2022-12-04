@@ -42,6 +42,12 @@ public class AuthenticationWindow {
         this.authenticationHandler = new AuthenticationHandler(this.authTree, project);
         this.authenticationHandler.setAuthenticationTreeSelectionListener(this::updateInputFields);
         this.authenticationHandler.setAuthenticationListChangeListener(this::updateAuthenticationList);
+
+        this.setupStyles();
+    }
+
+    private void setupStyles() {
+        this.treeScrollPane.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     }
 
     public void setAuthenticationListChangeListener(AuthenticationListChangeListener authenticationListChangeListener) {

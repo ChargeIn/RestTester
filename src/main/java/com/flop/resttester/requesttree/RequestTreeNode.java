@@ -134,8 +134,8 @@ public class RequestTreeNode extends DefaultMutableTreeNode {
             jNode.add("children", childArray);
         }
 
-        if (data.getAuthenticationDataKey() != null) {
-            String authKey = data.getAuthenticationDataKey();
+        if (data.setAuthenticationDataKey() != null) {
+            String authKey = data.setAuthenticationDataKey();
             jNode.addProperty("authKey", authKey);
         }
 

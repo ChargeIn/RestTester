@@ -224,7 +224,6 @@ public class RestTesterWindow {
     private void setupRemoveButton() {
         this.removeTreeSelectionButton = new ActionButton("", AllIcons.Vcs.Remove);
         this.removeTreeSelectionButton.addActionListener((e) -> this.treeHandler.deleteSelection());
-        this.removeTreeSelectionButton.setEnabled(false);
     }
 
     private void setupSaveButton() {

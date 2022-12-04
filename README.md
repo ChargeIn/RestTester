@@ -4,7 +4,7 @@
 
 A rest api testing tool for Jetbrains IDEAs 
 
-![Terminal Preview](https://github.com/ChargeIn/RestTester/blob/master/example/demo.png)
+![Rest Tester Preview](https://github.com/ChargeIn/RestTester/blob/master/.github/demo.png)
 
 ## Usage
 

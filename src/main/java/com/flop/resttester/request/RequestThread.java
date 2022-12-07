@@ -97,6 +97,14 @@ public class RequestThread extends Thread {
             }
 
             if (this.data.type == RequestType.PATCH || this.data.type == RequestType.POST) {
+                if(this.data.bodyType == RequestBodyType.JSON){
+                    httpCon.setRequestProperty("Content-Type", "application/json");
+                } else if(this.data.bodyType == RequestBodyType.XML) {
+                    httpCon.setRequestProperty("Content-Type", "application/xml");
+                } else {
+                    httpCon.setRequestProperty("Content-Type", "text/plain");
+                }
+
                 httpCon.setDoOutput(true);
                 OutputStream os = httpCon.getOutputStream();
                 OutputStreamWriter osw = new OutputStreamWriter(os, StandardCharsets.UTF_8);

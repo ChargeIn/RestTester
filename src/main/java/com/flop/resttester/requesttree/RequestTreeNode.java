@@ -1,6 +1,7 @@
 package com.flop.resttester.requesttree;
 
 import com.flop.resttester.request.QueryParam;
+import com.flop.resttester.request.RequestBodyType;
 import com.flop.resttester.request.RequestType;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -83,9 +84,14 @@ public class RequestTreeNode extends DefaultMutableTreeNode {
             body = obj.get("body").getAsString();
         }
 
+        RequestBodyType bodyType = null;
+        if(obj.has("bodyType")) {
+            bodyType = RequestBodyType.valueOf(obj.get("bodyType").getAsString());
+        }
+
         RequestTreeNodeData data;
-        if (type != null && authDataKey != null && params != null && body != null) {
-            data = new RequestTreeNodeData(url, tag, type, authDataKey, params, body);
+        if (type != null && authDataKey != null && params != null && body != null && bodyType != null) {
+            data = new RequestTreeNodeData(url, tag, type, authDataKey, params, body, bodyType);
         } else {
             data = new RequestTreeNodeData(url);
         }
@@ -141,6 +147,10 @@ public class RequestTreeNode extends DefaultMutableTreeNode {
 
         if(data.getBody() != null) {
             jNode.addProperty("body", data.getBody());
+        }
+
+        if(data.getBodyType() != null) {
+            jNode.addProperty("bodyType", data.getBodyType().toString());
         }
 
         return jNode;

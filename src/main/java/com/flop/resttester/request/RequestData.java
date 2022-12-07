@@ -8,6 +8,7 @@ public class RequestData {
     public String url;
     public RequestType type;
     public String body;
+    public RequestBodyType bodyType;
     public AuthenticationData authData;
     public List<QueryParam> queryParams;
     public boolean validateSSL;
@@ -17,6 +18,7 @@ public class RequestData {
             RequestType type,
             AuthenticationData authData,
             String body,
+            RequestBodyType bodyType,
             List<QueryParam> queryParams,
             boolean validateSSL
     ) {
@@ -24,6 +26,7 @@ public class RequestData {
         this.type = type;
         this.authData = authData;
         this.body = body;
+        this.bodyType = bodyType;
         this.queryParams = queryParams;
         this.validateSSL = validateSSL;
     }

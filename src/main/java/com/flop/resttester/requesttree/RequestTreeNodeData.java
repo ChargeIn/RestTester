@@ -1,7 +1,9 @@
 package com.flop.resttester.requesttree;
 
 import com.flop.resttester.request.QueryParam;
+import com.flop.resttester.request.RequestBodyType;
 import com.flop.resttester.request.RequestType;
+import org.bouncycastle.cert.ocsp.Req;
 
 import java.net.URL;
 import java.util.List;
@@ -26,6 +28,7 @@ public class RequestTreeNodeData {
     private List<QueryParam> params;
 
     private String body;
+    private RequestBodyType bodyType;
 
     // group nodes
     public RequestTreeNodeData(String url) {
@@ -38,13 +41,15 @@ public class RequestTreeNodeData {
             RequestType type,
             String authDataKey,
             List<QueryParam> params,
-            String body
+            String body,
+            RequestBodyType bodyType
     ) {
         this.type = type;
         this.tag = tag;
         this.authDataKey = authDataKey;
         this.params = params;
         this.body = body;
+        this.bodyType = bodyType;
         this.setUrl(url);
     }
 
@@ -148,6 +153,14 @@ public class RequestTreeNodeData {
         this.body = body;
     }
 
+    public RequestBodyType getBodyType(){
+        return this.bodyType;
+    }
+
+    public void setBodyType(RequestBodyType bodyType){
+        this.bodyType = bodyType;
+    }
+
     public String setAuthenticationDataKey() {
         return this.authDataKey;
     }
@@ -173,6 +186,7 @@ public class RequestTreeNodeData {
         this.setParams(newNodeData.getParams());
         this.setType(newNodeData.getType());
         this.setUrl(newNodeData.getUrl());
+        this.setBodyType(newNodeData.getBodyType());
         this.setAuthenticationDataKey(newNodeData.setAuthenticationDataKey());
     }
 }

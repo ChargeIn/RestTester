@@ -10,9 +10,22 @@ import com.flop.resttester.variables.VariablesWindow;
 import com.flop.resttester.request.*;
 import com.flop.resttester.requesttree.RequestTreeHandler;
 import com.flop.resttester.requesttree.RequestTreeNodeData;
+import com.intellij.codeInsight.codeFragment.CodeFragmentUtil;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.json.JsonFileType;
+import com.intellij.json.JsonLanguage;
+import com.intellij.json.json5.Json5FileType;
+import com.intellij.lang.Language;
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.*;
+import com.intellij.psi.codeStyle.CodeStyleSettingsCodeFragmentFilter;
+import com.intellij.ui.EditorTextField;
 import com.intellij.ui.JBColor;
+import com.intellij.ui.LanguageTextField;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 
@@ -28,7 +41,7 @@ public class RestTesterWindow {
     private JPanel myToolWindowContent;
     private JTextPane urlInputField;
     private JComboBox<RequestType> requestTypeComboBox;
-    private JTextPane resultTextPane;
+    private EditorTextField resultTextPane;
     private JTree requestTree;
     private ActionButton removeTreeSelectionButton;
     private ActionButton saveButton;
@@ -36,7 +49,7 @@ public class RestTesterWindow {
     private JPanel requestInputPanel;
     private JPanel topPanel;
     private JComboBox<AuthenticationData> authComboBox;
-    private JTextArea bodyTextInput;
+    private LanguageTextField bodyTextInput;
     private JTextField nameInputField;
     private JTabbedPane topTabbedPane;
     private JSplitPane splitPane;
@@ -47,6 +60,10 @@ public class RestTesterWindow {
     private JTextArea resultCodeField;
     private JScrollPane treeScrollPane;
     private JScrollPane settingsScrollPane;
+    private JComboBox<RequestBodyType> bodyTypePicker;
+    private JScrollPane bodyInputScroll;
+    private JPanel resultFieldWrapper;
+    private JPanel bodyFieldWrapper;
 
     // logic variables
     private final RequestTreeHandler treeHandler;
@@ -80,7 +97,18 @@ public class RestTesterWindow {
         this.updateAuthBox(new ArrayList<>());
         authWindow.setAuthenticationListChangeListener(this::updateAuthBox);
 
+        this.setupBodyTypeBox();
+
         this.setupStyles();
+
+        PsiExpressionCodeFragment code =
+                JavaCodeFragmentFactory.getInstance(this.project)
+                        .createExpressionCodeFragment("", null, null, true);
+
+        Document document =
+                PsiDocumentManager.getInstance(this.project).getDocument(code);
+        this.bodyTextInput.setDocument(document);
+        this.bodyTextInput.setFileType(JsonFileType.INSTANCE);
     }
 
     public void setupStyles() {
@@ -88,6 +116,16 @@ public class RestTesterWindow {
         this.treeScrollPane.setBorder(BorderFactory.createEmptyBorder());
 
         this.settingsScrollPane.setBorder(BorderFactory.createEmptyBorder());
+        this.bodyInputScroll.setBorder(BorderFactory.createEmptyBorder());
+        this.resultFieldWrapper.setBorder(BorderFactory.createEmptyBorder());
+        this.bodyFieldWrapper.setBorder(BorderFactory.createEmptyBorder());
+    }
+
+    private void setupBodyTypeBox() {
+        this.bodyTypePicker.addItem(RequestBodyType.JSON);
+        this.bodyTypePicker.addItem(RequestBodyType.XML);
+        this.bodyTypePicker.addItem(RequestBodyType.Plain);
+        this.bodyTypePicker.setSelectedIndex(0);
     }
 
     private void updateAuthBox(List<AuthenticationData> data) {
@@ -101,7 +139,7 @@ public class RestTesterWindow {
     }
 
     private void updateInputs(RequestTreeNodeData data) {
-        if(data.isGroup()) {
+        if (data.isGroup()) {
             return;
         }
 
@@ -112,9 +150,16 @@ public class RestTesterWindow {
         this.paramHandler.loadParams(data.getParams());
         this.bodyTextInput.setText(data.getBody());
 
-        for(int i = 0; i < this.requestTypeComboBox.getItemCount(); i++) {
-            if(data.getType() == this.requestTypeComboBox.getItemAt(i)){
+        for (int i = 0; i < this.requestTypeComboBox.getItemCount(); i++) {
+            if (data.getType() == this.requestTypeComboBox.getItemAt(i)) {
                 this.requestTypeComboBox.setSelectedIndex(i);
+                break;
+            }
+        }
+
+        for (int i = 0; i < this.bodyTypePicker.getItemCount(); i++) {
+            if (data.getBodyType() == this.bodyTypePicker.getItemAt(i)) {
+                this.bodyTypePicker.setSelectedIndex(i);
                 break;
             }
         }
@@ -171,6 +216,7 @@ public class RestTesterWindow {
                 (RequestType) this.requestTypeComboBox.getSelectedItem(),
                 replaceData,
                 body,
+                (RequestBodyType) this.bodyTypePicker.getSelectedItem(),
                 this.paramHandler.getParams(),
                 this.state.validateSSL
         );
@@ -198,7 +244,8 @@ public class RestTesterWindow {
         String tag = this.nameInputField.getText();
         List<QueryParam> params = this.paramHandler.getParams();
         String body = this.bodyTextInput.getText();
-        RequestTreeNodeData newNodeData = new RequestTreeNodeData(url, tag, type, authData.getName(), params, body);
+        RequestBodyType bodyType = (RequestBodyType) this.bodyTypePicker.getSelectedItem();
+        RequestTreeNodeData newNodeData = new RequestTreeNodeData(url, tag, type, authData.getName(), params, body, bodyType);
         this.treeHandler.addRequest(newNodeData);
     }
 
@@ -207,6 +254,23 @@ public class RestTesterWindow {
         this.setupSaveButton();
         this.setupSendButton();
         this.setupParamsTable();
+        this.setupBodyTextField();
+        this.setupResultTextField();
+    }
+
+    private void setupBodyTextField() {
+        this.bodyTextInput = new LanguageTextField(JsonLanguage.INSTANCE, null, "");
+        this.bodyTextInput.setOneLineMode(false);
+        this.bodyTextInput.setAutoscrolls(true);
+        this.bodyTextInput.setBorder(BorderFactory.createEmptyBorder());
+    }
+
+    private void setupResultTextField() {
+        this.resultTextPane = new LanguageTextField(JsonLanguage.INSTANCE, null, "");
+        this.resultTextPane.setOneLineMode(false);
+        this.resultTextPane.setViewer(true);
+        this.resultTextPane.setAutoscrolls(true);
+        this.resultTextPane.setBorder(BorderFactory.createEmptyBorder());
     }
 
     private void setupParamsTable() {
@@ -253,27 +317,45 @@ public class RestTesterWindow {
         String text = code + " ";
         Color color;
 
-        if(code == -1) {
+        if (code == -1) {
             text += "Failed";
             color = JBColor.red;
-        } else if(code < 200) {
+        } else if (code < 200) {
             text += "Info";
             color = JBColor.cyan;
-        } else if(code < 300) {
+        } else if (code < 300) {
             text += "Success";
             color = new Color(17, 169, 19);
-        } else if(code < 400) {
+        } else if (code < 400) {
             text += "Redirect";
             color = JBColor.orange;
-        } else if(code < 500) {
-            text += "Client Error";
+        } else if (code < 500) {
             color = JBColor.red;
-        } else if(code < 600) {
-            text += "Server Error";
+            if (code == 400) {
+                text += "Bad Request";
+            } else if (code == 401) {
+                text += "Unauthorized";
+            } else if (code == 403) {
+                text += "Forbidden";
+            } else if (code == 404) {
+                text += "Not Found";
+            } else {
+                text += "Client Error";
+            }
+        } else if (code < 600) {
             color = JBColor.red;
+            if (code == 500) {
+                text += "Internal Server Error";
+            } else if (code == 501) {
+                text += "Not Implemented";
+            } else if (code == 502) {
+                text += "Bad Gateway";
+            } else {
+                text += "Server Error";
+            }
         } else {
-            text += "Unknown";
             color = JBColor.red;
+            text += "Unknown";
         }
 
         this.resultCodeField.setText(text);

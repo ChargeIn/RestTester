@@ -4,30 +4,22 @@ import com.flop.resttester.auth.AuthenticationData;
 import com.flop.resttester.auth.AuthenticationWindow;
 import com.flop.resttester.components.ActionButton;
 import com.flop.resttester.components.UrlInputHandler;
-import com.flop.resttester.settings.RestTesterSettingsState;
-import com.flop.resttester.variables.VariablesHandler;
-import com.flop.resttester.variables.VariablesWindow;
 import com.flop.resttester.request.*;
 import com.flop.resttester.requesttree.RequestTreeHandler;
 import com.flop.resttester.requesttree.RequestTreeNodeData;
-import com.intellij.codeInsight.codeFragment.CodeFragmentUtil;
+import com.flop.resttester.settings.RestTesterSettingsState;
+import com.flop.resttester.variables.VariablesHandler;
+import com.flop.resttester.variables.VariablesWindow;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.highlighter.JavaFileType;
-import com.intellij.json.JsonFileType;
 import com.intellij.json.JsonLanguage;
-import com.intellij.json.json5.Json5FileType;
 import com.intellij.lang.Language;
-import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
-import com.intellij.psi.codeStyle.CodeStyleSettingsCodeFragmentFilter;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.LanguageTextField;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
+import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -38,6 +30,14 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class RestTesterWindow {
+    private static final int RESULT_TAB_PANE = 3;
+    // logic variables
+    private final RequestTreeHandler treeHandler;
+    private final VariablesHandler variablesHandler;
+    private final QueryParameterHandler paramHandler;
+    private final UrlInputHandler urlInputHandler;
+    private final Project project;
+    private final Language jsonLanguage = JsonLanguage.INSTANCE;
     private JPanel myToolWindowContent;
     private JTextPane urlInputField;
     private JComboBox<RequestType> requestTypeComboBox;
@@ -63,20 +63,8 @@ public class RestTesterWindow {
     private JComboBox<RequestBodyType> bodyTypePicker;
     private JScrollPane bodyInputScroll;
     private JPanel resultFieldWrapper;
-    private JPanel bodyFieldWrapper;
-
-    // logic variables
-    private final RequestTreeHandler treeHandler;
-    private final VariablesHandler variablesHandler;
-
-    private final QueryParameterHandler paramHandler;
-
-    private final UrlInputHandler urlInputHandler;
-    private static final int RESULT_TAB_PANE = 3;
     private RequestThread requestThread;
     private Timer loadingTimer = new Timer();
-    private final Project project;
-
     private RestTesterSettingsState state = RestTesterSettingsState.getInstance();
 
     public RestTesterWindow(Project project, AuthenticationWindow authWindow, VariablesWindow varWindow) {
@@ -93,22 +81,12 @@ public class RestTesterWindow {
         this.variablesHandler = varWindow.getVariablesHandler();
         this.urlInputHandler = new UrlInputHandler(this.urlInputField, this.variablesHandler);
 
-        this.bodyTextInput.setBackground(JBColor.background());
         this.updateAuthBox(new ArrayList<>());
         authWindow.setAuthenticationListChangeListener(this::updateAuthBox);
 
         this.setupBodyTypeBox();
 
         this.setupStyles();
-
-        PsiExpressionCodeFragment code =
-                JavaCodeFragmentFactory.getInstance(this.project)
-                        .createExpressionCodeFragment("", null, null, true);
-
-        Document document =
-                PsiDocumentManager.getInstance(this.project).getDocument(code);
-        this.bodyTextInput.setDocument(document);
-        this.bodyTextInput.setFileType(JsonFileType.INSTANCE);
     }
 
     public void setupStyles() {
@@ -118,7 +96,12 @@ public class RestTesterWindow {
         this.settingsScrollPane.setBorder(BorderFactory.createEmptyBorder());
         this.bodyInputScroll.setBorder(BorderFactory.createEmptyBorder());
         this.resultFieldWrapper.setBorder(BorderFactory.createEmptyBorder());
-        this.bodyFieldWrapper.setBorder(BorderFactory.createEmptyBorder());
+        this.resultScrollPane.setBorder(BorderFactory.createEmptyBorder());
+
+        this.bodyInputScroll.getVerticalScrollBar().setUnitIncrement(16);
+        this.bodyInputScroll.setBackground(JBColor.border());
+        this.resultScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        this.resultScrollPane.setBackground(JBColor.border());
     }
 
     private void setupBodyTypeBox() {
@@ -259,18 +242,19 @@ public class RestTesterWindow {
     }
 
     private void setupBodyTextField() {
-        this.bodyTextInput = new LanguageTextField(JsonLanguage.INSTANCE, null, "");
+        this.bodyTextInput = new LanguageTextField(this.jsonLanguage, this.project, "");
         this.bodyTextInput.setOneLineMode(false);
-        this.bodyTextInput.setAutoscrolls(true);
         this.bodyTextInput.setBorder(BorderFactory.createEmptyBorder());
+        this.bodyTextInput.setBorder(JBUI.Borders.empty(5));
+        this.bodyTextInput.setBackground(JBColor.border());
     }
 
     private void setupResultTextField() {
-        this.resultTextPane = new LanguageTextField(JsonLanguage.INSTANCE, null, "");
+        this.resultTextPane = new LanguageTextField(this.jsonLanguage, this.project, "");
         this.resultTextPane.setOneLineMode(false);
         this.resultTextPane.setViewer(true);
-        this.resultTextPane.setAutoscrolls(true);
         this.resultTextPane.setBorder(BorderFactory.createEmptyBorder());
+        this.resultTextPane.setBackground(JBColor.border());
     }
 
     private void setupParamsTable() {

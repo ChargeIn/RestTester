@@ -112,7 +112,7 @@
         <properties>
           <continuousLayout value="false"/>
           <dividerLocation value="300"/>
-          <dividerSize value="0"/>
+          <dividerSize value="2"/>
           <orientation value="0"/>
           <resizeWeight value="0.75"/>
           <verifyInputWhenFocusTarget value="true"/>

@@ -111,7 +111,7 @@
         </constraints>
         <properties>
           <continuousLayout value="false"/>
-          <dividerLocation value="400"/>
+          <dividerLocation value="300"/>
           <dividerSize value="0"/>
           <orientation value="0"/>
           <resizeWeight value="0.75"/>

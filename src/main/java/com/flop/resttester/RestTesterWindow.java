@@ -11,9 +11,14 @@ import com.flop.resttester.settings.RestTesterSettingsState;
 import com.flop.resttester.variables.VariablesHandler;
 import com.flop.resttester.variables.VariablesWindow;
 import com.intellij.icons.AllIcons;
+import com.intellij.json.JsonFileType;
 import com.intellij.json.JsonLanguage;
 import com.intellij.lang.Language;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.JavaCodeFragmentFactory;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiExpressionCodeFragment;
 import com.intellij.ui.EditorTextField;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.LanguageTextField;
@@ -86,6 +91,7 @@ public class RestTesterWindow {
 
         this.setupBodyTypeBox();
 
+        this.setupLanguageHighlighting();
         this.setupStyles();
     }
 
@@ -102,6 +108,26 @@ public class RestTesterWindow {
         this.bodyInputScroll.setBackground(JBColor.border());
         this.resultScrollPane.getVerticalScrollBar().setUnitIncrement(16);
         this.resultScrollPane.setBackground(JBColor.border());
+    }
+
+    private void setupLanguageHighlighting() {
+        PsiExpressionCodeFragment codeBody =
+                JavaCodeFragmentFactory.getInstance(this.project)
+                        .createExpressionCodeFragment("", null, null, true);
+
+        Document documentBody =
+                PsiDocumentManager.getInstance(this.project).getDocument(codeBody);
+        this.bodyTextInput.setDocument(documentBody);
+        this.bodyTextInput.setFileType(JsonFileType.INSTANCE);
+
+        PsiExpressionCodeFragment codeResult =
+                JavaCodeFragmentFactory.getInstance(this.project)
+                        .createExpressionCodeFragment("", null, null, true);
+
+        Document documentResult =
+                PsiDocumentManager.getInstance(this.project).getDocument(codeResult);
+        this.resultTextPane.setDocument(documentResult);
+        this.resultTextPane.setFileType(JsonFileType.INSTANCE);
     }
 
     private void setupBodyTypeBox() {

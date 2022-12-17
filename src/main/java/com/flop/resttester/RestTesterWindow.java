@@ -76,8 +76,6 @@ public class RestTesterWindow {
         this.project = project;
         this.setUpRequestTypes();
 
-        this.splitPane.setBorder(BorderFactory.createEmptyBorder());
-
         this.treeHandler = new RequestTreeHandler(this.requestTree, project);
         this.treeHandler.addSelectionListener(this::updateInputs);
 
@@ -96,7 +94,7 @@ public class RestTesterWindow {
     }
 
     public void setupStyles() {
-        this.treeActionBar.setBorder(BorderFactory.createLineBorder(JBColor.border()));
+        this.splitPane.setBorder(BorderFactory.createEmptyBorder());
         this.treeScrollPane.setBorder(BorderFactory.createEmptyBorder());
 
         this.settingsScrollPane.setBorder(BorderFactory.createEmptyBorder());

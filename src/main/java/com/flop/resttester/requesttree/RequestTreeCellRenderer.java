@@ -1,6 +1,7 @@
 package com.flop.resttester.requesttree;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.ui.JBColor;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -18,6 +19,9 @@ public class RequestTreeCellRenderer extends DefaultTreeCellRenderer {
         } else {
             this.setIcon(AllIcons.Javaee.WebService);
         }
+
+        this.setBackgroundNonSelectionColor(JBColor.background());
+
         return this;
     }
 }

@@ -52,7 +52,6 @@ public class RestTesterWindow {
     private ActionButton saveButton;
     private ActionButton sendButton;
     private JPanel requestInputPanel;
-    private JPanel topPanel;
     private JComboBox<AuthenticationData> authComboBox;
     private LanguageTextField bodyTextInput;
     private JTextField nameInputField;
@@ -94,6 +93,7 @@ public class RestTesterWindow {
     }
 
     public void setupStyles() {
+        this.myToolWindowContent.setBorder(BorderFactory.createEmptyBorder());
         this.splitPane.setBorder(BorderFactory.createEmptyBorder());
         this.treeScrollPane.setBorder(BorderFactory.createEmptyBorder());
 

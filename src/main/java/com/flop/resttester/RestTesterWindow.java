@@ -3,6 +3,8 @@ package com.flop.resttester;
 import com.flop.resttester.auth.AuthenticationData;
 import com.flop.resttester.auth.AuthenticationWindow;
 import com.flop.resttester.components.ActionButton;
+import com.flop.resttester.components.CustomComboBox;
+import com.flop.resttester.components.CustomPanel;
 import com.flop.resttester.components.UrlInputHandler;
 import com.flop.resttester.request.*;
 import com.flop.resttester.requesttree.RequestTreeHandler;
@@ -51,7 +53,7 @@ public class RestTesterWindow {
     private ActionButton removeTreeSelectionButton;
     private ActionButton saveButton;
     private ActionButton sendButton;
-    private JPanel requestInputPanel;
+    private JPanel urlInputPanel;
     private JComboBox<AuthenticationData> authComboBox;
     private LanguageTextField bodyTextInput;
     private JTextField nameInputField;
@@ -67,6 +69,7 @@ public class RestTesterWindow {
     private JComboBox<RequestBodyType> bodyTypePicker;
     private JScrollPane bodyInputScroll;
     private JPanel resultFieldWrapper;
+    private JPanel bodyPanel;
     private RequestThread requestThread;
     private Timer loadingTimer = new Timer();
     private RestTesterSettingsState state = RestTesterSettingsState.getInstance();
@@ -98,14 +101,13 @@ public class RestTesterWindow {
         this.treeScrollPane.setBorder(BorderFactory.createEmptyBorder());
 
         this.settingsScrollPane.setBorder(BorderFactory.createEmptyBorder());
-        this.bodyInputScroll.setBorder(BorderFactory.createEmptyBorder());
         this.resultFieldWrapper.setBorder(BorderFactory.createEmptyBorder());
-        this.resultScrollPane.setBorder(BorderFactory.createEmptyBorder());
 
         this.bodyInputScroll.getVerticalScrollBar().setUnitIncrement(16);
-        this.bodyInputScroll.setBackground(JBColor.border());
+        this.resultScrollPane.setBorder(BorderFactory.createEmptyBorder());
         this.resultScrollPane.getVerticalScrollBar().setUnitIncrement(16);
-        this.resultScrollPane.setBackground(JBColor.border());
+
+        this.sendButton.setBorder(JBUI.Borders.empty(5));
     }
 
     private void setupLanguageHighlighting() {
@@ -133,6 +135,14 @@ public class RestTesterWindow {
         this.bodyTypePicker.addItem(RequestBodyType.XML);
         this.bodyTypePicker.addItem(RequestBodyType.Plain);
         this.bodyTypePicker.setSelectedIndex(0);
+    }
+
+    public void setUpRequestTypes() {
+        this.requestTypeComboBox.addItem(RequestType.GET);
+        this.requestTypeComboBox.addItem(RequestType.POST);
+        this.requestTypeComboBox.addItem(RequestType.DELETE);
+        this.requestTypeComboBox.addItem(RequestType.PATCH);
+        this.requestTypeComboBox.setSelectedIndex(0);
     }
 
     private void updateAuthBox(List<AuthenticationData> data) {
@@ -257,20 +267,34 @@ public class RestTesterWindow {
     }
 
     private void createUIComponents() {
+        this.setupInputField();
         this.setupRemoveButton();
         this.setupSaveButton();
         this.setupSendButton();
         this.setupParamsTable();
         this.setupBodyTextField();
         this.setupResultTextField();
+        this.setupUpRequestTypeComboBox();
+    }
+
+    public void setupUpRequestTypeComboBox() {
+        this.requestTypeComboBox = new CustomComboBox<>();
+        ((CustomComboBox<?>) this.requestTypeComboBox).setCustomBackground(JBColor.border());
+        this.requestTypeComboBox.setBorder(BorderFactory.createEmptyBorder());
+    }
+
+    public void setupInputField() {
+        this.urlInputPanel = new CustomPanel();
+        ((CustomPanel) this.urlInputPanel).setCustomBackground(JBColor.border());
+        this.urlInputPanel.setBorder(BorderFactory.createLineBorder(JBColor.lightGray));
     }
 
     private void setupBodyTextField() {
+        this.bodyPanel = new CustomPanel();
+        ((CustomPanel) this.bodyPanel).setCustomBackground(JBColor.border());
         this.bodyTextInput = new LanguageTextField(this.jsonLanguage, this.project, "");
         this.bodyTextInput.setOneLineMode(false);
-        this.bodyTextInput.setBorder(BorderFactory.createEmptyBorder());
         this.bodyTextInput.setBorder(JBUI.Borders.empty(5));
-        this.bodyTextInput.setBackground(JBColor.border());
     }
 
     private void setupResultTextField() {
@@ -311,14 +335,6 @@ public class RestTesterWindow {
             this.sendRequest();
         });
 
-    }
-
-    public void setUpRequestTypes() {
-        this.requestTypeComboBox.addItem(RequestType.GET);
-        this.requestTypeComboBox.addItem(RequestType.POST);
-        this.requestTypeComboBox.addItem(RequestType.DELETE);
-        this.requestTypeComboBox.addItem(RequestType.PATCH);
-        this.requestTypeComboBox.setSelectedIndex(0);
     }
 
     private void updateResponseCode(int code) {

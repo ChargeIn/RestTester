@@ -18,18 +18,14 @@ public class UrlInputHandler {
     private final AttributeSet bracketAttr;
 
     private final AttributeSet invalidAttr;
-
-    private String text;
-
     private final VariablesHandler variablesHandler;
+    private String text;
 
     public UrlInputHandler(JTextPane pane, VariablesHandler variablesHandler) {
         this.pane = pane;
         this.variablesHandler = variablesHandler;
 
-        this.pane.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedBorder(),
-                BorderFactory.createEmptyBorder(3, 6, 3, 6)));
+        this.pane.setBorder(BorderFactory.createEmptyBorder(6, 6, 6, 6));
         this.pane.setEditorKit(new WrapEditorKit());
 
         this.defaultStyle = this.pane.addStyle("Default", null);

@@ -2,10 +2,9 @@ package com.flop.resttester;
 
 import com.flop.resttester.auth.AuthenticationData;
 import com.flop.resttester.auth.AuthenticationWindow;
-import com.flop.resttester.components.ActionButton;
-import com.flop.resttester.components.CustomComboBox;
-import com.flop.resttester.components.CustomPanel;
-import com.flop.resttester.components.UrlInputHandler;
+import com.flop.resttester.components.*;
+import com.flop.resttester.components.combobox.CustomComboBox;
+import com.flop.resttester.components.combobox.CustomComboBoxUI;
 import com.flop.resttester.request.*;
 import com.flop.resttester.requesttree.RequestTreeHandler;
 import com.flop.resttester.requesttree.RequestTreeNodeData;
@@ -21,7 +20,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaCodeFragmentFactory;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiExpressionCodeFragment;
-import com.intellij.ui.EditorTextField;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.LanguageTextField;
 import com.intellij.ui.components.JBScrollPane;
@@ -48,7 +46,7 @@ public class RestTesterWindow {
     private JPanel myToolWindowContent;
     private JTextPane urlInputField;
     private JComboBox<RequestType> requestTypeComboBox;
-    private EditorTextField resultTextPane;
+    private LanguageTextField resultTextPane;
     private JTree requestTree;
     private ActionButton removeTreeSelectionButton;
     private ActionButton saveButton;
@@ -70,6 +68,7 @@ public class RestTesterWindow {
     private JScrollPane bodyInputScroll;
     private JPanel resultFieldWrapper;
     private JPanel bodyPanel;
+    private JPanel innerResultFieldMapper;
     private RequestThread requestThread;
     private Timer loadingTimer = new Timer();
     private RestTesterSettingsState state = RestTesterSettingsState.getInstance();
@@ -103,7 +102,6 @@ public class RestTesterWindow {
         this.settingsScrollPane.setBorder(BorderFactory.createEmptyBorder());
         this.resultFieldWrapper.setBorder(BorderFactory.createEmptyBorder());
 
-        this.bodyInputScroll.getVerticalScrollBar().setUnitIncrement(16);
         this.resultScrollPane.setBorder(BorderFactory.createEmptyBorder());
         this.resultScrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
@@ -215,9 +213,11 @@ public class RestTesterWindow {
         this.loadingTimer = new Timer();
         this.loadingTimer.schedule(new TimerTask() {
             public void run() {
-                if (RestTesterWindow.this.requestThread != null) {
-                    RestTesterWindow.this.resultTextPane.setText("Loading...   " + RestTesterWindow.this.requestThread.getElapsedTime());
-                }
+                SwingUtilities.invokeLater(() -> {
+                    if (RestTesterWindow.this.requestThread != null) {
+                        RestTesterWindow.this.resultTextPane.setText("Loading...   " + RestTesterWindow.this.requestThread.getElapsedTime());
+                    }
+                });
             }
         }, 0, 100);
 
@@ -238,14 +238,16 @@ public class RestTesterWindow {
                 this.state.validateSSL
         );
 
-        this.requestThread = new RequestThread(data, (code, context) -> {
-            this.requestThread = null;
-            this.loadingTimer.cancel();
-            this.resultTextPane.setText(context);
-            this.sendButton.setIcon(AllIcons.Actions.Execute);
+        this.requestThread = new RequestThread(data, (code, context) ->
+                SwingUtilities.invokeLater(() -> {
+                            this.requestThread = null;
+                            this.loadingTimer.cancel();
+                            this.resultTextPane.setText(context);
+                            this.sendButton.setIcon(AllIcons.Actions.Execute);
 
-            this.updateResponseCode(code);
-        });
+                            this.updateResponseCode(code);
+                        }
+                ));
 
         this.requestThread.start();
     }
@@ -279,6 +281,8 @@ public class RestTesterWindow {
 
     public void setupUpRequestTypeComboBox() {
         this.requestTypeComboBox = new CustomComboBox<>();
+        CustomComboBoxUI ui = new CustomComboBoxUI();
+        this.requestTypeComboBox.setUI(ui);
         ((CustomComboBox<?>) this.requestTypeComboBox).setCustomBackground(JBColor.border());
         this.requestTypeComboBox.setBorder(BorderFactory.createEmptyBorder());
     }
@@ -286,19 +290,27 @@ public class RestTesterWindow {
     public void setupInputField() {
         this.urlInputPanel = new CustomPanel();
         ((CustomPanel) this.urlInputPanel).setCustomBackground(JBColor.border());
-        this.urlInputPanel.setBorder(BorderFactory.createLineBorder(JBColor.lightGray));
+        this.urlInputPanel.setBorder(BorderFactory.createLineBorder(JBColor.background()));
     }
 
     private void setupBodyTextField() {
-        this.bodyPanel = new CustomPanel();
-        ((CustomPanel) this.bodyPanel).setCustomBackground(JBColor.border());
-        this.bodyTextInput = new LanguageTextField(this.jsonLanguage, this.project, "");
+        this.bodyInputScroll = new CustomScrollPane();
+        ((CustomScrollPane) this.bodyInputScroll).setCustomBackground(JBColor.border());
+        this.bodyInputScroll.getVerticalScrollBar().setUnitIncrement(16);
+        this.bodyInputScroll.setBorder(BorderFactory.createLineBorder(JBColor.background()));
+
+        this.bodyTextInput = new CustomLanguageTextField(this.jsonLanguage, this.project, "");
+        ((CustomLanguageTextField) this.bodyTextInput).setCustomBackground(JBColor.border());
         this.bodyTextInput.setOneLineMode(false);
         this.bodyTextInput.setBorder(JBUI.Borders.empty(5));
     }
 
     private void setupResultTextField() {
-        this.resultTextPane = new LanguageTextField(this.jsonLanguage, this.project, "");
+        this.innerResultFieldMapper = new CustomPanel();
+        ((CustomPanel) this.innerResultFieldMapper).setCustomBackground(JBColor.border());
+
+        this.resultTextPane = new CustomLanguageTextField(this.jsonLanguage, this.project, "");
+        ((CustomLanguageTextField) this.resultTextPane).setCustomBackground(JBColor.border());
         this.resultTextPane.setOneLineMode(false);
         this.resultTextPane.setViewer(true);
         this.resultTextPane.setBorder(BorderFactory.createEmptyBorder());

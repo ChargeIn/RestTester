@@ -1,4 +1,4 @@
-package com.flop.resttester.components;
+package com.flop.resttester.components.combobox;
 
 import com.intellij.openapi.ui.ComboBox;
 
@@ -12,6 +12,5 @@ public class CustomComboBox<T> extends ComboBox<T> {
 
     public void setCustomBackground(Color color) {
         super.setBackground(color);
-
     }
 }

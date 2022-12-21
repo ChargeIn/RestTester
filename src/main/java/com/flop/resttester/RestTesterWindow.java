@@ -208,6 +208,7 @@ public class RestTesterWindow {
         }
 
         this.resultTextPane.setText("Loading...");
+        this.updateResponseCode(-2);
         this.topTabbedPane.setSelectedIndex(RestTesterWindow.RESULT_TAB_PANE);
 
         this.loadingTimer = new Timer();
@@ -244,7 +245,6 @@ public class RestTesterWindow {
                             this.loadingTimer.cancel();
                             this.resultTextPane.setText(context);
                             this.sendButton.setIcon(AllIcons.Actions.Execute);
-
                             this.updateResponseCode(code);
                         }
                 ));
@@ -353,7 +353,10 @@ public class RestTesterWindow {
         String text = code + " ";
         Color color;
 
-        if (code == -1) {
+        if (code == -2) {
+            text = "";
+            color = JBColor.background();
+        } else if (code == -1) {
             text += "Failed";
             color = JBColor.red;
         } else if (code < 200) {

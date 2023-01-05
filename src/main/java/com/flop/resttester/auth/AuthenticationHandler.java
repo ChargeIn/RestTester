@@ -58,6 +58,7 @@ public class AuthenticationHandler {
 
             if (Objects.equals(node.getAuthData().getName(), datum.getName())) {
                 node.getAuthData().update(datum);
+                this.saveAuth();
                 return;
             }
 

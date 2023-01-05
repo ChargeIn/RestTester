@@ -165,7 +165,11 @@ public class RestTesterWindow {
             return;
         }
 
-        this.urlInputField.setText(data.getUrl());
+        if (!urlInputField.getText().equals(data.getUrl())) {
+            // only update url input if text changed
+            // otherwise the coloring might not be updated
+            this.urlInputField.setText(data.getUrl());
+        }
         this.nameInputField.setText(data.getTag());
         this.removeTreeSelectionButton.setEnabled(true);
         this.removeTreeSelectionButton.updateUI();

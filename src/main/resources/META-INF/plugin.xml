@@ -27,7 +27,7 @@
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow id="Rest Tester" secondary="false" icon="AllIcons.Actions.InlayGlobe" anchor="right"
+        <toolWindow id="Rest Tester" secondary="false" icon="AllIcons.Actions.InlayGlobe" anchor="bottom"
                     factoryClass="com.flop.resttester.RestTesterFactory"/>
 
         <notificationGroup id="Rest Tester Notification Group"

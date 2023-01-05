@@ -27,6 +27,7 @@ import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.ArrayList;
@@ -35,8 +36,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class RestTesterWindow {
-    private static final int RESULT_TAB_PANE = 3;
-    // logic variables
     private final RequestTreeHandler treeHandler;
     private final VariablesHandler variablesHandler;
     private final QueryParameterHandler paramHandler;
@@ -56,7 +55,7 @@ public class RestTesterWindow {
     private LanguageTextField bodyTextInput;
     private JTextField nameInputField;
     private JTabbedPane topTabbedPane;
-    private JSplitPane splitPane;
+    private JSplitPane splitPaneLeft;
     private JPanel treeActionBar;
     private JScrollPane resultScrollPane;
     private JTable paramsTable;
@@ -69,6 +68,7 @@ public class RestTesterWindow {
     private JPanel resultFieldWrapper;
     private JPanel bodyPanel;
     private JPanel innerResultFieldMapper;
+    private JSplitPane splitPaneRight;
     private RequestThread requestThread;
     private Timer loadingTimer = new Timer();
     private RestTesterSettingsState state = RestTesterSettingsState.getInstance();
@@ -95,8 +95,15 @@ public class RestTesterWindow {
     }
 
     public void setupStyles() {
+        // set up splitter
+        this.splitPaneRight.setDividerLocation(0.5);
+
+        this.splitPaneLeft.setBorder(BorderFactory.createEmptyBorder());
+        ((BasicSplitPaneUI) this.splitPaneLeft.getUI()).getDivider().setBorder(BorderFactory.createLineBorder(JBColor.border()));
+        this.splitPaneRight.setBorder(BorderFactory.createEmptyBorder());
+        ((BasicSplitPaneUI) this.splitPaneRight.getUI()).getDivider().setBorder(BorderFactory.createLineBorder(JBColor.border()));
+
         this.myToolWindowContent.setBorder(BorderFactory.createEmptyBorder());
-        this.splitPane.setBorder(BorderFactory.createEmptyBorder());
         this.treeScrollPane.setBorder(BorderFactory.createEmptyBorder());
 
         this.settingsScrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -209,7 +216,6 @@ public class RestTesterWindow {
 
         this.resultTextPane.setText("Loading...");
         this.updateResponseCode(-2);
-        this.topTabbedPane.setSelectedIndex(RestTesterWindow.RESULT_TAB_PANE);
 
         this.loadingTimer = new Timer();
         this.loadingTimer.schedule(new TimerTask() {

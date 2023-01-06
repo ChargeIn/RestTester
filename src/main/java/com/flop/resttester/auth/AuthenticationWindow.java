@@ -7,6 +7,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 
 import javax.swing.*;
+import javax.swing.plaf.basic.BasicSplitPaneUI;
 import java.util.List;
 
 public class AuthenticationWindow {
@@ -16,15 +17,16 @@ public class AuthenticationWindow {
     private JLabel nameLabel;
     private JTextField usernameInput;
     private JPasswordField passwordInput;
-    private JButton saveButton;
     private JLabel passwordLabel;
     private JTextField tokenInput;
     private JLabel tokenLabel;
     private JLabel usernameLabel;
     private JTree authTree;
-    private ActionButton deleteButton;
     private JScrollPane treeScrollPane;
     private JPanel treeWrapper;
+    private JSplitPane splitPane;
+    private ActionButton saveActionButton;
+    private ActionButton removeActionButton;
 
     private Project project;
 
@@ -36,8 +38,6 @@ public class AuthenticationWindow {
         this.loadTypeBox();
         this.updateInputFields();
 
-        this.saveButton.addActionListener((e) -> this.save());
-
         this.project = project;
         this.authenticationHandler = new AuthenticationHandler(this.authTree, project);
         this.authenticationHandler.setAuthenticationTreeSelectionListener(this::updateInputFields);
@@ -47,7 +47,9 @@ public class AuthenticationWindow {
     }
 
     private void setupStyles() {
-        this.treeScrollPane.setBorder(BorderFactory.createLineBorder(JBColor.border()));
+        this.treeScrollPane.setBorder(BorderFactory.createEmptyBorder());
+        this.splitPane.setBorder(BorderFactory.createEmptyBorder());
+        ((BasicSplitPaneUI) this.splitPane.getUI()).getDivider().setBorder(BorderFactory.createLineBorder(JBColor.border()));
     }
 
     public void setAuthenticationListChangeListener(AuthenticationListChangeListener authenticationListChangeListener) {
@@ -56,12 +58,19 @@ public class AuthenticationWindow {
     }
 
     private void createUIComponents() {
-        this.deleteButton = new ActionButton("", AllIcons.CodeWithMe.CwmTerminate);
-        this.deleteButton.addActionListener((e) -> {
+        // remove button
+        this.removeActionButton = new ActionButton("", AllIcons.Vcs.Remove);
+        this.removeActionButton.addActionListener((e) -> {
             if (this.authenticationHandler != null) {
                 this.authenticationHandler.deleteSelection();
             }
         });
+        this.removeActionButton.setToolTipText("Remove profile");
+
+        // save button
+        this.saveActionButton = new ActionButton("", AllIcons.Actions.AddToDictionary);
+        this.saveActionButton.addActionListener((e) -> this.save());
+        this.saveActionButton.setToolTipText("Save profile");
     }
 
     public void save() {

@@ -7,10 +7,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FileUtils;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLSession;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -18,14 +17,12 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class RequestThread extends Thread {
-    private boolean stopped = false;
     private final RequestData data;
-    private long startTime = 0;
-
     private final RequestFinishedListener finishedListener;
+    private boolean stopped = false;
+    private long startTime = 0;
 
     public RequestThread(RequestData data, RequestFinishedListener finishedListener) {
         this.data = data;
@@ -39,13 +36,13 @@ public class RequestThread extends Thread {
         StringBuilder urlString = new StringBuilder(this.data.url);
 
         if (this.data.queryParams != null) {
-            List<QueryParam> params = this.data.queryParams.stream().filter(param -> !param.key.isEmpty()).collect(Collectors.toList());
+            List<QueryParam> params = this.data.queryParams.stream().filter(param -> !param.key.isEmpty()).toList();
 
             if (params.size() > 0) {
                 urlString.append('?');
                 boolean first = true;
                 for (QueryParam param : params) {
-                    if(first) {
+                    if (first) {
                         first = false;
                     } else {
                         urlString.append("&");
@@ -60,7 +57,7 @@ public class RequestThread extends Thread {
             url = new URL(urlString.toString());
         } catch (MalformedURLException e) {
             if (!this.stopped) {
-                this.finishedListener.onRequestFinished(-1, e.getMessage());
+                this.finishedListener.onRequestFinished(-1, e.getMessage(), this.getElapsedTime(), "0 B");
             }
             return;
         }
@@ -70,7 +67,7 @@ public class RequestThread extends Thread {
             httpCon = (HttpURLConnection) url.openConnection();
         } catch (IOException e) {
             if (!this.stopped) {
-                this.finishedListener.onRequestFinished(-1, e.getMessage());
+                this.finishedListener.onRequestFinished(-1, e.getMessage(), this.getElapsedTime(), "0 B");
             }
             return;
         }
@@ -78,7 +75,7 @@ public class RequestThread extends Thread {
         try {
             httpCon.setRequestMethod(this.data.type.toString());
 
-            if(!data.validateSSL && httpCon instanceof  HttpsURLConnection){
+            if (!data.validateSSL && httpCon instanceof HttpsURLConnection) {
                 ((HttpsURLConnection) httpCon).setHostnameVerifier((hostname, sslSession) -> true);
             }
 
@@ -97,9 +94,9 @@ public class RequestThread extends Thread {
             }
 
             if (this.data.type == RequestType.PATCH || this.data.type == RequestType.POST) {
-                if(this.data.bodyType == RequestBodyType.JSON){
+                if (this.data.bodyType == RequestBodyType.JSON) {
                     httpCon.setRequestProperty("Content-Type", "application/json");
-                } else if(this.data.bodyType == RequestBodyType.XML) {
+                } else if (this.data.bodyType == RequestBodyType.XML) {
                     httpCon.setRequestProperty("Content-Type", "application/xml");
                 } else {
                     httpCon.setRequestProperty("Content-Type", "text/plain");
@@ -141,20 +138,29 @@ public class RequestThread extends Thread {
                 } catch (Exception ignore) {
                     jsonString = content.toString();
                 }
-                this.finishedListener.onRequestFinished(httpCon.getResponseCode(), jsonString);
+
+                int contentLength = httpCon.getContentLength();
+                String byteSize = FileUtils.byteCountToDisplaySize(contentLength);
+
+                this.finishedListener.onRequestFinished(httpCon.getResponseCode(), jsonString, this.getElapsedTime(), byteSize);
             }
         } catch (Exception e) {
             if (!this.stopped) {
                 try {
-                    this.finishedListener.onRequestFinished(httpCon.getResponseCode(), e.getMessage());
+                    this.finishedListener.onRequestFinished(httpCon.getResponseCode(), e.getMessage(), this.getElapsedTime(), "0 B");
                 } catch (IOException ex) {
                     String message = e.getMessage();
 
-                    if(message.equals("No subject alternative names present")) {
-                        this.finishedListener.onRequestFinished(-1, "No subject alternative names present.\n\nTry changing the rest tester setting (in the Intellij Settings Menu) to allow request without ssl validation.");
+                    if (message.equals("No subject alternative names present")) {
+                        this.finishedListener.onRequestFinished(
+                                -1,
+                                "No subject alternative names present.\n\nTry changing the rest tester setting (in the Intellij Settings Menu) to allow request without ssl validation.",
+                                this.getElapsedTime(),
+                                "0 B"
+                        );
                         return;
                     }
-                    this.finishedListener.onRequestFinished(-1, e.getMessage());
+                    this.finishedListener.onRequestFinished(-1, e.getMessage(), this.getElapsedTime(), "0 B");
                 }
             }
         }

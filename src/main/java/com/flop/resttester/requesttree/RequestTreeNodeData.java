@@ -3,7 +3,6 @@ package com.flop.resttester.requesttree;
 import com.flop.resttester.request.QueryParam;
 import com.flop.resttester.request.RequestBodyType;
 import com.flop.resttester.request.RequestType;
-import org.bouncycastle.cert.ocsp.Req;
 
 import java.net.URL;
 import java.util.List;
@@ -16,17 +15,11 @@ public class RequestTreeNodeData {
     private String path = "";
     private RequestType type;
     private int depth = 0;
-
     private String displayString = "";
-
     private String[] pathElements;
-
     private String authDataKey;
-
     private String tag = "";
-
     private List<QueryParam> params;
-
     private String body;
     private RequestBodyType bodyType;
 
@@ -105,6 +98,10 @@ public class RequestTreeNodeData {
         return this.type == null;
     }
 
+    public String getUrl() {
+        return url;
+    }
+
     private void setUrl(String url) {
         this.url = url.trim();
 
@@ -124,17 +121,13 @@ public class RequestTreeNodeData {
         this.updateDisplayString();
     }
 
-    public String getUrl() {
-        return url;
+    public int getDepth() {
+        return depth;
     }
 
     public void setDepth(int depth) {
         this.depth = Math.min(this.pathElements.length - 1, depth);
         this.updateDisplayString();
-    }
-
-    public int getDepth() {
-        return depth;
     }
 
     public RequestType getType() {
@@ -153,11 +146,11 @@ public class RequestTreeNodeData {
         this.body = body;
     }
 
-    public RequestBodyType getBodyType(){
+    public RequestBodyType getBodyType() {
         return this.bodyType;
     }
 
-    public void setBodyType(RequestBodyType bodyType){
+    public void setBodyType(RequestBodyType bodyType) {
         this.bodyType = bodyType;
     }
 
@@ -165,7 +158,7 @@ public class RequestTreeNodeData {
         return this.authDataKey;
     }
 
-    public void setAuthenticationDataKey(String key){
+    public void setAuthenticationDataKey(String key) {
         this.authDataKey = key;
     }
 
@@ -180,6 +173,7 @@ public class RequestTreeNodeData {
     public void setParams(List<QueryParam> params) {
         this.params = params;
     }
+
     public void update(RequestTreeNodeData newNodeData) {
         // only need to update non id related fields
         this.setBody(newNodeData.getBody());

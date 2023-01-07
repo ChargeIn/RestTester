@@ -1,7 +1,6 @@
 package com.flop.resttester.results;
 
 import com.flop.resttester.components.CustomLanguageTextField;
-import com.flop.resttester.components.CustomPanel;
 import com.intellij.json.JsonFileType;
 import com.intellij.json.JsonLanguage;
 import com.intellij.openapi.editor.Document;
@@ -17,19 +16,12 @@ import java.awt.*;
 
 public class ResultWindow {
     private JPanel mainPanel;
-    private JScrollPane resultScrollPane;
-    private JPanel resultFieldWrapper;
-    private JPanel innerResultFieldMapper;
     private JTextArea resultCodeField;
     private LanguageTextField resultTextPane;
     private JTextArea resultSizeField;
     private JTextArea resultTimeField;
 
     private Project project;
-
-    public ResultWindow() {
-        this.setupStyles();
-    }
 
     public JPanel getContent() {
         return mainPanel;
@@ -38,12 +30,6 @@ public class ResultWindow {
     public void setProject(Project project) {
         this.project = project;
         this.setupLanguageHighlighting();
-    }
-
-    private void setupStyles() {
-        this.resultFieldWrapper.setBorder(BorderFactory.createEmptyBorder());
-        this.resultScrollPane.setBorder(BorderFactory.createEmptyBorder());
-        this.resultScrollPane.getVerticalScrollBar().setUnitIncrement(16);
     }
 
     private void setupLanguageHighlighting() {
@@ -62,9 +48,6 @@ public class ResultWindow {
     }
 
     private void setupResultTextField() {
-        this.innerResultFieldMapper = new CustomPanel();
-        ((CustomPanel) this.innerResultFieldMapper).setCustomBackground(JBColor.border());
-
         this.resultTextPane = new CustomLanguageTextField(JsonLanguage.INSTANCE, this.project, "");
         ((CustomLanguageTextField) this.resultTextPane).setCustomBackground(JBColor.border());
         this.resultTextPane.setOneLineMode(false);

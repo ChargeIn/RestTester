@@ -2,7 +2,10 @@ package com.flop.resttester.request;
 
 import com.flop.resttester.RestTesterNotifier;
 import com.flop.resttester.auth.AuthenticationData;
-import com.flop.resttester.components.*;
+import com.flop.resttester.components.ActionButton;
+import com.flop.resttester.components.CustomLanguageTextField;
+import com.flop.resttester.components.CustomPanel;
+import com.flop.resttester.components.UrlInputHandler;
 import com.flop.resttester.components.combobox.CustomComboBox;
 import com.flop.resttester.components.combobox.CustomComboBoxUI;
 import com.flop.resttester.requesttree.RequestTreeNodeData;
@@ -36,7 +39,6 @@ public class RequestWindow {
     private JScrollPane paramsScrollPane;
     private JTable paramsTable;
     private JPanel bodyPanel;
-    private JScrollPane bodyInputScroll;
     private LanguageTextField bodyTextInput;
     private JComboBox<RequestBodyType> bodyTypePicker;
     private JPanel urlInputPanel;
@@ -107,11 +109,6 @@ public class RequestWindow {
     }
 
     private void setupBodyTextField() {
-        this.bodyInputScroll = new CustomScrollPane();
-        ((CustomScrollPane) this.bodyInputScroll).setCustomBackground(JBColor.border());
-        this.bodyInputScroll.getVerticalScrollBar().setUnitIncrement(16);
-        this.bodyInputScroll.setBorder(BorderFactory.createLineBorder(JBColor.background()));
-
         this.bodyTextInput = new CustomLanguageTextField(JsonLanguage.INSTANCE, this.project, "");
         ((CustomLanguageTextField) this.bodyTextInput).setCustomBackground(JBColor.border());
         this.bodyTextInput.setOneLineMode(false);

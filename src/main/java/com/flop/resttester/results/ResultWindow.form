@@ -8,39 +8,6 @@
     <properties/>
     <border type="none"/>
     <children>
-      <scrollpane id="430ff" binding="resultScrollPane">
-        <constraints>
-          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="5" hsize-policy="5" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties/>
-        <border type="none"/>
-        <children>
-          <grid id="340ad" binding="resultFieldWrapper" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-            <margin top="0" left="2" bottom="5" right="2"/>
-            <constraints/>
-            <properties/>
-            <border type="none"/>
-            <children>
-              <grid id="ce8f5" binding="innerResultFieldMapper" custom-create="true" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                <margin top="5" left="8" bottom="5" right="8"/>
-                <constraints>
-                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties/>
-                <border type="none"/>
-                <children>
-                  <component id="d151c" class="com.intellij.ui.LanguageTextField" binding="resultTextPane" custom-create="true">
-                    <constraints>
-                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="5" hsize-policy="5" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties/>
-                  </component>
-                </children>
-              </grid>
-            </children>
-          </grid>
-        </children>
-      </scrollpane>
       <grid id="93694" layout-manager="GridLayoutManager" row-count="1" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="5" left="5" bottom="0" right="5"/>
         <constraints>
@@ -98,6 +65,12 @@
           </component>
         </children>
       </grid>
+      <component id="d151c" class="com.intellij.ui.LanguageTextField" binding="resultTextPane" custom-create="true">
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="5" hsize-policy="5" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+      </component>
     </children>
   </grid>
 </form>

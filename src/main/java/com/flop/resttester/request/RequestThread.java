@@ -8,9 +8,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 import javax.net.ssl.HttpsURLConnection;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -121,26 +125,22 @@ public class RequestThread extends Thread {
                 inputStream = httpCon.getErrorStream();
             }
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
-            String inputLine;
-            StringBuilder content = new StringBuilder();
-            while ((inputLine = in.readLine()) != null) {
-                content.append(inputLine).append("\n");
-            }
-            in.close();
+            byte[] bytes = IOUtils.toByteArray(inputStream);
+            int requestByteSize = bytes.length;
+            inputStream.close();
+            String content = new String(bytes, StandardCharsets.UTF_8);
 
             if (!this.stopped) {
                 String jsonString;
                 try {
                     Gson gson = new GsonBuilder().setPrettyPrinting().create();
-                    JsonElement el = JsonParser.parseString(content.toString());
+                    JsonElement el = JsonParser.parseString(content);
                     jsonString = gson.toJson(el);
                 } catch (Exception ignore) {
-                    jsonString = content.toString();
+                    jsonString = content;
                 }
 
-                int contentLength = httpCon.getContentLength();
-                String byteSize = FileUtils.byteCountToDisplaySize(contentLength);
+                String byteSize = FileUtils.byteCountToDisplaySize(requestByteSize);
 
                 this.finishedListener.onRequestFinished(httpCon.getResponseCode(), jsonString, this.getElapsedTime(), byteSize);
             }

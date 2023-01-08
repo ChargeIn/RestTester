@@ -8,7 +8,7 @@ import com.flop.resttester.request.RequestThread;
 import com.flop.resttester.request.RequestWindow;
 import com.flop.resttester.requesttree.RequestTreeHandler;
 import com.flop.resttester.requesttree.RequestTreeNodeData;
-import com.flop.resttester.results.ResultWindow;
+import com.flop.resttester.response.ResponseWindow;
 import com.flop.resttester.settings.RestTesterSettingsState;
 import com.flop.resttester.variables.VariablesWindow;
 import com.intellij.icons.AllIcons;
@@ -32,7 +32,7 @@ public class RestTesterWindow {
     private JPanel treeActionBar;
     private JScrollPane treeScrollPane;
     private JSplitPane splitPaneRight;
-    private ResultWindow resultWindow;
+    private ResponseWindow responseWindow;
     private RequestWindow requestWindow;
     private RequestThread requestThread;
     private Timer loadingTimer = new Timer();
@@ -46,7 +46,7 @@ public class RestTesterWindow {
         authWindow.setAuthenticationListChangeListener(this.requestWindow::updateAuthBox);
         this.requestWindow.registerSendListener(this::sendRequest);
 
-        this.resultWindow.setProject(project);
+        this.responseWindow.setProject(project);
 
         this.setupStyles();
 
@@ -84,21 +84,21 @@ public class RestTesterWindow {
         if (this.requestThread != null) {
             // old request is still running
             this.requestThread.stopRequest();
-            this.resultWindow.setCanceled(this.requestThread.getElapsedTime());
+            this.responseWindow.setCanceled(this.requestThread.getElapsedTime());
             this.requestThread = null;
             this.requestWindow.setRequestStarted(false);
             this.loadingTimer.cancel();
             return;
         }
 
-        this.resultWindow.setLoading("");
+        this.responseWindow.setLoading("");
 
         this.loadingTimer = new Timer();
         this.loadingTimer.schedule(new TimerTask() {
             public void run() {
                 SwingUtilities.invokeLater(() -> {
                     if (RestTesterWindow.this.requestThread != null) {
-                        RestTesterWindow.this.resultWindow.setLoading(RestTesterWindow.this.requestThread.getElapsedTime());
+                        RestTesterWindow.this.responseWindow.setLoading(RestTesterWindow.this.requestThread.getElapsedTime());
                     }
                 });
             }
@@ -117,11 +117,11 @@ public class RestTesterWindow {
                 this.state.validateSSL
         );
 
-        this.requestThread = new RequestThread(data, (code, context, time, size) ->
+        this.requestThread = new RequestThread(data, (response) ->
                 SwingUtilities.invokeLater(() -> {
                             this.requestThread = null;
                             this.loadingTimer.cancel();
-                            this.resultWindow.setResult(code, context, time, size);
+                            this.responseWindow.setResult(response);
                             this.requestWindow.setRequestStarted(false);
                         }
                 ));

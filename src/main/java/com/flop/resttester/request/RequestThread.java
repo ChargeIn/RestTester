@@ -2,12 +2,8 @@ package com.flop.resttester.request;
 
 import com.flop.resttester.auth.AuthenticationData;
 import com.flop.resttester.auth.AuthenticationType;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
+import com.flop.resttester.response.ResponseData;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -20,6 +16,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
 
 public class RequestThread extends Thread {
@@ -61,7 +58,8 @@ public class RequestThread extends Thread {
             url = new URL(urlString.toString());
         } catch (MalformedURLException e) {
             if (!this.stopped) {
-                this.finishedListener.onRequestFinished(-1, e.getMessage(), this.getElapsedTime(), "0 B");
+                ResponseData data = new ResponseData(new HashMap<>(), -1, e.getMessage().getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
+                this.finishedListener.onRequestFinished(data);
             }
             return;
         }
@@ -71,7 +69,8 @@ public class RequestThread extends Thread {
             httpCon = (HttpURLConnection) url.openConnection();
         } catch (IOException e) {
             if (!this.stopped) {
-                this.finishedListener.onRequestFinished(-1, e.getMessage(), this.getElapsedTime(), "0 B");
+                ResponseData data = new ResponseData(new HashMap<>(), -1, e.getMessage().getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
+                this.finishedListener.onRequestFinished(data);
             }
             return;
         }
@@ -126,41 +125,29 @@ public class RequestThread extends Thread {
             }
 
             byte[] bytes = IOUtils.toByteArray(inputStream);
-            int requestByteSize = bytes.length;
             inputStream.close();
-            String content = new String(bytes, StandardCharsets.UTF_8);
 
             if (!this.stopped) {
-                String jsonString;
-                try {
-                    Gson gson = new GsonBuilder().setPrettyPrinting().create();
-                    JsonElement el = JsonParser.parseString(content);
-                    jsonString = gson.toJson(el);
-                } catch (Exception ignore) {
-                    jsonString = content;
-                }
-
-                String byteSize = FileUtils.byteCountToDisplaySize(requestByteSize);
-
-                this.finishedListener.onRequestFinished(httpCon.getResponseCode(), jsonString, this.getElapsedTime(), byteSize);
+                ResponseData data = new ResponseData(httpCon.getHeaderFields(), httpCon.getResponseCode(), bytes, this.getElapsedTime());
+                this.finishedListener.onRequestFinished(data);
             }
         } catch (Exception e) {
             if (!this.stopped) {
                 try {
-                    this.finishedListener.onRequestFinished(httpCon.getResponseCode(), e.getMessage(), this.getElapsedTime(), "0 B");
+                    ResponseData data = new ResponseData(httpCon.getHeaderFields(), httpCon.getResponseCode(), e.getMessage().getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
+                    this.finishedListener.onRequestFinished(data);
                 } catch (IOException ex) {
                     String message = e.getMessage();
 
                     if (message.equals("No subject alternative names present")) {
-                        this.finishedListener.onRequestFinished(
-                                -1,
-                                "No subject alternative names present.\n\nTry changing the rest tester setting (in the Intellij Settings Menu) to allow request without ssl validation.",
-                                this.getElapsedTime(),
-                                "0 B"
-                        );
+                        String error = "No subject alternative names present.\n\nTry changing the rest tester setting (in the Intellij Settings Menu) to allow request without ssl validation.";
+                        ResponseData data = new ResponseData(new HashMap<>(), -1, error.getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
+                        this.finishedListener.onRequestFinished(data);
                         return;
                     }
-                    this.finishedListener.onRequestFinished(-1, e.getMessage(), this.getElapsedTime(), "0 B");
+
+                    ResponseData data = new ResponseData(new HashMap<>(), -1, e.getMessage().getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
+                    this.finishedListener.onRequestFinished(data);
                 }
             }
         }
@@ -173,6 +160,13 @@ public class RequestThread extends Thread {
     public String getElapsedTime() {
         if (this.startTime == 0) {
             return "0 s";
+        }
+
+        long time = System.currentTimeMillis() - this.startTime;
+        if (time > 60_000) {
+            long minutes = (int) time / 60_000;
+            long sec = (time - minutes * 60_000) / 1000;
+            return String.format("%.0f", minutes) + "m " + String.format("%.1f", sec) + "s ";
         }
 
         return String.format("%.1f", (System.currentTimeMillis() - this.startTime) / 1000f) + " s";

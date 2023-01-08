@@ -1,7 +1,9 @@
 package com.flop.resttester.request;
 
+import com.flop.resttester.response.ResponseData;
+
 import java.util.EventListener;
 
 public interface RequestFinishedListener extends EventListener {
-    void onRequestFinished(int statusCode, String content, String elapsedTime, String size);
+    void onRequestFinished(ResponseData data);
 }

@@ -12,6 +12,7 @@ import com.intellij.ui.LanguageTextField;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -29,9 +30,10 @@ public class CustomLanguageTextField extends LanguageTextField {
         ex.setHorizontalScrollbarVisible(true);
         ex.setVerticalScrollbarVisible(true);
 
-        ex.getContentComponent().setFocusTraversalKeysEnabled(false);
+        JComponent contentComponent = ex.getContentComponent();
+        contentComponent.setFocusTraversalKeysEnabled(false);
 
-        ex.getContentComponent().addKeyListener(new KeyListener() {
+        contentComponent.addKeyListener(new KeyListener() {
             @Override
             public void keyTyped(KeyEvent e) {
 

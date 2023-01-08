@@ -105,7 +105,7 @@ public class RequestWindow {
     public void setupInputField() {
         this.urlInputPanel = new CustomPanel();
         ((CustomPanel) this.urlInputPanel).setCustomBackground(JBColor.border());
-        this.urlInputPanel.setBorder(BorderFactory.createLineBorder(JBColor.background()));
+        this.urlInputPanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
     }
 
     private void setupBodyTextField() {

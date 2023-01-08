@@ -19,9 +19,15 @@ import java.awt.event.KeyListener;
 
 public class CustomLanguageTextField extends LanguageTextField {
 
+    private boolean showLineNumbers = true;
+
     public CustomLanguageTextField(Language language, @Nullable Project project, @NotNull String value) {
         super(language, project, value, true);
         this.setFocusTraversalKeysEnabled(false);
+    }
+
+    public void setShowLineNumbers(boolean showLineNumbers) {
+        this.showLineNumbers = showLineNumbers;
     }
 
     @Override
@@ -59,11 +65,14 @@ public class CustomLanguageTextField extends LanguageTextField {
         });
 
         EditorSettings settings = ex.getSettings();
-        settings.setLineNumbersShown(true);
-        settings.setAutoCodeFoldingEnabled(true);
-        settings.setFoldingOutlineShown(true);
-        settings.setAllowSingleLogicalLineFolding(true);
-        settings.setRightMarginShown(true);
+        if (this.showLineNumbers) {
+            settings.setLineNumbersShown(true);
+            settings.setAutoCodeFoldingEnabled(true);
+            settings.setFoldingOutlineShown(true);
+            settings.setAllowSingleLogicalLineFolding(true);
+            settings.setRightMarginShown(true);
+        }
+
         return ex;
     }
 

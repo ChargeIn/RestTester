@@ -10,6 +10,7 @@ import com.google.gson.JsonParser;
 import com.intellij.json.JsonFileType;
 import com.intellij.json.JsonLanguage;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileTypes.PlainTextLanguage;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.JavaCodeFragmentFactory;
 import com.intellij.psi.PsiDocumentManager;
@@ -33,6 +34,9 @@ public class ResponseWindow {
     private JTextArea resultTypeField;
     private JPanel actionPanel;
     private JPanel resultTextWrapper;
+    private JTabbedPane tabbedPane;
+    private LanguageTextField headersTextPane;
+    private JPanel headersTextWrapper;
 
     private Project project;
 
@@ -57,6 +61,9 @@ public class ResponseWindow {
         this.resultSizeField.setBackground(JBColor.background());
         this.resultCodeField.setBackground(JBColor.background());
         this.resultTimeField.setBackground(JBColor.background());
+
+        this.tabbedPane.setSelectedIndex(1);
+        this.tabbedPane.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
     }
 
     private void setupLanguageHighlighting() {
@@ -68,17 +75,27 @@ public class ResponseWindow {
                 PsiDocumentManager.getInstance(this.project).getDocument(codeResult);
         this.resultTextPane.setDocument(documentResult);
         this.resultTextPane.setFileType(JsonFileType.INSTANCE);
+
+        PsiExpressionCodeFragment headersResult =
+                JavaCodeFragmentFactory.getInstance(this.project)
+                        .createExpressionCodeFragment("", null, null, true);
+
+        Document documentHeaders =
+                PsiDocumentManager.getInstance(this.project).getDocument(headersResult);
+        this.headersTextPane.setDocument(documentHeaders);
+        this.headersTextPane.setFileType(JsonFileType.INSTANCE);
     }
 
     private void createUIComponents() {
-        this.resultTextWrapper = new CustomPanel();
-        ((CustomPanel) (this.resultTextWrapper)).setCustomBackground(JBColor.border());
-
         this.setupResultTextField();
+        this.setupHeadersTextField();
         this.setupImagePanel();
     }
 
     private void setupResultTextField() {
+        this.resultTextWrapper = new CustomPanel();
+        ((CustomPanel) (this.resultTextWrapper)).setCustomBackground(JBColor.border());
+
         this.resultTextPane = new CustomLanguageTextField(JsonLanguage.INSTANCE, this.project, "");
         ((CustomLanguageTextField) this.resultTextPane).setCustomBackground(JBColor.border());
         this.resultTextPane.setOneLineMode(false);
@@ -86,6 +103,19 @@ public class ResponseWindow {
         this.resultTextPane.setBorder(BorderFactory.createEmptyBorder());
         this.resultTextPane.setBackground(JBColor.border());
     }
+
+    private void setupHeadersTextField() {
+        this.headersTextWrapper = new CustomPanel();
+        ((CustomPanel) (this.headersTextWrapper)).setCustomBackground(JBColor.border());
+
+        this.headersTextPane = new CustomLanguageTextField(PlainTextLanguage.INSTANCE, this.project, "");
+        ((CustomLanguageTextField) this.headersTextPane).setShowLineNumbers(false);
+        ((CustomLanguageTextField) this.headersTextPane).setCustomBackground(JBColor.border());
+        this.headersTextPane.setOneLineMode(false);
+        this.headersTextPane.setViewer(true);
+        this.headersTextPane.setBorder(BorderFactory.createEmptyBorder());
+    }
+
 
     private void setupImagePanel() {
         this.imagePanel = new ImagePanel();
@@ -146,6 +176,7 @@ public class ResponseWindow {
     }
 
     public void setCanceled(String elapsedTime) {
+        this.headersTextPane.setText("Canceled after " + elapsedTime + "econds.");
         this.resultTextPane.setText("Canceled after " + elapsedTime + "econds.");
         this.resultCodeField.setText("Canceled");
         this.resultCodeField.setBackground(new Color(200, 150, 50));
@@ -167,6 +198,7 @@ public class ResponseWindow {
             this.resultSizeField.setText("");
             this.resultTypeField.setText("");
         }
+        this.headersTextPane.setText("Loading... " + elapsedTime);
         this.resultTextPane.setText("Loading... " + elapsedTime);
     }
 
@@ -176,6 +208,7 @@ public class ResponseWindow {
         // error case
         if (data.code() < 0) {
             this.resultTextPane.setText(new String(data.content(), StandardCharsets.UTF_8));
+            this.headersTextPane.setText(new String(data.content(), StandardCharsets.UTF_8));
             this.resultTimeField.setText(data.elapsedTime());
             this.resultSizeField.setText("0 B");
             this.resultTypeField.setText("");
@@ -183,6 +216,7 @@ public class ResponseWindow {
         }
 
         List<String> contentType = data.headers().get("Content-Type");
+        this.parseHeaders(data);
 
         if (contentType == null || contentType.isEmpty()) {
             this.parseAsString(data);
@@ -198,6 +232,24 @@ public class ResponseWindow {
         } else {
             this.parseAsJson(data);
         }
+    }
+
+    private void parseHeaders(ResponseData data) {
+        StringBuilder content = new StringBuilder();
+
+        for (String key : data.headers().keySet()) {
+            List<String> headers = data.headers().get(key);
+            String headerString = String.join(", ", headers);
+
+            if (key == null) {
+                content.append(headerString);
+            } else {
+                content.append(key).append(": ");
+                content.append(headerString);
+            }
+            content.append("\n");
+        }
+        this.headersTextPane.setText(content.toString());
     }
 
     private void parseAsString(ResponseData data) {

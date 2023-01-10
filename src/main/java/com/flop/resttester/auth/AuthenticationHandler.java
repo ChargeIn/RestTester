@@ -1,6 +1,7 @@
 package com.flop.resttester.auth;
 
 import com.flop.resttester.RestTesterNotifier;
+import com.flop.resttester.state.RestTesterStateService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -8,21 +9,18 @@ import com.google.gson.JsonParser;
 import com.intellij.openapi.project.Project;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class AuthenticationHandler {
-    private static final String SAVE_FOLDER_STR = ".rest-tester";
-    private static final String SAVE_FILE_STR = "authentication.json";
     private static final String VERSION = "1.0";
+    private final RestTesterStateService stateService;
+    private final int id;
 
     private Project project;
 
@@ -39,7 +37,9 @@ public class AuthenticationHandler {
         this.tree = tree;
 
         this.initTree();
-        this.loadAuth();
+
+        this.stateService = RestTesterStateService.getInstance();
+        this.id = this.stateService.addAuthStateChangeListener(this::loadAuth);
     }
 
     public void setAuthenticationListChangeListener(AuthenticationListChangeListener listener) {
@@ -109,25 +109,13 @@ public class AuthenticationHandler {
         });
     }
 
-    private void loadAuth() {
-        if (this.project == null) {
-            return;
-        }
-
-        File saveFolder = new File(this.project.getBasePath(), AuthenticationHandler.SAVE_FOLDER_STR);
-
-        if (!saveFolder.exists()) {
-            return;
-        }
-
-        File saveFile = new File(saveFolder, AuthenticationHandler.SAVE_FILE_STR);
-
-        if (!saveFile.exists()) {
+    private void loadAuth(String state) {
+        if (this.project == null || state.isBlank()) {
             return;
         }
 
         try {
-            JsonElement file = JsonParser.parseReader(new InputStreamReader(new FileInputStream(saveFile)));
+            JsonElement file = JsonParser.parseString(state);
 
             JsonObject wrapper = file.getAsJsonObject();
 
@@ -147,13 +135,15 @@ public class AuthenticationHandler {
 
             List<AuthenticationData> data = this.json2Array(dataArray);
 
-            for (AuthenticationData datum : data) {
-                this.root.add(new AuthenticationNode(datum));
-            }
-            this.tree.expandPath(new TreePath(this.root.getPath()));
-            this.tree.updateUI();
-            this.updateListListener();
-
+            SwingUtilities.invokeLater(() -> {
+                this.root.removeAllChildren();
+                for (AuthenticationData datum : data) {
+                    this.root.add(new AuthenticationNode(datum));
+                }
+                this.tree.expandPath(new TreePath(this.root.getPath()));
+                this.tree.updateUI();
+                this.updateListListener();
+            });
         } catch (Exception e) {
             RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not parse authentication save file. " + e.getMessage());
         }
@@ -163,17 +153,6 @@ public class AuthenticationHandler {
         if (this.project == null) {
             return;
         }
-
-        File saveFolder = new File(this.project.getBasePath(), AuthenticationHandler.SAVE_FOLDER_STR);
-
-        if (!saveFolder.exists()) {
-            if (!saveFolder.mkdir()) {
-                RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not create authentication save folder.");
-            }
-        }
-
-        File saveFile = new File(saveFolder, AuthenticationHandler.SAVE_FILE_STR);
-
         JsonArray jData = this.tree2JSON(this.root);
 
         JsonObject wrapper = new JsonObject();
@@ -181,12 +160,7 @@ public class AuthenticationHandler {
         wrapper.add("data", jData);
 
         String jsonString = wrapper.toString();
-
-        try (PrintWriter output = new PrintWriter(saveFile)) {
-            output.write(jsonString);
-        } catch (Exception ex) {
-            RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not create authentication save file. " + ex.getMessage());
-        }
+        this.stateService.setAuthState(this.id, jsonString);
     }
 
     private JsonArray tree2JSON(AuthenticationNode node) {
@@ -202,7 +176,7 @@ public class AuthenticationHandler {
         return jResult;
     }
 
-    private List<AuthenticationData> json2Array(JsonArray array) throws Exception {
+    private List<AuthenticationData> json2Array(JsonArray array) {
         List<AuthenticationData> results = new ArrayList<>();
 
         for (int i = 0; i < array.size(); i++) {
@@ -229,9 +203,14 @@ public class AuthenticationHandler {
 
         AuthenticationNode node = (AuthenticationNode) path.getLastPathComponent();
         if (node != null) {
+            DefaultMutableTreeNode next = node.getNextNode();
             node.removeFromParent();
 
             this.tree.removeSelectionPath(this.tree.getSelectionPath());
+            if (next != null) {
+                this.tree.setSelectionPath(new TreePath(next.getPath()));
+            }
+
             this.tree.updateUI();
             this.saveAuth();
         }

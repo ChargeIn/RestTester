@@ -1,6 +1,7 @@
 package com.flop.resttester.variables;
 
 import com.flop.resttester.RestTesterNotifier;
+import com.flop.resttester.state.RestTesterStateService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -10,17 +11,12 @@ import com.intellij.openapi.project.Project;
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.table.DefaultTableModel;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.util.*;
 
 public class VariablesHandler {
-
-    private static final String SAVE_FOLDER_STR = ".rest-tester";
-    private static final String SAVE_FILE_STR = "environment.json";
     private static final String VERSION = "1.0";
+    private final RestTesterStateService stateService;
+    private final int id;
 
     private final JTable table;
 
@@ -35,11 +31,30 @@ public class VariablesHandler {
         this.model = (DefaultTableModel) this.table.getModel();
         this.project = project;
 
-        this.loadTable();
+        this.stateService = RestTesterStateService.getInstance();
+        this.id = this.stateService.addVariablesStateChangeListener(this::loadTable);
 
         this.model.addRow(new String[]{"", ""});
 
         this.model.addTableModelListener(this::tableChanged);
+    }
+
+    public static boolean isOpenMatch(String url, int start) {
+        char c = url.charAt(start);
+
+        if (c != '{' || start > url.length() - 5) {
+            return false;
+        }
+        return url.charAt(start + 1) == '{';
+    }
+
+    public static boolean isCloseMatch(String url, int start) {
+        char c = url.charAt(start);
+
+        if (c != '}' || start > url.length() - 1) {
+            return false;
+        }
+        return url.charAt(start + 1) == '}';
     }
 
     public void tableChanged(TableModelEvent e) {
@@ -115,43 +130,13 @@ public class VariablesHandler {
         return string;
     }
 
-    public static boolean isOpenMatch(String url, int start) {
-        char c = url.charAt(start);
-
-        if (c != '{' || start > url.length() - 5) {
-            return false;
-        }
-        return url.charAt(start + 1) == '{';
-    }
-
-    public static boolean isCloseMatch(String url, int start) {
-        char c = url.charAt(start);
-
-        if (c != '}' || start > url.length() - 1) {
-            return false;
-        }
-        return url.charAt(start + 1) == '}';
-    }
-
-    private void loadTable() {
-        if (this.project == null) {
-            return;
-        }
-
-        File saveFolder = new File(this.project.getBasePath(), VariablesHandler.SAVE_FOLDER_STR);
-
-        if (!saveFolder.exists()) {
-            return;
-        }
-
-        File saveFile = new File(saveFolder, VariablesHandler.SAVE_FILE_STR);
-
-        if (!saveFile.exists()) {
+    private void loadTable(String state) {
+        if (this.project == null || state.isBlank()) {
             return;
         }
 
         try {
-            JsonElement file = JsonParser.parseReader(new InputStreamReader(new FileInputStream(saveFile)));
+            JsonElement file = JsonParser.parseString(state);
 
             JsonObject wrapper = file.getAsJsonObject();
 
@@ -169,17 +154,21 @@ public class VariablesHandler {
 
             JsonArray variablesArray = jVariables.getAsJsonArray();
 
+            while (this.model.getRowCount() > 0) {
+                this.model.removeRow(0);
+            }
             boolean error = this.json2Model(variablesArray, this.model);
 
             if (error) {
                 RestTesterNotifier.notifyError(this.project, "Rest Tester: Error while parsing environment save file.");
             }
 
+            this.variables = new HashMap<>();
             for (int i = 0; i < this.model.getRowCount(); i++) {
                 this.variables.put((String) this.model.getValueAt(i, 0), (String) this.model.getValueAt(i, 1));
             }
 
-            this.table.updateUI();
+            SwingUtilities.invokeLater(this.table::updateUI);
 
         } catch (Exception e) {
             RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not parse environment save file. " + e.getMessage());
@@ -190,17 +179,6 @@ public class VariablesHandler {
         if (this.project == null) {
             return;
         }
-
-        File saveFolder = new File(this.project.getBasePath(), VariablesHandler.SAVE_FOLDER_STR);
-
-        if (!saveFolder.exists()) {
-            if (!saveFolder.mkdir()) {
-                RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not create environment save folder.");
-            }
-        }
-
-        File saveFile = new File(saveFolder, VariablesHandler.SAVE_FILE_STR);
-
         JsonArray jVariables = this.model2JSON(this.model);
 
         JsonObject wrapper = new JsonObject();
@@ -208,12 +186,7 @@ public class VariablesHandler {
         wrapper.add("variables", jVariables);
 
         String jsonString = wrapper.toString();
-
-        try (PrintWriter output = new PrintWriter(saveFile)) {
-            output.write(jsonString);
-        } catch (Exception ex) {
-            RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not create environment save file. " + ex.getMessage());
-        }
+        this.stateService.setVariablesState(this.id, jsonString);
     }
 
     private JsonArray model2JSON(DefaultTableModel model) {

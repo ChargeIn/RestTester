@@ -1,9 +1,7 @@
 package com.flop.resttester.requesttree;
 
 import com.flop.resttester.RestTesterNotifier;
-import com.flop.resttester.auth.AuthenticationData;
-import com.flop.resttester.request.QueryParam;
-import com.flop.resttester.request.RequestType;
+import com.flop.resttester.state.RestTesterStateService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -11,22 +9,18 @@ import com.google.gson.JsonParser;
 import com.intellij.openapi.project.Project;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class RequestTreeHandler {
-
-    private static final String SAVE_FOLDER_STR = ".rest-tester";
-    private static final String SAVE_FILE_STR = "requests.json";
     private static final String VERSION = "1.0";
+    private final RestTesterStateService stateService;
+    private final int id;
 
     private final JTree tree;
 
@@ -40,7 +34,9 @@ public class RequestTreeHandler {
         this.tree = tree;
         this.project = project;
         this.initTree();
-        this.loadTree();
+
+        this.stateService = RestTesterStateService.getInstance();
+        this.id = this.stateService.addRequestStateChangeListener(this::loadTree);
     }
 
     private void initTree() {
@@ -181,24 +177,14 @@ public class RequestTreeHandler {
         return newGroup;
     }
 
-    private void loadTree() {
-        if (this.project == null) {
-            return;
-        }
-
-        File saveFolder = new File(this.project.getBasePath(), RequestTreeHandler.SAVE_FOLDER_STR);
-        if (!saveFolder.exists()) {
-            return;
-        }
-
-        File saveFile = new File(saveFolder, RequestTreeHandler.SAVE_FILE_STR);
-        if (!saveFile.exists()) {
+    private void loadTree(String state) {
+        if (this.project == null || state.isBlank()) {
             return;
         }
 
         this.nodes2Expand = new ArrayList<>();
         try {
-            JsonElement file = JsonParser.parseReader(new InputStreamReader(new FileInputStream(saveFile)));
+            JsonElement file = JsonParser.parseString(state);
 
             JsonObject wrapper = file.getAsJsonObject();
 
@@ -216,23 +202,24 @@ public class RequestTreeHandler {
 
             JsonArray nodesArray = jNodes.getAsJsonArray();
 
-            for (int i = 0; i < nodesArray.size(); i++) {
-                JsonObject obj = nodesArray.get(i).getAsJsonObject();
-                RequestTreeNode newNode = RequestTreeNode.createFromJson(obj);
-                this.root.add(newNode);
+            SwingUtilities.invokeLater(() -> {
+                for (int i = 0; i < nodesArray.size(); i++) {
+                    JsonObject obj = nodesArray.get(i).getAsJsonObject();
+                    RequestTreeNode newNode = RequestTreeNode.createFromJson(obj);
+                    this.root.add(newNode);
 
-                if (obj.has("expanded")) {
-                    this.nodes2Expand.add(newNode);
+                    if (obj.has("expanded")) {
+                        this.nodes2Expand.add(newNode);
+                    }
                 }
-            }
 
-            for (RequestTreeNode node : this.nodes2Expand) {
-                this.tree.expandPath(new TreePath(node.getPath()));
-            }
-            // root must always be expanded
-            this.tree.expandPath(new TreePath(this.root.getPath()));
-            this.tree.updateUI();
-
+                for (RequestTreeNode node : this.nodes2Expand) {
+                    this.tree.expandPath(new TreePath(node.getPath()));
+                }
+                // root must always be expanded
+                this.tree.expandPath(new TreePath(this.root.getPath()));
+                this.tree.updateUI();
+            });
         } catch (Exception e) {
             RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not parse tree save file. " + e.getMessage());
         }
@@ -243,14 +230,6 @@ public class RequestTreeHandler {
             return;
         }
 
-        File saveFolder = new File(this.project.getBasePath(), RequestTreeHandler.SAVE_FOLDER_STR);
-
-        if (!saveFolder.exists()) {
-            if (!saveFolder.mkdir()) {
-                RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not create tree save folder.");
-            }
-        }
-        File saveFile = new File(saveFolder, RequestTreeHandler.SAVE_FILE_STR);
         JsonArray jNodes = new JsonArray();
 
         RequestTreeNode root = (RequestTreeNode) this.tree.getModel().getRoot();
@@ -264,12 +243,7 @@ public class RequestTreeHandler {
         wrapper.add("nodes", jNodes);
 
         String jsonString = wrapper.toString();
-
-        try (PrintWriter output = new PrintWriter(saveFile)) {
-            output.write(jsonString);
-        } catch (Exception ex) {
-            RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not create tree save file. " + ex.getMessage());
-        }
+        this.stateService.setRequestState(this.id, jsonString);
     }
 
     public void deleteSelection() {
@@ -282,6 +256,7 @@ public class RequestTreeHandler {
         RequestTreeNode node = (RequestTreeNode) path.getLastPathComponent();
         if (node != null) {
             RequestTreeNode parent = (RequestTreeNode) node.getParent();
+            int index = parent.getIndex(node);
             node.removeFromParent();
 
             // remove all empty parents
@@ -290,12 +265,26 @@ public class RequestTreeHandler {
                     RequestTreeNode p = (RequestTreeNode) parent.getParent();
                     parent.removeFromParent();
                     parent = p;
+                    index = 0;
                 } else {
-                    parent = null;
+                    break;
                 }
             }
 
             this.tree.removeSelectionPath(this.tree.getSelectionPath());
+            if (parent != null) {
+
+                DefaultMutableTreeNode next = index < parent.getChildCount() ? (DefaultMutableTreeNode) parent.getChildAt(index) : null;
+                if (next == null) {
+                    next = parent.getNextNode();
+                }
+
+                if (next != null) {
+                    this.tree.setSelectionPath(new TreePath(next.getPath()));
+                } else {
+                    this.tree.setSelectionPath(new TreePath(parent.getPath()));
+                }
+            }
             this.tree.updateUI();
             this.saveTree();
         }

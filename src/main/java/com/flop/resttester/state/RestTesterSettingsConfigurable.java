@@ -1,8 +1,6 @@
-package com.flop.resttester.settings;
+package com.flop.resttester.state;
 
 import com.intellij.openapi.options.Configurable;
-
-
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,20 +33,20 @@ public class RestTesterSettingsConfigurable implements Configurable {
 
     @Override
     public boolean isModified() {
-        RestTesterSettingsState settings = RestTesterSettingsState.getInstance();
-        return settingsView.getValidateSSL() != settings.validateSSL;
+        RestTesterStateService settings = RestTesterStateService.getInstance();
+        return settingsView.getValidateSSL() != settings.getValidateSSL();
     }
 
     @Override
     public void apply() {
-        RestTesterSettingsState settings = RestTesterSettingsState.getInstance();
-        settings.validateSSL = settingsView.getValidateSSL();
+        RestTesterStateService settings = RestTesterStateService.getInstance();
+        settings.setValidateSSL(settingsView.getValidateSSL());
     }
 
     @Override
     public void reset() {
-        RestTesterSettingsState settings = RestTesterSettingsState.getInstance();
-        settingsView.setValidateSSL(settings.validateSSL);
+        RestTesterStateService settings = RestTesterStateService.getInstance();
+        settingsView.setValidateSSL(settings.getValidateSSL());
     }
 
     @Override

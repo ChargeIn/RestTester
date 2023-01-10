@@ -1,4 +1,4 @@
-package com.flop.resttester.settings;
+package com.flop.resttester.state;
 
 import com.intellij.ui.components.JBCheckBox;
 import com.intellij.util.ui.FormBuilder;

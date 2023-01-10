@@ -9,7 +9,7 @@ import com.flop.resttester.request.RequestWindow;
 import com.flop.resttester.requesttree.RequestTreeHandler;
 import com.flop.resttester.requesttree.RequestTreeNodeData;
 import com.flop.resttester.response.ResponseWindow;
-import com.flop.resttester.settings.RestTesterSettingsState;
+import com.flop.resttester.state.RestTesterStateService;
 import com.flop.resttester.variables.VariablesWindow;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
@@ -23,7 +23,7 @@ import java.util.TimerTask;
 
 public class RestTesterWindow {
     private final RequestTreeHandler treeHandler;
-    private final RestTesterSettingsState state = RestTesterSettingsState.getInstance();
+    private final RestTesterStateService state = RestTesterStateService.getInstance();
     private JPanel myToolWindowContent;
     private JTree requestTree;
     private ActionButton removeTreeSelectionButton;
@@ -114,7 +114,7 @@ public class RestTesterWindow {
                 nodeData.getBody(),
                 nodeData.getBodyType(),
                 nodeData.getParams(),
-                this.state.validateSSL
+                this.state.getValidateSSL()
         );
 
         this.requestThread = new RequestThread(data, (response) ->

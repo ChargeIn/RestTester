@@ -43,12 +43,12 @@
                            key="notification.group.name"/>
 
         <applicationService
-                serviceImplementation="com.flop.resttester.settings.RestTesterSettingsState"/>
+                serviceImplementation="com.flop.resttester.state.RestTesterStateService"/>
 
         <applicationConfigurable
                 parentId="tools"
-                instance="com.flop.resttester.settings.RestTesterSettingsConfigurable"
-                id="com.flop.resttester.settings.RestTesterSettingsConfigurable"
+                instance="com.flop.resttester.state.RestTesterSettingsConfigurable"
+                id="com.flop.resttester.state.RestTesterSettingsConfigurable"
                 displayName="Rest Tester Settings"/>
     </extensions>
 </idea-plugin>

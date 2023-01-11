@@ -10,6 +10,7 @@ import com.intellij.openapi.project.Project;
 
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import java.util.*;
 
@@ -23,8 +24,8 @@ public class VariablesHandler {
     private final DefaultTableModel model;
 
     private final Project project;
-
     private Map<String, String> variables = new HashMap<>();
+    private TableModelListener listener = this::tableChanged;
 
     public VariablesHandler(JTable table, Project project) {
         this.table = table;
@@ -34,9 +35,7 @@ public class VariablesHandler {
         this.stateService = RestTesterStateService.getInstance();
         this.id = this.stateService.addVariablesStateChangeListener(this::loadTable);
 
-        this.model.addRow(new String[]{"", ""});
-
-        this.model.addTableModelListener(this::tableChanged);
+        this.model.addTableModelListener(this.listener);
     }
 
     public static boolean isOpenMatch(String url, int start) {
@@ -154,21 +153,27 @@ public class VariablesHandler {
 
             JsonArray variablesArray = jVariables.getAsJsonArray();
 
-            while (this.model.getRowCount() > 0) {
-                this.model.removeRow(0);
-            }
-            boolean error = this.json2Model(variablesArray, this.model);
+            SwingUtilities.invokeLater(() -> {
+                this.model.removeTableModelListener(this.listener);
 
-            if (error) {
-                RestTesterNotifier.notifyError(this.project, "Rest Tester: Error while parsing environment save file.");
-            }
+                while (this.model.getRowCount() > 0) {
+                    this.model.removeRow(0);
+                }
+                boolean error = this.json2Model(variablesArray, this.model);
+                this.model.addRow(new String[]{"", ""});
 
-            this.variables = new HashMap<>();
-            for (int i = 0; i < this.model.getRowCount(); i++) {
-                this.variables.put((String) this.model.getValueAt(i, 0), (String) this.model.getValueAt(i, 1));
-            }
+                if (error) {
+                    RestTesterNotifier.notifyError(this.project, "Rest Tester: Error while parsing environment save file.");
+                }
 
-            SwingUtilities.invokeLater(this.table::updateUI);
+                this.variables = new HashMap<>();
+                for (int i = 0; i < this.model.getRowCount(); i++) {
+                    this.variables.put((String) this.model.getValueAt(i, 0), (String) this.model.getValueAt(i, 1));
+                }
+
+                this.table.updateUI();
+                this.model.addTableModelListener(this.listener);
+            });
 
         } catch (Exception e) {
             RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not parse environment save file. " + e.getMessage());

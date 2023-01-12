@@ -18,6 +18,7 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
     public List<StateChangeListener> requestChangeListener = new ArrayList<>();
     public List<StateChangeListener> authChangeListener = new ArrayList<>();
     public List<StateChangeListener> variablesChangeListener = new ArrayList<>();
+    public List<SettingsStateChangeListener> settingsChangeListener = new ArrayList<>();
     private RestTesterState state = new RestTesterState();
 
     public static RestTesterStateService getInstance() {
@@ -50,12 +51,25 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
         return this.authChangeListener.size() - 1;
     }
 
-    public boolean getValidateSSL() {
-        return this.state.validateSSL;
+    public int addSettingsStateChangeListener(SettingsStateChangeListener listener) {
+        this.settingsChangeListener.add(listener);
+        listener.onStateChange(this.state.validateSSL);
+        return this.settingsChangeListener.size() - 1;
     }
 
-    public void setValidateSSL(boolean validateSSL) {
+    public void setValidateSSL(int source, boolean validateSSL) {
         this.state.validateSSL = validateSSL;
+
+        for (int i = 0; i < this.settingsChangeListener.size(); i++) {
+            if (i == source) {
+                continue;
+            }
+            this.settingsChangeListener.get(i).onStateChange(validateSSL);
+        }
+    }
+
+    public boolean getValidateSSL() {
+        return this.state.validateSSL;
     }
 
     public void setAuthState(int source, String state) {

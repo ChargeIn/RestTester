@@ -44,11 +44,5 @@
 
         <applicationService
                 serviceImplementation="com.flop.resttester.state.RestTesterStateService"/>
-
-        <applicationConfigurable
-                parentId="tools"
-                instance="com.flop.resttester.state.RestTesterSettingsConfigurable"
-                id="com.flop.resttester.state.RestTesterSettingsConfigurable"
-                displayName="Rest Tester Settings"/>
     </extensions>
 </idea-plugin>

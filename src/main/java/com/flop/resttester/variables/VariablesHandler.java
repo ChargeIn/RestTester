@@ -31,6 +31,7 @@ public class VariablesHandler {
         this.table = table;
         this.model = (DefaultTableModel) this.table.getModel();
         this.project = project;
+        this.model.addRow(new String[]{"", ""});
 
         this.stateService = RestTesterStateService.getInstance();
         this.id = this.stateService.addVariablesStateChangeListener(this::loadTable);

@@ -15,4 +15,11 @@ public class RestTesterNotifier {
                 .notify(project);
     }
 
+    public static void notifyInfo(@Nullable Project project,
+                                  String content) {
+        NotificationGroupManager.getInstance()
+                .getNotificationGroup("Rest Tester Notification Group")
+                .createNotification(content, NotificationType.INFORMATION)
+                .notify(project);
+    }
 }

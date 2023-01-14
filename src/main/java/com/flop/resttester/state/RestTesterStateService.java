@@ -83,6 +83,10 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
         }
     }
 
+    public String getAuthState() {
+        return this.state.authState;
+    }
+
     public void setVariablesState(int source, String state) {
         this.state.variablesState = state;
 
@@ -94,6 +98,10 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
         }
     }
 
+    public String getVariableState() {
+        return this.state.variablesState;
+    }
+
     public void setRequestState(int source, String state) {
         this.state.requestState = state;
 
@@ -103,6 +111,10 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
             }
             this.requestChangeListener.get(i).onStateChange(state);
         }
+    }
+
+    public String getRequestState() {
+        return this.state.requestState;
     }
 
     static class RestTesterState {

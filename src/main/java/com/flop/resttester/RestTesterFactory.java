@@ -25,7 +25,7 @@ public class RestTesterFactory implements ToolWindowFactory {
         RestTesterWindow myToolWindow = new RestTesterWindow(project, authWindow, varWindow);
         Content requestContent = contentFactory.createContent(myToolWindow.getContent(), "Request", false);
 
-        SettingsWindow settingsWindow = new SettingsWindow();
+        SettingsWindow settingsWindow = new SettingsWindow(project);
         Content settingsContent = contentFactory.createContent(settingsWindow.getContent(), "Settings", false);
 
         ContentManager contentManager = toolWindow.getContentManager();

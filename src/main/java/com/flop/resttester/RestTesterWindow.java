@@ -41,6 +41,7 @@ public class RestTesterWindow {
         this.treeHandler = new RequestTreeHandler(this.requestTree, project);
         this.treeHandler.addSelectionListener(this::updateInputs);
 
+        this.requestWindow.setProject(project);
         this.requestWindow.setVariablesWindow(varWindow);
         this.requestWindow.updateAuthBox(new ArrayList<>());
         authWindow.setAuthenticationListChangeListener(this.requestWindow::updateAuthBox);

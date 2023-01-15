@@ -22,7 +22,8 @@
                 <li>Send and display http(s) request</li>
                 <li>Store defined request in a tree structure</li>
                 <li>Support for environment variables and different authentication types.</li>
-                <li>IntelliJ based code highlighting for request and result body.</li>
+                <li>IntelliJ based code highlighting for the request and the result body.</li>
+                <li>Inline preview for web image resources</li>
             </ul>
         ]]>
     </description>

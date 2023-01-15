@@ -131,7 +131,24 @@ public class VariablesHandler {
     }
 
     private void loadTable(String state) {
-        if (this.project == null || state.isBlank()) {
+        if (this.project == null) {
+            return;
+        }
+
+        if (state.isBlank()) {
+            // reset state
+            SwingUtilities.invokeLater(() -> {
+                this.model.removeTableModelListener(this.listener);
+
+                while (this.model.getRowCount() > 0) {
+                    this.model.removeRow(0);
+                }
+                this.model.addRow(new String[]{"", ""});
+
+                this.variables = new HashMap<>();
+                this.table.updateUI();
+                this.model.addTableModelListener(this.listener);
+            });
             return;
         }
 
@@ -175,7 +192,6 @@ public class VariablesHandler {
                 this.table.updateUI();
                 this.model.addTableModelListener(this.listener);
             });
-
         } catch (Exception e) {
             RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not parse environment save file. " + e.getMessage());
         }

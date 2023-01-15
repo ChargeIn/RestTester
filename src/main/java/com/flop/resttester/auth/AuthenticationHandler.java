@@ -110,7 +110,17 @@ public class AuthenticationHandler {
     }
 
     private void loadAuth(String state) {
-        if (this.project == null || state.isBlank()) {
+        if (this.project == null) {
+            return;
+        }
+
+        if (state.isBlank()) {
+            // reset state
+            SwingUtilities.invokeLater(() -> {
+                this.root.removeAllChildren();
+                this.tree.updateUI();
+                this.updateListListener();
+            });
             return;
         }
 

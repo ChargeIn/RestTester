@@ -71,7 +71,7 @@ public class RestTesterWindow {
         }
 
         this.requestWindow.setRequestData(data);
-
+        this.responseWindow.loadResult(data.getID());
         this.removeTreeSelectionButton.setEnabled(true);
         this.removeTreeSelectionButton.updateUI();
     }
@@ -121,7 +121,7 @@ public class RestTesterWindow {
                 SwingUtilities.invokeLater(() -> {
                             this.requestThread = null;
                             this.loadingTimer.cancel();
-                            this.responseWindow.setResult(response);
+                            this.responseWindow.setResult(nodeData.getID() ,response);
                             this.requestWindow.setRequestStarted(false);
                         }
                 ));

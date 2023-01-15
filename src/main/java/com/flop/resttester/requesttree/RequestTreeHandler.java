@@ -178,7 +178,18 @@ public class RequestTreeHandler {
     }
 
     private void loadTree(String state) {
-        if (this.project == null || state.isBlank()) {
+        if (this.project == null) {
+            return;
+        }
+
+        if (state.isBlank()) {
+            // reset state
+            SwingUtilities.invokeLater(() -> {
+                this.root.removeAllChildren();
+                // root must always be expanded
+                this.tree.expandPath(new TreePath(this.root.getPath()));
+                this.tree.updateUI();
+            });
             return;
         }
 
@@ -203,6 +214,7 @@ public class RequestTreeHandler {
             JsonArray nodesArray = jNodes.getAsJsonArray();
 
             SwingUtilities.invokeLater(() -> {
+                this.root.removeAllChildren();
                 for (int i = 0; i < nodesArray.size(); i++) {
                     JsonObject obj = nodesArray.get(i).getAsJsonObject();
                     RequestTreeNode newNode = RequestTreeNode.createFromJson(obj);

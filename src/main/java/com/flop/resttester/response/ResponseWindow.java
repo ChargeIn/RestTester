@@ -3,6 +3,7 @@ package com.flop.resttester.response;
 import com.flop.resttester.components.CustomLanguageTextField;
 import com.flop.resttester.components.CustomPanel;
 import com.flop.resttester.components.ImagePanel;
+import com.flop.resttester.request.RequestData;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -22,7 +23,9 @@ import org.apache.commons.io.FileUtils;
 import javax.swing.*;
 import java.awt.*;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ResponseWindow {
     private JPanel mainPanel;
@@ -37,6 +40,8 @@ public class ResponseWindow {
     private JTabbedPane tabbedPane;
     private LanguageTextField headersTextPane;
     private JPanel headersTextWrapper;
+
+    private Map<String, ResponseData> responseCache = new HashMap<>();
 
     private Project project;
 
@@ -202,24 +207,36 @@ public class ResponseWindow {
         this.resultTextPane.setText("Loading... " + elapsedTime);
     }
 
-    public void setResult(ResponseData data) {
-        this.updateResponseCode(data.code());
+    public void setResult(String id, ResponseData responseData) {
+        this.responseCache.put(id, responseData);
+
+        this.handleResponse(responseData);
+    }
+
+    public void loadResult(String id){
+        if(this.responseCache.containsKey(id)){
+            this.handleResponse(this.responseCache.get(id));
+        }
+    }
+
+    private void handleResponse(ResponseData responseData){
+        this.updateResponseCode(responseData.code());
 
         // error case
-        if (data.code() < 0) {
-            this.resultTextPane.setText(new String(data.content(), StandardCharsets.UTF_8));
-            this.headersTextPane.setText(new String(data.content(), StandardCharsets.UTF_8));
-            this.resultTimeField.setText(data.elapsedTime());
+        if (responseData.code() < 0) {
+            this.resultTextPane.setText(new String(responseData.content(), StandardCharsets.UTF_8));
+            this.headersTextPane.setText(new String(responseData.content(), StandardCharsets.UTF_8));
+            this.resultTimeField.setText(responseData.elapsedTime());
             this.resultSizeField.setText("0 B");
             this.resultTypeField.setText("");
             return;
         }
 
-        List<String> contentType = data.headers().get("Content-Type");
-        this.parseHeaders(data);
+        List<String> contentType = responseData.headers().get("Content-Type");
+        this.parseHeaders(responseData);
 
         if (contentType == null || contentType.isEmpty()) {
-            this.parseAsString(data);
+            this.parseAsString(responseData);
             this.resultTypeField.setText("text/plain");
             return;
         }
@@ -228,9 +245,9 @@ public class ResponseWindow {
         this.resultTypeField.setText(type.split(";")[0]);
 
         if (type.contains("image")) {
-            this.parseAsImage(data);
+            this.parseAsImage(responseData);
         } else {
-            this.parseAsJson(data);
+            this.parseAsJson(responseData);
         }
     }
 

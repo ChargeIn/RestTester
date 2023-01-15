@@ -2,9 +2,13 @@ package com.flop.resttester.settings;
 
 import com.flop.resttester.RestTesterNotifier;
 import com.flop.resttester.state.RestTesterStateService;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.intellij.json.JsonFileType;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 
@@ -14,6 +18,8 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -22,15 +28,17 @@ public class SettingsWindow {
 
     private final String STATE_FILE = "RestTester";
     private final int SAVE_FILE_VERSION = 1;
-    private RestTesterStateService stateService;
+    private final RestTesterStateService stateService;
+    private final int id;
+    private final Project project;
     private JCheckBox sslValidation;
-    private int id;
-    private Project project;
     private JPanel mainPanel;
     private JLabel settingsLabel;
     private JButton importButton;
     private JButton exportButton;
     private JLabel saveDataLabel;
+    private JLabel resetLabel;
+    private JButton resetButton;
 
     private ChangeListener sslChangeListener = this::onSSLValidationChange;
 
@@ -43,6 +51,7 @@ public class SettingsWindow {
 
         this.importButton.addActionListener(this::onImport);
         this.exportButton.addActionListener(this::onExport);
+        this.resetButton.addActionListener(this::onReset);
 
         this.setupStyles();
     }
@@ -91,15 +100,66 @@ public class SettingsWindow {
         } catch (Exception ex) {
             RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not create state save file. " + ex.getMessage());
         }
-
     }
 
     private void onImport(ActionEvent actionEvent) {
+        FileChooserDescriptor jsonChooser = FileChooserDescriptorFactory.createSingleFileDescriptor(JsonFileType.INSTANCE);
+        VirtualFile[] files = FileChooser.chooseFiles(jsonChooser, null, null);
+
+        if (files.length == 0) {
+            return;
+        }
+
+        VirtualFile file = files[0];
+
+        File saveFile = new File(file.getPath());
+
+        if (!saveFile.exists()) {
+            RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not find file " + saveFile.getName());
+            return;
+        }
+
+        JsonElement jsonElement;
+
+        try {
+            jsonElement = JsonParser.parseReader(new InputStreamReader(new FileInputStream(saveFile)));
+
+            JsonObject obj = jsonElement.getAsJsonObject();
+
+            int version = obj.get("version").getAsInt();
+
+            if (version != this.SAVE_FILE_VERSION) {
+                RestTesterNotifier.notifyError(this.project, "Rest Tester: Incompatible save file version " + version + " . (Supported versions: " + this.SAVE_FILE_VERSION + ")");
+                return;
+            }
+
+            boolean validateSSL = obj.get("validateSSL").getAsBoolean();
+            String authState = obj.get("authState").getAsString();
+            String variableState = obj.get("variablesState").getAsString();
+            String requestState = obj.get("requestState").getAsString();
+
+            this.stateService.setValidateSSL(-1, validateSSL);
+            this.stateService.setAuthState(-1, authState);
+            this.stateService.setVariablesState(-1, variableState);
+            this.stateService.setRequestState(-1, requestState);
+
+            RestTesterNotifier.notifyInfo(this.project, "Rest Tester: Import successful.");
+        } catch (Exception ex) {
+            RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not parse save file. " + ex.getMessage());
+        }
+    }
+
+    public void onReset(ActionEvent event) {
+        this.stateService.setValidateSSL(-1, false);
+        this.stateService.setAuthState(-1, "");
+        this.stateService.setVariablesState(-1, "");
+        this.stateService.setRequestState(-1, "");
     }
 
     public void setupStyles() {
         this.settingsLabel.setFont(new Font(this.settingsLabel.getFont().getFontName(), Font.BOLD, 16));
         this.saveDataLabel.setFont(new Font(this.saveDataLabel.getFont().getFontName(), Font.BOLD, 14));
+        this.resetLabel.setFont(new Font(this.resetLabel.getFont().getFontName(), Font.BOLD, 14));
     }
 
     private void onSettingsStateChange(boolean validateSSL) {

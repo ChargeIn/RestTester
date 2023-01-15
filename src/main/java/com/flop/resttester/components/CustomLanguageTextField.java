@@ -67,9 +67,9 @@ public class CustomLanguageTextField extends LanguageTextField {
         EditorSettings settings = ex.getSettings();
         if (this.showLineNumbers) {
             settings.setLineNumbersShown(true);
-            settings.setAutoCodeFoldingEnabled(true);
-            settings.setFoldingOutlineShown(true);
-            settings.setAllowSingleLogicalLineFolding(true);
+            settings.setAutoCodeFoldingEnabled(false);
+            settings.setFoldingOutlineShown(false);
+            settings.setAllowSingleLogicalLineFolding(false);
             settings.setRightMarginShown(true);
         }
 

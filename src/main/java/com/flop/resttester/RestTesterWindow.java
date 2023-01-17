@@ -77,10 +77,7 @@ public class RestTesterWindow {
         }
 
         this.requestWindow.setRequestData(data);
-
-        // variables need to be replaced for the correct id
-        RequestTreeNodeData nodeData = this.requestWindow.getRequestData(false);
-        this.responseWindow.loadResult(nodeData.getID());
+        this.responseWindow.loadResult(data.getRawID());
 
         this.removeTreeSelectionButton.setEnabled(true);
         this.removeTreeSelectionButton.updateUI();
@@ -128,11 +125,13 @@ public class RestTesterWindow {
                 this.state.getValidateSSL()
         );
 
+        String rawID = this.requestWindow.getRawID();
+
         this.requestThread = new RequestThread(data, (response) ->
                 SwingUtilities.invokeLater(() -> {
                             this.requestThread = null;
                             this.loadingTimer.cancel();
-                            this.responseWindow.setResult(nodeData.getID() ,response);
+                            this.responseWindow.setResult(rawID ,response);
                             this.requestWindow.setRequestStarted(false);
                         }
                 ));

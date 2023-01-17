@@ -258,6 +258,13 @@ public class RequestWindow {
         return new RequestTreeNodeData(url, tag, type, authData.getName(), params, body, bodyType);
     }
 
+    public String getRawID() {
+        RequestType type = (RequestType) this.requestTypeComboBox.getSelectedItem();
+        String url = this.urlInputField.getText();
+        String tag = this.nameInputField.getText();
+        return type + ": " + url + " - " + tag;
+    }
+
     public void setRequestData(RequestTreeNodeData data) {
         if (!this.urlInputField.getText().equals(data.getUrl())) {
             // only update url input if text changed

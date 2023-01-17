@@ -66,6 +66,10 @@ public class RequestTreeNodeData {
         return this.type + ": " + this.displayString + " - " + this.tag;
     }
 
+    public String getRawID() {
+        return this.type + ": " + this.url + " - " + this.tag;
+    }
+
     private void updateDisplayString() {
         if (this.type != null) {
             if (this.path.isEmpty()) {

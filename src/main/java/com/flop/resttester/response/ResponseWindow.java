@@ -225,12 +225,6 @@ public class ResponseWindow {
         if (this.responseCache.containsKey(id)) {
             this.handleResponse(this.responseCache.get(id));
         } else {
-            String test = "id " + id + " Ids: ";
-
-            for(String key : this.responseCache.keySet()){
-                test += key + ", ";
-            }
-            RestTesterNotifier.notifyInfo(this.project, test);
             this.handleResponse(new ResponseData(new HashMap<>(), -2, "".getBytes(StandardCharsets.UTF_8), ""));
         }
     }

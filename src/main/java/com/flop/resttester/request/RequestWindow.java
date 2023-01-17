@@ -259,7 +259,7 @@ public class RequestWindow {
     }
 
     public void setRequestData(RequestTreeNodeData data) {
-        if (!urlInputField.getText().equals(data.getUrl())) {
+        if (!this.urlInputField.getText().equals(data.getUrl())) {
             // only update url input if text changed
             // otherwise the coloring might not be updated
             this.urlInputField.setText(data.getUrl());

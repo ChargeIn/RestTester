@@ -91,7 +91,7 @@ public class UrlInputHandler {
                         if (VariablesHandler.isCloseMatch(text, i)) {
                             closed = true;
 
-                            boolean valid = this.variablesHandler.valid(text.substring(start, i).trim());
+                            boolean valid = this.variablesHandler.isValid(text.substring(start, i).trim());
 
                             doc.setCharacterAttributes(start, i, valid ? this.variableAttr : this.invalidAttr, true);
                             doc.setCharacterAttributes(i, i + 2, this.bracketAttr, true);

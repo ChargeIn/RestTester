@@ -4,7 +4,7 @@ import com.intellij.notification.NotificationGroupManager;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.project.Project;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public class RestTesterNotifier {
     public static void notifyError(@Nullable Project project,

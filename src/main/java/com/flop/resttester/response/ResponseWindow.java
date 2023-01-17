@@ -1,5 +1,6 @@
 package com.flop.resttester.response;
 
+import com.flop.resttester.RestTesterNotifier;
 import com.flop.resttester.components.CustomLanguageTextField;
 import com.flop.resttester.components.CustomPanel;
 import com.flop.resttester.components.ImagePanel;
@@ -51,7 +52,7 @@ public class ResponseWindow {
     private Project project;
 
     public JPanel getContent() {
-        return mainPanel;
+        return this.mainPanel;
     }
 
     public void setProject(Project project) {
@@ -212,6 +213,7 @@ public class ResponseWindow {
         }
         this.headersTextPane.setText("Loading... " + elapsedTime);
         this.resultJsonPane.setText("Loading... " + elapsedTime);
+        this.resultHtmlPane.setText("Loading... " + elapsedTime);
     }
 
     public void setResult(String id, ResponseData responseData) {
@@ -223,6 +225,12 @@ public class ResponseWindow {
         if (this.responseCache.containsKey(id)) {
             this.handleResponse(this.responseCache.get(id));
         } else {
+            String test = "id " + id + " Ids: ";
+
+            for(String key : this.responseCache.keySet()){
+                test += key + ", ";
+            }
+            RestTesterNotifier.notifyInfo(this.project, test);
             this.handleResponse(new ResponseData(new HashMap<>(), -2, "".getBytes(StandardCharsets.UTF_8), ""));
         }
     }

@@ -6,9 +6,12 @@ import com.intellij.openapi.keymap.impl.IdeMouseEventDispatcher;
 import com.intellij.util.ui.StartupUiUtil;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.event.MouseEvent;
+
+import javax.swing.Icon;
+import javax.swing.JButton;
 
 public class ActionButton extends JButton implements ActionButtonComponent {
 
@@ -28,10 +31,10 @@ public class ActionButton extends JButton implements ActionButtonComponent {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         ActionButtonLook look = this.myLook;
-        if (isEnabled() || !StartupUiUtil.isUnderDarcula()) {
+        if (this.isEnabled() || !StartupUiUtil.isUnderDarcula()) {
             look.paintBackground(g, this);
         }
-        look.paintIcon(g, this, getIcon());
+        look.paintIcon(g, this, this.getIcon());
         look.paintBorder(g, this);
     }
 
@@ -40,47 +43,47 @@ public class ActionButton extends JButton implements ActionButtonComponent {
         IdeMouseEventDispatcher.requestFocusInNonFocusedWindow(e);
         super.processMouseEvent(e);
         if (e.isConsumed()) return;
-        boolean skipPress = checkSkipPressForEvent(e);
+        boolean skipPress = ActionButton.checkSkipPressForEvent(e);
         switch (e.getID()) {
             case MouseEvent.MOUSE_PRESSED:
-                if (skipPress || !isEnabled()) return;
-                myMouseDown = true;
-                repaint();
+                if (skipPress || !this.isEnabled()) return;
+                this.myMouseDown = true;
+                this.repaint();
                 break;
 
             case MouseEvent.MOUSE_RELEASED:
-                if (skipPress || !isEnabled()) return;
-                myMouseDown = false;
-                repaint();
+                if (skipPress || !this.isEnabled()) return;
+                this.myMouseDown = false;
+                this.repaint();
                 break;
 
             case MouseEvent.MOUSE_ENTERED:
-                myRollover = true;
-                repaint();
+                this.myRollover = true;
+                this.repaint();
                 break;
 
             case MouseEvent.MOUSE_EXITED:
-                myRollover = false;
-                repaint();
+                this.myRollover = false;
+                this.repaint();
                 break;
         }
     }
 
     @Override
     public int getPopState() {
-        if (myRollover && myMouseDown && isEnabled()) {
-            return PUSHED;
-        } else if (myRollover && isEnabled()) {
-            return POPPED;
-        } else if (isFocusOwner()) {
-            return SELECTED;
+        if (this.myRollover && this.myMouseDown && this.isEnabled()) {
+            return ActionButtonComponent.PUSHED;
+        } else if (this.myRollover && this.isEnabled()) {
+            return ActionButtonComponent.POPPED;
+        } else if (this.isFocusOwner()) {
+            return ActionButtonComponent.SELECTED;
         } else {
-            return NORMAL;
+            return ActionButtonComponent.NORMAL;
         }
     }
 
     @Override
-    public void setBackground(Color color) {
+    public void setBackground(Color bg) {
         // workaround to keep IntelliJ new UI from overriding the background.
     }
 

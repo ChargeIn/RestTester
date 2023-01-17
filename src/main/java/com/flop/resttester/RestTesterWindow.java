@@ -15,7 +15,12 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import java.util.ArrayList;
 import java.util.Timer;
@@ -72,13 +77,17 @@ public class RestTesterWindow {
         }
 
         this.requestWindow.setRequestData(data);
-        this.responseWindow.loadResult(data.getID());
+
+        // variables need to be replaced for the correct id
+        RequestTreeNodeData nodeData = this.requestWindow.getRequestData(false);
+        this.responseWindow.loadResult(nodeData.getID());
+
         this.removeTreeSelectionButton.setEnabled(true);
         this.removeTreeSelectionButton.updateUI();
     }
 
     public JPanel getContent() {
-        return myToolWindowContent;
+        return this.myToolWindowContent;
     }
 
     private void sendRequest() {
@@ -96,6 +105,7 @@ public class RestTesterWindow {
 
         this.loadingTimer = new Timer();
         this.loadingTimer.schedule(new TimerTask() {
+            @Override
             public void run() {
                 SwingUtilities.invokeLater(() -> {
                     if (RestTesterWindow.this.requestThread != null) {

@@ -14,8 +14,8 @@ public class QueryParam {
 
     public JsonObject getAsJson() {
         JsonObject jObj = new JsonObject();
-        jObj.addProperty("key", key);
-        jObj.addProperty("value", value);
+        jObj.addProperty("key", this.key);
+        jObj.addProperty("value", this.value);
         return jObj;
     }
 

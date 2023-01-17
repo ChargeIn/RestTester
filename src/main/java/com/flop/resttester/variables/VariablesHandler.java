@@ -1,5 +1,11 @@
 package com.flop.resttester.variables;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 import com.flop.resttester.RestTesterNotifier;
 import com.flop.resttester.state.RestTesterStateService;
 import com.google.gson.JsonArray;
@@ -8,11 +14,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.intellij.openapi.project.Project;
 
-import javax.swing.*;
+import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
-import java.util.*;
 
 public class VariablesHandler {
     private static final String VERSION = "1.0";
@@ -85,7 +91,7 @@ public class VariablesHandler {
         this.saveTable();
     }
 
-    public String replaceVariables(String string) {
+    public String replaceVariables(String str) {
 
         int start = 0;
         int i = 0;
@@ -94,18 +100,18 @@ public class VariablesHandler {
 
         boolean closed = true;
 
-        while (i < string.length()) {
+        while (i < str.length()) {
             if (closed) {
-                if (isOpenMatch(string, i)) {
+                if (VariablesHandler.isOpenMatch(str, i)) {
                     closed = false;
                     i += 2;
                     start = i;
                     continue;
                 }
             } else {
-                if (isCloseMatch(string, i)) {
+                if (VariablesHandler.isCloseMatch(str, i)) {
                     closed = true;
-                    toReplace.add(string.substring(start - 2, i + 2));
+                    toReplace.add(str.substring(start - 2, i + 2));
                     i += 2;
                     continue;
                 }
@@ -114,20 +120,20 @@ public class VariablesHandler {
         }
 
         List<String> errorKeys = new ArrayList<>();
-        for (String variables : toReplace) {
-            String key = variables.substring(2, variables.length() - 2).trim();
+        for (String var : toReplace) {
+            String key = var.substring(2, var.length() - 2).trim();
             if (this.variables.containsKey(key)) {
-                string = string.replace(variables, this.variables.getOrDefault(key, ""));
+                str = str.replace(var, this.variables.getOrDefault(key, ""));
             } else {
                 errorKeys.add(key);
             }
         }
 
-        if (errorKeys.size() > 0) {
+        if (!errorKeys.isEmpty()) {
             RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not find replacements for following variables: " + String.join(", ", errorKeys));
         }
 
-        return string;
+        return str;
     }
 
     private void loadTable(String state) {
@@ -211,13 +217,13 @@ public class VariablesHandler {
         this.stateService.setVariablesState(this.id, jsonString);
     }
 
-    private JsonArray model2JSON(DefaultTableModel model) {
+    private JsonArray model2JSON(DefaultTableModel m) {
 
         JsonArray variableArray = new JsonArray();
 
-        for (int i = 0; i < model.getRowCount(); i++) {
-            String key = (String) model.getValueAt(i, 0);
-            String value = (String) model.getValueAt(i, 1);
+        for (int i = 0; i < m.getRowCount(); i++) {
+            String key = (String) m.getValueAt(i, 0);
+            String value = (String) m.getValueAt(i, 1);
 
             if (key.isEmpty()) {
                 continue;
@@ -233,7 +239,7 @@ public class VariablesHandler {
         return variableArray;
     }
 
-    private boolean json2Model(JsonArray array, DefaultTableModel model) {
+    private boolean json2Model(JsonArray array, DefaultTableModel m) {
 
         boolean error = false;
 
@@ -257,7 +263,7 @@ public class VariablesHandler {
 
                 String key = jKey.getAsString();
                 String value = jValue.getAsString();
-                model.addRow(new String[]{key, value});
+                m.addRow(new String[]{key, value});
             }
         }
         return error;
@@ -267,7 +273,7 @@ public class VariablesHandler {
         return this.variables;
     }
 
-    public boolean valid(String key) {
+    public boolean isValid(String key) {
         return this.variables.containsKey(key);
     }
 }

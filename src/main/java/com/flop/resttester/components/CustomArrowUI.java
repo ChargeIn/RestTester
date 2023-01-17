@@ -1,6 +1,7 @@
 package com.flop.resttester.components;
 
-import javax.swing.*;
+import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.plaf.ComboBoxUI;
 import javax.swing.plaf.basic.BasicComboBoxUI;
 

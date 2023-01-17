@@ -4,9 +4,15 @@ import com.intellij.ui.scale.JBUIScale;
 import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 
-import javax.swing.*;
 import javax.swing.plaf.basic.BasicArrowButton;
-import java.awt.*;
+
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.geom.Path2D;
 
 import static com.intellij.ide.ui.laf.darcula.DarculaUIUtil.*;
@@ -40,7 +46,7 @@ public class CustomArrowButton extends BasicArrowButton {
     @Override
     public void paint(Graphics g) {
         Graphics2D g2 = (Graphics2D) g.create();
-        Rectangle r = new Rectangle(getSize());
+        Rectangle r = new Rectangle(this.getSize());
         JBInsets.removeFrom(r, JBUI.insets(1, 0, 1, 1));
 
         try {
@@ -50,7 +56,7 @@ public class CustomArrowButton extends BasicArrowButton {
 
             float bw = BW.getFloat();
             float lw = LW.getFloat();
-            float arc = myArc;
+            float arc = this.myArc;
             arc = arc > bw + lw ? arc - bw - lw : 0.0f;
 
             Path2D innerShape = new Path2D.Float();
@@ -62,14 +68,14 @@ public class CustomArrowButton extends BasicArrowButton {
             innerShape.lineTo(lw, r.height - bw - lw);
             innerShape.closePath();
 
-            paintArrow(g2, this);
+            this.paintArrow(g2, this);
         } finally {
             g2.dispose();
         }
     }
 
     @Override
-    public void setBackground(Color color) {
+    public void setBackground(Color bg) {
         // workaround to keep IntelliJ new UI from overriding the background.
     }
 
@@ -77,8 +83,8 @@ public class CustomArrowButton extends BasicArrowButton {
         super.setBackground(color);
     }
 
-    protected void paintArrow(Graphics2D g2, JButton btn) {
+    protected void paintArrow(Graphics2D g2, CustomArrowButton btn) {
         g2.setColor(JBUI.CurrentTheme.Arrow.foregroundColor(true));
-        g2.fill(getArrowShape(btn));
+        g2.fill(CustomArrowButton.getArrowShape(btn));
     }
 }

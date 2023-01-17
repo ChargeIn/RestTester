@@ -8,7 +8,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.intellij.openapi.project.Project;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
@@ -22,9 +24,9 @@ public class AuthenticationHandler {
     private final RestTesterStateService stateService;
     private final int id;
 
-    private Project project;
+    private final Project project;
 
-    private JTree tree;
+    private final JTree tree;
 
     private AuthenticationNode root;
 

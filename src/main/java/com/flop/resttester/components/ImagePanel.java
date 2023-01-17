@@ -1,8 +1,9 @@
 package com.flop.resttester.components;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JPanel;
+import java.awt.Color;
+import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -50,7 +51,7 @@ public class ImagePanel extends JPanel {
             int x = (this.getWidth() - width) / 2;
             int y = (this.getHeight() - height) / 2;
 
-            g.drawImage(image, x, y, width, height, this);
+            g.drawImage(this.image, x, y, width, height, this);
         }
     }
 

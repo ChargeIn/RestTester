@@ -1,7 +1,7 @@
 package com.flop.resttester.components;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JPanel;
+import java.awt.Color;
 
 public class CustomPanel extends JPanel {
 

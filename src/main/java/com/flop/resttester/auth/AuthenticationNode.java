@@ -3,9 +3,11 @@ package com.flop.resttester.auth;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
+
 import java.util.Comparator;
 
 public class AuthenticationNode extends DefaultMutableTreeNode {
+
     private final Comparator<TreeNode> comparator = new AuthenticationTreeNodeComparator();
 
     public AuthenticationNode(Object userObject) {

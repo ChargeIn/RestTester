@@ -82,11 +82,11 @@ public class RequestTreeNodeData {
                         .collect(Collectors.joining("/"));
     }
 
-    public String getPathForDepth(int depth) {
-        if (depth >= this.pathElements.length) {
+    public String getPathForDepth(int i) {
+        if (i >= this.pathElements.length) {
             return null;
         } else {
-            return this.pathElements[depth];
+            return this.pathElements[i];
         }
     }
 
@@ -99,7 +99,7 @@ public class RequestTreeNodeData {
     }
 
     public String getUrl() {
-        return url;
+        return this.url;
     }
 
     private void setUrl(String url) {
@@ -122,7 +122,7 @@ public class RequestTreeNodeData {
     }
 
     public int getDepth() {
-        return depth;
+        return this.depth;
     }
 
     public void setDepth(int depth) {
@@ -131,7 +131,7 @@ public class RequestTreeNodeData {
     }
 
     public RequestType getType() {
-        return type;
+        return this.type;
     }
 
     public void setType(RequestType type) {
@@ -139,7 +139,7 @@ public class RequestTreeNodeData {
     }
 
     public String getBody() {
-        return body;
+        return this.body;
     }
 
     public void setBody(String body) {
@@ -163,7 +163,7 @@ public class RequestTreeNodeData {
     }
 
     public String getTag() {
-        return tag;
+        return this.tag;
     }
 
     public List<QueryParam> getParams() {

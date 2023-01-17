@@ -8,7 +8,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.intellij.openapi.project.Project;
 
-import javax.swing.*;
+import javax.swing.JTree;
+import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
@@ -59,10 +60,8 @@ public class RequestTreeHandler {
     public void addRequest(RequestTreeNodeData newNodeData) {
         String basePath = newNodeData.getPathForDepth(0);
 
-        RequestTreeNode root = (RequestTreeNode) this.tree.getModel().getRoot();
-
-        for (int i = 0; i < root.getChildCount(); i++) {
-            RequestTreeNode node = ((RequestTreeNode) root.getChildAt(i));
+        for (int i = 0; i < this.root.getChildCount(); i++) {
+            RequestTreeNode node = ((RequestTreeNode) this.root.getChildAt(i));
             RequestTreeNodeData nodeData = node.getRequestData();
 
             if (nodeData.getPathForDepth(0).equals(basePath)) {
@@ -78,7 +77,7 @@ public class RequestTreeHandler {
 
         RequestTreeNode newNode = new RequestTreeNode(newNodeData);
         newGroup.add(newNode);
-        root.add(newGroup);
+        this.root.add(newGroup);
 
         // make sure the root is expanded
         this.tree.expandPath(new TreePath(newGroup.getPath()));
@@ -244,9 +243,8 @@ public class RequestTreeHandler {
 
         JsonArray jNodes = new JsonArray();
 
-        RequestTreeNode root = (RequestTreeNode) this.tree.getModel().getRoot();
-        for (int i = 0; i < root.getChildCount(); i++) {
-            JsonObject jChild = ((RequestTreeNode) root.getChildAt(i)).getAsJson(this.tree);
+        for (int i = 0; i < this.root.getChildCount(); i++) {
+            JsonObject jChild = ((RequestTreeNode) this.root.getChildAt(i)).getAsJson(this.tree);
             jNodes.add(jChild);
         }
 

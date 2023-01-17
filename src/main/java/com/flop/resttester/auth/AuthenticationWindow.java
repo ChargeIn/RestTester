@@ -6,7 +6,15 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTextField;
+import javax.swing.JTree;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import java.util.List;
 
@@ -28,9 +36,9 @@ public class AuthenticationWindow {
     private ActionButton saveActionButton;
     private ActionButton removeActionButton;
 
-    private Project project;
+    private final Project project;
 
-    private AuthenticationHandler authenticationHandler;
+    private final AuthenticationHandler authenticationHandler;
 
     private AuthenticationListChangeListener authenticationListChangeListener;
 
@@ -107,7 +115,7 @@ public class AuthenticationWindow {
     }
 
     public JPanel getContent() {
-        return mainPanel;
+        return this.mainPanel;
     }
 
     private void updateAuthenticationList(List<AuthenticationData> data) {

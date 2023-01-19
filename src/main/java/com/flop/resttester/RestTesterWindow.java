@@ -12,6 +12,7 @@ import com.flop.resttester.response.ResponseWindow;
 import com.flop.resttester.state.RestTesterStateService;
 import com.flop.resttester.variables.VariablesWindow;
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.dnd.aware.DnDAwareTree;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 
@@ -30,7 +31,7 @@ public class RestTesterWindow {
     private final RequestTreeHandler treeHandler;
     private final RestTesterStateService state = RestTesterStateService.getInstance();
     private JPanel myToolWindowContent;
-    private JTree requestTree;
+    private DnDAwareTree requestTree;
     private ActionButton removeTreeSelectionButton;
     private ActionButton saveButton;
     private JSplitPane splitPaneLeft;

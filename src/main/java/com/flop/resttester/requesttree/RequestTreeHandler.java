@@ -6,14 +6,22 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.intellij.icons.AllIcons;
+import com.intellij.ide.dnd.aware.DnDAwareTree;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.JBMenuItem;
+import com.intellij.openapi.ui.JBPopupMenu;
+import com.intellij.ui.RowsDnDSupport;
+import com.intellij.util.ui.EditableModel;
 
-import javax.swing.JTree;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -23,7 +31,7 @@ public class RequestTreeHandler {
     private final RestTesterStateService stateService;
     private final int id;
 
-    private final JTree tree;
+    private final DnDAwareTree tree;
 
     private final Project project;
 
@@ -31,13 +39,42 @@ public class RequestTreeHandler {
 
     private List<RequestTreeNode> nodes2Expand;
 
-    public RequestTreeHandler(JTree tree, Project project) {
+    public RequestTreeHandler(DnDAwareTree tree, Project project) {
         this.tree = tree;
         this.project = project;
         this.initTree();
 
         this.stateService = RestTesterStateService.getInstance();
         this.id = this.stateService.addRequestStateChangeListener(this::loadTree);
+        this.addRightClickListener();
+    }
+
+    private void addRightClickListener() {
+        MouseListener mouseListener = new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent mouseEvent) {
+                handleContextMenu(mouseEvent);
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent mouseEvent) {
+                handleContextMenu(mouseEvent);
+            }
+        };
+
+        this.tree.addMouseListener(mouseListener);
+    }
+
+    private void handleContextMenu(MouseEvent mouseEvent) {
+        if (mouseEvent.isPopupTrigger()) {
+            JBPopupMenu contextMenu = new JBPopupMenu("Request Tree Handler");
+            contextMenu.add(new JBMenuItem("New Folder", AllIcons.Nodes.Folder));
+            contextMenu.add(new JBMenuItem("New Request", AllIcons.Javaee.WebService));
+            contextMenu.addSeparator();
+            contextMenu.add(new JBMenuItem("Delete"));
+
+            JBPopupMenu.showByEvent(mouseEvent, contextMenu);
+        }
     }
 
     private void initTree() {
@@ -47,6 +84,30 @@ public class RequestTreeHandler {
         this.tree.setModel(model);
         this.tree.setRootVisible(false);
         this.tree.setCellRenderer(new RequestTreeCellRenderer());
+        this.tree.setDragEnabled(true);
+
+        RowsDnDSupport.install(this.tree, new EditableModel() {
+            @Override
+            public void addRow() {
+
+            }
+
+            @Override
+            public void exchangeRows(int oldIndex, int newIndex) {
+
+            }
+
+            @Override
+            public boolean canExchangeRows(int oldIndex, int newIndex) {
+                return true;
+            }
+
+            @Override
+            public void removeRow(int idx) {
+
+            }
+        });
+
         this.tree.updateUI();
     }
 

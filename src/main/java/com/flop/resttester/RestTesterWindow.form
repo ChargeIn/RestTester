@@ -102,11 +102,9 @@
                 <properties/>
                 <border type="none"/>
                 <children>
-                  <component id="91b2d" class="javax.swing.JTree" binding="requestTree">
+                  <component id="68016" class="com.intellij.ide.dnd.aware.DnDAwareTree" binding="requestTree">
                     <constraints/>
-                    <properties>
-                      <autoscrolls value="false"/>
-                    </properties>
+                    <properties/>
                   </component>
                 </children>
               </scrollpane>

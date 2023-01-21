@@ -16,12 +16,7 @@ import com.intellij.ide.dnd.aware.DnDAwareTree;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 
-import javax.swing.BorderFactory;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTree;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import java.util.ArrayList;
 import java.util.Timer;
@@ -73,7 +68,7 @@ public class RestTesterWindow {
     }
 
     private void updateInputs(RequestTreeNodeData data) {
-        if (data.isGroup()) {
+        if (data.isFolder()) {
             return;
         }
 
@@ -132,7 +127,7 @@ public class RestTesterWindow {
                 SwingUtilities.invokeLater(() -> {
                             this.requestThread = null;
                             this.loadingTimer.cancel();
-                            this.responseWindow.setResult(rawID ,response);
+                            this.responseWindow.setResult(rawID, response);
                             this.requestWindow.setRequestStarted(false);
                         }
                 ));

@@ -98,7 +98,7 @@ public class RequestTreeNodeData {
         return this.pathElements.length;
     }
 
-    public boolean isGroup() {
+    public boolean isFolder() {
         return this.type == null;
     }
 

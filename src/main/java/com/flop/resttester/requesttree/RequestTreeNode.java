@@ -23,6 +23,10 @@ public class RequestTreeNode extends DefaultMutableTreeNode {
         super(userObject);
     }
 
+    public boolean isFolder() {
+        return this.getRequestData().isFolder();
+    }
+
     @Override
     public void add(MutableTreeNode newChild) {
         super.add(newChild);
@@ -45,11 +49,11 @@ public class RequestTreeNode extends DefaultMutableTreeNode {
         String tag = obj.get("tag").getAsString();
 
         List<QueryParam> params = null;
-        if(obj.has("params")) {
+        if (obj.has("params")) {
             params = new ArrayList<>();
             JsonArray jParams = obj.get("params").getAsJsonArray();
 
-            for(int i = 0; i < jParams.size(); i++) {
+            for (int i = 0; i < jParams.size(); i++) {
                 params.add(QueryParam.createFromJson(jParams.get(i).getAsJsonObject()));
             }
         }
@@ -80,12 +84,12 @@ public class RequestTreeNode extends DefaultMutableTreeNode {
         }
 
         String body = null;
-        if(obj.has("body")) {
+        if (obj.has("body")) {
             body = obj.get("body").getAsString();
         }
 
         RequestBodyType bodyType = null;
-        if(obj.has("bodyType")) {
+        if (obj.has("bodyType")) {
             bodyType = RequestBodyType.valueOf(obj.get("bodyType").getAsString());
         }
 
@@ -119,11 +123,11 @@ public class RequestTreeNode extends DefaultMutableTreeNode {
             jNode.addProperty("type", data.getType().toString());
         }
 
-        if(data.getParams() != null) {
+        if (data.getParams() != null) {
             JsonArray jParams = new JsonArray();
 
-            for(QueryParam param: data.getParams()) {
-                if(!Objects.equals(param.key, "")){
+            for (QueryParam param : data.getParams()) {
+                if (!Objects.equals(param.key, "")) {
                     jParams.add(param.getAsJson());
                 }
             }
@@ -145,11 +149,11 @@ public class RequestTreeNode extends DefaultMutableTreeNode {
             jNode.addProperty("authKey", authKey);
         }
 
-        if(data.getBody() != null) {
+        if (data.getBody() != null) {
             jNode.addProperty("body", data.getBody());
         }
 
-        if(data.getBodyType() != null) {
+        if (data.getBodyType() != null) {
             jNode.addProperty("bodyType", data.getBodyType().toString());
         }
 

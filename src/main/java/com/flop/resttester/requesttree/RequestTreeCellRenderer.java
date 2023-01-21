@@ -14,7 +14,7 @@ public class RequestTreeCellRenderer extends DefaultTreeCellRenderer {
                                                   boolean leaf, int row, boolean hasFocus) {
         super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
         RequestTreeNode node = (RequestTreeNode) value;
-        if (node.getRequestData().isGroup()) {
+        if (node.isFolder()) {
             this.setIcon(AllIcons.Nodes.Folder);
         } else {
             this.setIcon(AllIcons.Javaee.WebService);

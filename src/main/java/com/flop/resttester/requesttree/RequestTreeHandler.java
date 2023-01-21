@@ -15,10 +15,7 @@ import com.intellij.ui.RowsDnDSupport;
 import com.intellij.util.ui.EditableModel;
 
 import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeModel;
-import javax.swing.tree.TreePath;
+import javax.swing.tree.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -68,13 +65,38 @@ public class RequestTreeHandler {
     private void handleContextMenu(MouseEvent mouseEvent) {
         if (mouseEvent.isPopupTrigger()) {
             JBPopupMenu contextMenu = new JBPopupMenu("Request Tree Handler");
-            contextMenu.add(new JBMenuItem("New Folder", AllIcons.Nodes.Folder));
+
+            JBMenuItem newFolderEntry = new JBMenuItem("New Folder", AllIcons.Nodes.Folder);
+            newFolderEntry.addActionListener((l) -> this.addNewFolder(mouseEvent));
+
+            contextMenu.add(newFolderEntry);
             contextMenu.add(new JBMenuItem("New Request", AllIcons.Javaee.WebService));
             contextMenu.addSeparator();
             contextMenu.add(new JBMenuItem("Delete"));
 
             JBPopupMenu.showByEvent(mouseEvent, contextMenu);
         }
+    }
+
+    private void addNewFolder(MouseEvent mouseEvent) {
+        TreePath path = this.tree.getPathForLocation(mouseEvent.getX(), mouseEvent.getY());
+        if (path == null) {
+            this.root.add(new RequestTreeNode(new RequestTreeNodeData("New Folder")));
+            this.tree.updateUI();
+            return;
+        }
+        RequestTreeNode node = (RequestTreeNode) path.getLastPathComponent();
+
+        if (node.isFolder()) {
+            RequestTreeNode parent = (RequestTreeNode) node.getParent();
+
+            if (parent != null) {
+                node.add(new RequestTreeNode(new RequestTreeNodeData("New Folder")));
+            }
+        } else {
+            node.add(new RequestTreeNode(new RequestTreeNodeData("New Folder")));
+        }
+        this.tree.updateUI();
     }
 
     private void initTree() {
@@ -94,12 +116,12 @@ public class RequestTreeHandler {
 
             @Override
             public void exchangeRows(int oldIndex, int newIndex) {
-
+                RequestTreeHandler.this.moveNode(oldIndex, newIndex);
             }
 
             @Override
             public boolean canExchangeRows(int oldIndex, int newIndex) {
-                return true;
+                return RequestTreeHandler.this.checkIfNotParent(oldIndex, newIndex);
             }
 
             @Override
@@ -172,7 +194,7 @@ public class RequestTreeHandler {
 
         RequestTreeNode nodeToExpand = null;
 
-        if (!nodeData.isGroup()) {
+        if (!nodeData.isFolder()) {
             if (nodeData.getID().equals(newNodeData.getID())) {
                 // request already exist - just update
                 nodeData.update(newNodeData);
@@ -359,5 +381,71 @@ public class RequestTreeHandler {
             this.tree.updateUI();
             this.saveTree();
         }
+    }
+
+    /**
+     * Checks if the node associated with the child index is a parent of the node behind the parent index
+     *
+     * @param parent node index of the parent
+     * @param child  node index of the child
+     * @return true if it is not a child node of the parent
+     */
+    public boolean checkIfNotParent(int parent, int child) {
+        if (child < parent) {
+            return true;
+        }
+
+        DefaultMutableTreeNode parentNode = (DefaultMutableTreeNode) this.tree.getPathForRow(parent).getLastPathComponent();
+        TreeNode childNode = (DefaultMutableTreeNode) this.tree.getPathForRow(child).getLastPathComponent();
+        childNode = childNode.getParent();
+
+        while (childNode != null) {
+            if (parentNode == childNode) {
+                return false;
+            }
+            childNode = childNode.getParent();
+        }
+
+        return true;
+    }
+
+    /**
+     * Switches two node position in the tree
+     * Node: It does not check if the swap is possible
+     *
+     * @param previous previous node index
+     * @param next     index after the movement
+     */
+    public void moveNode(int previous, int next) {
+        DefaultMutableTreeNode previousNode = (DefaultMutableTreeNode) this.tree.getPathForRow(previous).getLastPathComponent();
+
+        if (next == 0) {
+            previousNode.removeFromParent();
+            this.root.add(previousNode);
+            this.tree.updateUI();
+            return;
+        }
+
+        if (next < previous) {
+            next--;
+        }
+
+        TreePath nextPath = this.tree.getPathForRow(next);
+        RequestTreeNode nextNode = (RequestTreeNode) nextPath.getLastPathComponent();
+
+        if (!nextNode.isFolder() || this.tree.isCollapsed(nextPath) && nextNode.getChildCount() != 0) {
+            nextNode = (RequestTreeNode) nextNode.getParent();
+        }
+
+        DefaultMutableTreeNode previousParentNode = (DefaultMutableTreeNode) previousNode.getParent();
+
+        if (nextNode == null || previousParentNode == null || previousParentNode == nextNode) {
+            return;
+        }
+
+        previousNode.removeFromParent();
+        nextNode.add(previousNode);
+        this.tree.updateUI();
+        this.saveTree();
     }
 }

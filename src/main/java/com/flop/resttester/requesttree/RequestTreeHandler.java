@@ -1,6 +1,7 @@
 package com.flop.resttester.requesttree;
 
 import com.flop.resttester.RestTesterNotifier;
+import com.flop.resttester.components.SimpleInputDialog;
 import com.flop.resttester.state.RestTesterStateService;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -79,24 +80,34 @@ public class RequestTreeHandler {
     }
 
     private void addNewFolder(MouseEvent mouseEvent) {
-        TreePath path = this.tree.getPathForLocation(mouseEvent.getX(), mouseEvent.getY());
-        if (path == null) {
-            this.root.add(new RequestTreeNode(new RequestTreeNodeData("New Folder")));
-            this.tree.updateUI();
-            return;
-        }
-        RequestTreeNode node = (RequestTreeNode) path.getLastPathComponent();
+        SimpleInputDialog dialog = new SimpleInputDialog("New Folder", "Name");
+        if (dialog.showAndGet()) {
+            String name = dialog.getName();
+            RequestTreeNode folder = new RequestTreeNode(new RequestTreeNodeData(name));
 
-        if (node.isFolder()) {
-            RequestTreeNode parent = (RequestTreeNode) node.getParent();
-
-            if (parent != null) {
-                node.add(new RequestTreeNode(new RequestTreeNodeData("New Folder")));
+            TreePath path = this.tree.getPathForLocation(mouseEvent.getX(), mouseEvent.getY());
+            if (path == null) {
+                this.root.add(folder);
+                this.tree.setSelectionPath(new TreePath(folder.getPath()));
+                this.tree.updateUI();
+                return;
             }
-        } else {
-            node.add(new RequestTreeNode(new RequestTreeNodeData("New Folder")));
+            RequestTreeNode node = (RequestTreeNode) path.getLastPathComponent();
+
+            if (node.isFolder()) {
+                RequestTreeNode parent = (RequestTreeNode) node.getParent();
+
+                if (parent != null) {
+                    node.add(folder);
+                }
+            } else {
+                node.add(folder);
+            }
+            TreePath folderPath = new TreePath(folder.getPath());
+            this.tree.expandPath(folderPath);
+            this.tree.setSelectionPath(folderPath);
+            this.tree.updateUI();
         }
-        this.tree.updateUI();
     }
 
     private void initTree() {

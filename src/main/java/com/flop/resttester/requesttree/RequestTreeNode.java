@@ -38,15 +38,36 @@ public class RequestTreeNode extends DefaultMutableTreeNode {
     }
 
     public static RequestTreeNode createFromJson(JsonObject obj) {
-        if (!obj.has("url")) {
-            throw new RuntimeException("Node element has no url.");
+        if (!obj.has("name")) {
+            throw new RuntimeException("Node element has no name.");
         }
-        String url = obj.get("url").getAsString();
+        String name = obj.get("name").getAsString();
 
-        if (!obj.has("tag")) {
-            throw new RuntimeException("Node element has no tag.");
+        if (!obj.has("type")) {
+            // folder type
+            RequestTreeNode folder = new RequestTreeNode(new RequestTreeNodeData(name));
+
+            if (obj.has("children")) {
+                List<RequestTreeNode> childNodes = new ArrayList<>();
+                JsonArray childArray = obj.get("children").getAsJsonArray();
+
+                for (int i = 0; i < childArray.size(); i++) {
+                    childNodes.add(RequestTreeNode.createFromJson(childArray.get(i).getAsJsonObject()));
+                }
+
+                if (!childNodes.isEmpty()) {
+                    for (RequestTreeNode child : childNodes) {
+                        folder.add(child);
+                    }
+                }
+            }
+            return folder;
         }
-        String tag = obj.get("tag").getAsString();
+
+        String url = null;
+        if (obj.has("url")) {
+            url = obj.get("url").getAsString();
+        }
 
         List<QueryParam> params = null;
         if (obj.has("params")) {
@@ -61,21 +82,6 @@ public class RequestTreeNode extends DefaultMutableTreeNode {
         RequestType type = null;
         if (obj.has("type")) {
             type = RequestType.valueOf(obj.get("type").getAsString());
-        }
-
-        if (!obj.has("depth")) {
-            throw new RuntimeException("Node element has no depth attribute.");
-        }
-        int depth = obj.get("depth").getAsInt();
-
-        List<RequestTreeNode> childNodes = new ArrayList<>();
-
-        if (obj.has("children")) {
-            JsonArray childArray = obj.get("children").getAsJsonArray();
-
-            for (int i = 0; i < childArray.size(); i++) {
-                childNodes.add(RequestTreeNode.createFromJson(childArray.get(i).getAsJsonObject()));
-            }
         }
 
         String authDataKey = null;
@@ -95,67 +101,47 @@ public class RequestTreeNode extends DefaultMutableTreeNode {
 
         RequestTreeNodeData data;
         if (type != null && authDataKey != null && params != null && body != null && bodyType != null) {
-            data = new RequestTreeNodeData(url, tag, type, authDataKey, params, body, bodyType);
+            data = new RequestTreeNodeData(url, name, type, authDataKey, params, body, bodyType);
         } else {
-            data = new RequestTreeNodeData(url);
+            throw new RuntimeException("Invalid save sate node: " + name);
         }
-        data.setDepth(depth);
-
-        RequestTreeNode newNode = new RequestTreeNode(data);
-
-        if (!childNodes.isEmpty()) {
-            for (RequestTreeNode child : childNodes) {
-                newNode.add(child);
-            }
-        }
-        return newNode;
+        return new RequestTreeNode(data);
     }
 
     public JsonObject getAsJson(JTree tree) {
         RequestTreeNodeData data = this.getRequestData();
 
         JsonObject jNode = new JsonObject();
-        jNode.addProperty("url", data.getUrl());
-        jNode.addProperty("tag", data.getTag());
-        jNode.addProperty("depth", data.getDepth());
+        jNode.addProperty("name", data.getName());
 
-        if (data.getType() != null) {
-            jNode.addProperty("type", data.getType().toString());
-        }
+        if (data.isFolder()) {
+            if (this.getChildCount() > 0) {
+                jNode.addProperty("expanded", tree.isExpanded(new TreePath(this.getPath())));
+                JsonArray childArray = new JsonArray();
 
-        if (data.getParams() != null) {
-            JsonArray jParams = new JsonArray();
-
-            for (QueryParam param : data.getParams()) {
-                if (!Objects.equals(param.key, "")) {
-                    jParams.add(param.getAsJson());
+                for (int i = 0; i < this.getChildCount(); i++) {
+                    childArray.add(((RequestTreeNode) this.getChildAt(i)).getAsJson(tree));
                 }
+                jNode.add("children", childArray);
             }
-            jNode.add("params", jParams);
+            
+            return jNode;
         }
 
-        if (this.getChildCount() > 0) {
-            jNode.addProperty("expanded", tree.isExpanded(new TreePath(this.getPath())));
-            JsonArray childArray = new JsonArray();
+        jNode.addProperty("type", data.getType().toString());
+        jNode.addProperty("url", data.getUrl());
 
-            for (int i = 0; i < this.getChildCount(); i++) {
-                childArray.add(((RequestTreeNode) this.getChildAt(i)).getAsJson(tree));
+        JsonArray jParams = new JsonArray();
+        for (QueryParam param : data.getParams()) {
+            if (!Objects.equals(param.key, "")) {
+                jParams.add(param.getAsJson());
             }
-            jNode.add("children", childArray);
         }
+        jNode.add("params", jParams);
 
-        if (data.setAuthenticationDataKey() != null) {
-            String authKey = data.setAuthenticationDataKey();
-            jNode.addProperty("authKey", authKey);
-        }
-
-        if (data.getBody() != null) {
-            jNode.addProperty("body", data.getBody());
-        }
-
-        if (data.getBodyType() != null) {
-            jNode.addProperty("bodyType", data.getBodyType().toString());
-        }
+        jNode.addProperty("authKey", data.getAuthenticationDataKey());
+        jNode.addProperty("body", data.getBody());
+        jNode.addProperty("bodyType", data.getBodyType().toString());
 
         return jNode;
     }

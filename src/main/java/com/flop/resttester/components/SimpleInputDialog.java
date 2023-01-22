@@ -10,6 +10,8 @@ import java.awt.*;
 public class SimpleInputDialog extends DialogWrapper {
 
     private String label = "";
+
+    private String startValue = "";
     public JTextField input;
 
     public SimpleInputDialog(String title, String label) {
@@ -23,13 +25,28 @@ public class SimpleInputDialog extends DialogWrapper {
         init();
     }
 
+    public SimpleInputDialog(String title, String label, String startValue) {
+        super(true);
+        setTitle(title);
+
+        this.label = label;
+        this.startValue = startValue;
+
+        init();
+    }
+
     @Nullable
     @Override
     protected JComponent createCenterPanel() {
         JPanel dialogPanel = new JPanel(new BorderLayout());
 
         this.input = new CustomTextField(this.label);
-        this.input.setPreferredSize(new Dimension(240, 20));
+
+        if (this.startValue != null) {
+            this.input.setText(this.startValue);
+        }
+
+        dialogPanel.setPreferredSize(new Dimension(240, 30));
         this.input.setRequestFocusEnabled(true);
         dialogPanel.add(this.input, BorderLayout.CENTER);
 

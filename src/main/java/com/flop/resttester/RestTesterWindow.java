@@ -6,6 +6,7 @@ import com.flop.resttester.components.ActionButton;
 import com.flop.resttester.request.RequestData;
 import com.flop.resttester.request.RequestThread;
 import com.flop.resttester.request.RequestWindow;
+import com.flop.resttester.request.RequestWindowListener;
 import com.flop.resttester.requesttree.RequestTreeHandler;
 import com.flop.resttester.requesttree.RequestTreeNodeData;
 import com.flop.resttester.response.ResponseWindow;
@@ -28,15 +29,18 @@ public class RestTesterWindow {
     private JPanel myToolWindowContent;
     private DnDAwareTree requestTree;
     private ActionButton removeTreeSelectionButton;
-    private ActionButton saveButton;
+    private ActionButton addRequestButton;
     private JSplitPane splitPaneLeft;
     private JPanel treeActionBar;
     private JScrollPane treeScrollPane;
     private JSplitPane splitPaneRight;
     private ResponseWindow responseWindow;
     private RequestWindow requestWindow;
+    private ActionButton addFolderButton;
     private RequestThread requestThread;
     private Timer loadingTimer = new Timer();
+
+    private RequestTreeNodeData selection = null;
 
     public RestTesterWindow(Project project, AuthenticationWindow authWindow, VariablesWindow varWindow) {
         this.treeHandler = new RequestTreeHandler(this.requestTree, project);
@@ -46,12 +50,22 @@ public class RestTesterWindow {
         this.requestWindow.setVariablesWindow(varWindow);
         this.requestWindow.updateAuthBox(new ArrayList<>());
         authWindow.setAuthenticationListChangeListener(this.requestWindow::updateAuthBox);
-        this.requestWindow.registerSendListener(this::sendRequest);
+        this.requestWindow.registerWindowListener(new RequestWindowListener() {
+            @Override
+            public void onSendRequest() {
+                RestTesterWindow.this.sendRequest();
+            }
+
+            @Override
+            public void onChange() {
+                RestTesterWindow.this.treeHandler.updateTree();
+                RestTesterWindow.this.treeHandler.saveTree();
+            }
+        });
 
         this.responseWindow.setProject(project);
 
         this.setupStyles();
-
     }
 
     public void setupStyles() {
@@ -72,8 +86,9 @@ public class RestTesterWindow {
             return;
         }
 
+        this.selection = data;
         this.requestWindow.setRequestData(data);
-        this.responseWindow.loadResult(data.getRawID());
+        this.responseWindow.loadResult(data.getResponseCache());
 
         this.removeTreeSelectionButton.setEnabled(true);
         this.removeTreeSelectionButton.updateUI();
@@ -121,42 +136,40 @@ public class RestTesterWindow {
                 this.state.getValidateSSL()
         );
 
-        String rawID = this.requestWindow.getRawID();
-
         this.requestThread = new RequestThread(data, (response) ->
                 SwingUtilities.invokeLater(() -> {
                             this.requestThread = null;
                             this.loadingTimer.cancel();
-                            this.responseWindow.setResult(rawID, response);
+                            this.responseWindow.setResult(response);
+                            this.selection.setResponseCache(response);
+
                             this.requestWindow.setRequestStarted(false);
                         }
                 ));
         this.requestThread.start();
     }
 
-    private void saveRequest() {
-        RequestTreeNodeData newNodeData = this.requestWindow.getRequestData(true);
-
-        if (newNodeData.getUrl().isBlank()) {
-            return;
-        }
-        this.treeHandler.addRequest(newNodeData);
-    }
-
     private void createUIComponents() {
         this.setupRemoveButton();
-        this.setupSaveButton();
+        this.setupAddFolderButton();
+        this.setupAddRequestButton();
     }
 
     private void setupRemoveButton() {
         this.removeTreeSelectionButton = new ActionButton("", AllIcons.Vcs.Remove);
-        this.removeTreeSelectionButton.addActionListener((e) -> this.treeHandler.deleteSelection());
-        this.removeTreeSelectionButton.setToolTipText("Remove request");
+        this.removeTreeSelectionButton.addActionListener((e) -> this.treeHandler.deleteNode(null));
+        this.removeTreeSelectionButton.setToolTipText("Delete selection");
     }
 
-    private void setupSaveButton() {
-        this.saveButton = new ActionButton("", AllIcons.Actions.AddToDictionary);
-        this.saveButton.addActionListener((e) -> this.saveRequest());
-        this.saveButton.setToolTipText("Save request");
+    private void setupAddRequestButton() {
+        this.addRequestButton = new ActionButton("", AllIcons.ToolbarDecorator.AddLink);
+        this.addRequestButton.addActionListener((e) -> this.treeHandler.addNewRequest(null));
+        this.addRequestButton.setToolTipText("Add new request");
+    }
+
+    private void setupAddFolderButton() {
+        this.addFolderButton = new ActionButton("", AllIcons.ToolbarDecorator.AddFolder);
+        this.addFolderButton.addActionListener((e) -> this.treeHandler.addNewFolder(null));
+        this.addFolderButton.setToolTipText("Add new folder");
     }
 }

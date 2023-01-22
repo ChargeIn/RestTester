@@ -14,6 +14,7 @@ import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.RowsDnDSupport;
 import com.intellij.util.ui.EditableModel;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.*;
@@ -36,6 +37,7 @@ public class RequestTreeHandler {
     private RequestTreeNode root;
 
     private List<RequestTreeNode> nodes2Expand;
+    private RequestTreeSelectionListener selectionListener;
 
     public RequestTreeHandler(DnDAwareTree tree, Project project) {
         this.tree = tree;
@@ -44,22 +46,28 @@ public class RequestTreeHandler {
 
         this.stateService = RestTesterStateService.getInstance();
         this.id = this.stateService.addRequestStateChangeListener(this::loadTree);
-        this.addRightClickListener();
+        this.addClickListener();
     }
 
-    private void addRightClickListener() {
+    private void addClickListener() {
         MouseListener mouseListener = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent mouseEvent) {
-                handleContextMenu(mouseEvent);
+                if (mouseEvent.isPopupTrigger()) {
+                    handleContextMenu(mouseEvent);
+                } else {
+                    int clickCount = mouseEvent.getClickCount();
+
+                    if (clickCount == 2) {
+                        handleRename(mouseEvent);
+                    }
+                }
             }
 
             @Override
             public void mouseReleased(MouseEvent mouseEvent) {
-                handleContextMenu(mouseEvent);
             }
         };
-
         this.tree.addMouseListener(mouseListener);
     }
 
@@ -69,45 +77,87 @@ public class RequestTreeHandler {
 
             JBMenuItem newFolderEntry = new JBMenuItem("New Folder", AllIcons.Nodes.Folder);
             newFolderEntry.addActionListener((l) -> this.addNewFolder(mouseEvent));
-
             contextMenu.add(newFolderEntry);
-            contextMenu.add(new JBMenuItem("New Request", AllIcons.Javaee.WebService));
-            contextMenu.addSeparator();
-            contextMenu.add(new JBMenuItem("Delete"));
+
+            JBMenuItem newRequestEntry = new JBMenuItem("New Request", AllIcons.Javaee.WebService);
+            newRequestEntry.addActionListener((l) -> this.addNewRequest(mouseEvent));
+            contextMenu.add(newRequestEntry);
+
+            TreePath path = this.tree.getPathForLocation(mouseEvent.getX(), mouseEvent.getY());
+            // click is located above a row
+            if (path != null) {
+                contextMenu.addSeparator();
+
+                JBMenuItem deleteEntry = new JBMenuItem("Delete");
+                deleteEntry.addActionListener((l) -> this.deleteNode(path));
+                contextMenu.add(deleteEntry);
+            }
 
             JBPopupMenu.showByEvent(mouseEvent, contextMenu);
         }
     }
 
-    private void addNewFolder(MouseEvent mouseEvent) {
+    public void addNewFolder(@Nullable MouseEvent mouseEvent) {
         SimpleInputDialog dialog = new SimpleInputDialog("New Folder", "Name");
         if (dialog.showAndGet()) {
             String name = dialog.getName();
             RequestTreeNode folder = new RequestTreeNode(new RequestTreeNodeData(name));
+            this.addNodeToTree(folder, mouseEvent);
+        }
+    }
 
-            TreePath path = this.tree.getPathForLocation(mouseEvent.getX(), mouseEvent.getY());
-            if (path == null) {
-                this.root.add(folder);
-                this.tree.setSelectionPath(new TreePath(folder.getPath()));
-                this.tree.updateUI();
-                return;
+    public void addNewRequest(@Nullable MouseEvent mouseEvent) {
+        SimpleInputDialog dialog = new SimpleInputDialog("New Request", "Name");
+        if (dialog.showAndGet()) {
+            String name = dialog.getName();
+            RequestTreeNode request = new RequestTreeNode(RequestTreeNodeData.getDefaultRequest(name));
+            this.addNodeToTree(request, mouseEvent);
+        }
+    }
+
+    private void addNodeToTree(RequestTreeNode newNode, @Nullable MouseEvent mouseEvent) {
+        TreePath path = mouseEvent == null ? null : this.tree.getPathForLocation(mouseEvent.getX(), mouseEvent.getY());
+        if (path == null) {
+            this.root.add(newNode);
+            this.tree.setSelectionPath(new TreePath(newNode.getPath()));
+            this.tree.updateUI();
+            this.saveTree();
+            return;
+        }
+        RequestTreeNode node = (RequestTreeNode) path.getLastPathComponent();
+
+        if (node.isFolder()) {
+            node.add(newNode);
+        } else {
+            RequestTreeNode parent = (RequestTreeNode) node.getParent();
+
+            if (parent != null) {
+                parent.add(newNode);
             }
-            RequestTreeNode node = (RequestTreeNode) path.getLastPathComponent();
+        }
+        TreePath folderPath = new TreePath(newNode.getPath());
+        this.tree.expandPath(folderPath);
+        this.tree.setSelectionPath(folderPath);
+        this.tree.updateUI();
+        this.saveTree();
+    }
 
-            if (node.isFolder()) {
-                RequestTreeNode parent = (RequestTreeNode) node.getParent();
+    private void handleRename(MouseEvent mouseEvent) {
+        TreePath path = this.tree.getPathForLocation(mouseEvent.getX(), mouseEvent.getY());
+        if (path == null) {
+            return;
+        }
+        RequestTreeNode node = (RequestTreeNode) path.getLastPathComponent();
 
-                if (parent != null) {
-                    node.add(folder);
-                }
-            } else {
-                node.add(folder);
-            }
-            TreePath folderPath = new TreePath(folder.getPath());
-            this.tree.expandPath(folderPath);
-            this.tree.setSelectionPath(folderPath);
+        String name = node.getRequestData().getName();
+
+        SimpleInputDialog dialog = new SimpleInputDialog("Rename", "Name", name);
+        if (dialog.showAndGet()) {
+            node.getRequestData().setName(dialog.getName());
             this.tree.updateUI();
         }
+        // refresh inputs
+        this.selectionListener.valueChanged(node.getRequestData());
     }
 
     private void initTree() {
@@ -140,134 +190,15 @@ public class RequestTreeHandler {
 
             }
         });
-
         this.tree.updateUI();
     }
 
     public void addSelectionListener(RequestTreeSelectionListener rtsl) {
+        this.selectionListener = rtsl;
         this.tree.addTreeSelectionListener((selection) -> {
             RequestTreeNode node = (RequestTreeNode) selection.getPath().getLastPathComponent();
             rtsl.valueChanged(node.getRequestData());
         });
-    }
-
-    public void addRequest(RequestTreeNodeData newNodeData) {
-        String basePath = newNodeData.getPathForDepth(0);
-
-        for (int i = 0; i < this.root.getChildCount(); i++) {
-            RequestTreeNode node = ((RequestTreeNode) this.root.getChildAt(i));
-            RequestTreeNodeData nodeData = node.getRequestData();
-
-            if (nodeData.getPathForDepth(0).equals(basePath)) {
-                this.addEntry(node, newNodeData, 0, "");
-                this.saveTree();
-                return;
-            }
-        }
-
-        // add new base group and add node
-        RequestTreeNodeData newGroupData = new RequestTreeNodeData(newNodeData.getPathForDepth(0));
-        RequestTreeNode newGroup = new RequestTreeNode(newGroupData);
-
-        RequestTreeNode newNode = new RequestTreeNode(newNodeData);
-        newGroup.add(newNode);
-        this.root.add(newGroup);
-
-        // make sure the root is expanded
-        this.tree.expandPath(new TreePath(newGroup.getPath()));
-        this.tree.updateUI();
-        this.saveTree();
-    }
-
-    private void addEntry(RequestTreeNode node, RequestTreeNodeData newNodeData, int depth, String path) {
-
-        int startDepth = depth;
-        RequestTreeNodeData nodeData = node.getRequestData();
-
-        StringBuilder urlBuilder = new StringBuilder(path);
-        String nodePath = nodeData.getPathForDepth(depth);
-        String newNodePath = newNodeData.getPathForDepth(depth);
-
-        while (nodePath != null && nodePath.equals(newNodePath)) {
-            if (urlBuilder.length() != 0) {
-                urlBuilder.append("/");
-            }
-
-            urlBuilder.append(nodePath);
-            depth++;
-
-            nodePath = nodeData.getPathForDepth(depth);
-            newNodePath = newNodeData.getPathForDepth(depth);
-        }
-        newNodeData.setDepth(depth);
-
-        String pathToNewGroup = urlBuilder.toString();
-
-        RequestTreeNode nodeToExpand = null;
-
-        if (!nodeData.isFolder()) {
-            if (nodeData.getID().equals(newNodeData.getID())) {
-                // request already exist - just update
-                nodeData.update(newNodeData);
-                return;
-            }
-            // create new group node and add both request
-            RequestTreeNode parent = ((RequestTreeNode) node.getParent());
-            node.removeFromParent();
-            nodeData.setDepth(depth);
-            RequestTreeNode newNode = new RequestTreeNode(newNodeData);
-
-            nodeToExpand = this.createGroupNode(pathToNewGroup, startDepth, parent, node, newNode);
-
-        } else {
-            if (depth == nodeData.getMaxDepth()) {
-                // test if node has a child that will fit the node
-                // nodes are sorted so start from the bottom to match the longest path first
-                for (int i = node.getChildCount() - 1; i > -1; i--) {
-                    RequestTreeNode child = ((RequestTreeNode) node.getChildAt(i));
-                    RequestTreeNodeData childNodeData = child.getRequestData();
-
-                    String p = childNodeData.getPathForDepth(depth);
-
-                    if (p != null && p.equals(newNodeData.getPathForDepth(depth))) {
-                        this.addEntry(child, newNodeData, depth, pathToNewGroup);
-                        return;
-                    } else if (p == null && newNodeData.getPathForDepth(depth) == null && childNodeData.getID().equals(newNodeData.getID())) {
-                        // special case if both nodes are equal the group name
-                        childNodeData.update(newNodeData);
-                        return;
-                    }
-                }
-
-                // no node found -- add request as new child
-                node.add(new RequestTreeNode(newNodeData));
-            } else {
-                // create new group node and add both request
-                RequestTreeNode parent = ((RequestTreeNode) node.getParent());
-                node.removeFromParent();
-                nodeData.setDepth(depth);
-                RequestTreeNode newNode = new RequestTreeNode(newNodeData);
-
-                nodeToExpand = this.createGroupNode(pathToNewGroup, startDepth + 1, parent, node, newNode);
-            }
-        }
-
-        this.tree.updateUI();
-        if (nodeToExpand != null) {
-            this.tree.expandPath(new TreePath(nodeToExpand.getPath()));
-        }
-    }
-
-    private RequestTreeNode createGroupNode(String url, int depth, RequestTreeNode parent, RequestTreeNode... children) {
-        RequestTreeNodeData newGroupData = new RequestTreeNodeData(url);
-        newGroupData.setDepth(depth);
-        RequestTreeNode newGroup = new RequestTreeNode(newGroupData);
-        parent.add(newGroup);
-
-        for (RequestTreeNode child : children) {
-            newGroup.add(child);
-        }
-        return newGroup;
     }
 
     private void loadTree(String state) {
@@ -330,7 +261,11 @@ public class RequestTreeHandler {
         }
     }
 
-    private void saveTree() {
+    public void updateTree() {
+        this.tree.updateUI();
+    }
+
+    public void saveTree() {
         if (this.project == null) {
             return;
         }
@@ -350,8 +285,16 @@ public class RequestTreeHandler {
         this.stateService.setRequestState(this.id, jsonString);
     }
 
-    public void deleteSelection() {
-        TreePath path = this.tree.getSelectionPath();
+    /**
+     * Deletes the node located at the end of the node
+     * If the path is null, the current selection will be deleted
+     *
+     * @param path TreePath to the node or null
+     */
+    public void deleteNode(@Nullable TreePath path) {
+        if (path == null) {
+            path = this.tree.getSelectionPath();
+        }
 
         if (path == null) {
             return;
@@ -363,21 +306,8 @@ public class RequestTreeHandler {
             int index = parent.getIndex(node);
             node.removeFromParent();
 
-            // remove all empty parents
-            while (parent != null && !parent.isRoot()) {
-                if (parent.getChildCount() == 0) {
-                    RequestTreeNode p = (RequestTreeNode) parent.getParent();
-                    parent.removeFromParent();
-                    parent = p;
-                    index = 0;
-                } else {
-                    break;
-                }
-            }
-
-            this.tree.removeSelectionPath(this.tree.getSelectionPath());
+            // select the parent of the node if available
             if (parent != null) {
-
                 DefaultMutableTreeNode next = index < parent.getChildCount() ? (DefaultMutableTreeNode) parent.getChildAt(index) : null;
                 if (next == null) {
                     next = parent.getNextNode();
@@ -416,13 +346,12 @@ public class RequestTreeHandler {
             }
             childNode = childNode.getParent();
         }
-
         return true;
     }
 
     /**
      * Switches two node position in the tree
-     * Node: It does not check if the swap is possible
+     * Note: It does not check if the swap is possible
      *
      * @param previous previous node index
      * @param next     index after the movement
@@ -444,7 +373,7 @@ public class RequestTreeHandler {
         TreePath nextPath = this.tree.getPathForRow(next);
         RequestTreeNode nextNode = (RequestTreeNode) nextPath.getLastPathComponent();
 
-        if (!nextNode.isFolder() || this.tree.isCollapsed(nextPath) && nextNode.getChildCount() != 0) {
+        if (!nextNode.isFolder()) {
             nextNode = (RequestTreeNode) nextNode.getParent();
         }
 
@@ -456,6 +385,10 @@ public class RequestTreeHandler {
 
         previousNode.removeFromParent();
         nextNode.add(previousNode);
+
+        TreePath newPath = new TreePath(previousNode.getPath());
+        this.tree.expandPath(newPath);
+        this.tree.setSelectionPath(newPath);
         this.tree.updateUI();
         this.saveTree();
     }

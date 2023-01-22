@@ -1,6 +1,5 @@
 package com.flop.resttester.response;
 
-import com.flop.resttester.RestTesterNotifier;
 import com.flop.resttester.components.CustomLanguageTextField;
 import com.flop.resttester.components.CustomPanel;
 import com.flop.resttester.components.ImagePanel;
@@ -30,7 +29,6 @@ import java.awt.*;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class ResponseWindow {
     private JPanel mainPanel;
@@ -46,8 +44,6 @@ public class ResponseWindow {
     private LanguageTextField headersTextPane;
     private JPanel headersTextWrapper;
     private LanguageTextField resultHtmlPane;
-
-    private Map<String, ResponseData> responseCache = new HashMap<>();
 
     private Project project;
 
@@ -216,14 +212,13 @@ public class ResponseWindow {
         this.resultHtmlPane.setText("Loading... " + elapsedTime);
     }
 
-    public void setResult(String id, ResponseData responseData) {
-        this.responseCache.put(id, responseData);
+    public void setResult(ResponseData responseData) {
         this.handleResponse(responseData);
     }
 
-    public void loadResult(String id) {
-        if (this.responseCache.containsKey(id)) {
-            this.handleResponse(this.responseCache.get(id));
+    public void loadResult(ResponseData data) {
+        if (data != null) {
+            this.handleResponse(data);
         } else {
             this.handleResponse(new ResponseData(new HashMap<>(), -2, "".getBytes(StandardCharsets.UTF_8), ""));
         }

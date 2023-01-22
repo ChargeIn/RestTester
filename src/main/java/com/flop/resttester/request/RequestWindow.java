@@ -18,6 +18,8 @@ import com.intellij.json.JsonLanguage;
 import com.intellij.lang.Language;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.fileTypes.PlainTextFileType;
 import com.intellij.openapi.fileTypes.PlainTextLanguage;
 import com.intellij.openapi.project.Project;
@@ -29,6 +31,7 @@ import com.intellij.ui.LanguageTextField;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.intellij.util.ui.JBUI;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -54,11 +57,15 @@ public class RequestWindow {
     private LanguageTextField xmlBodyInput;
     private LanguageTextField plainBodyInput;
     private Project project;
-    private RequestSendListener sendListener;
+    private RequestWindowListener windowListener;
     private VariablesHandler variablesHandler;
     private UrlInputHandler urlInputHandler;
 
     private RequestBodyType lastSelection;
+
+    private RequestTreeNodeData selection = null;
+
+    private boolean omitUpdates = false;
 
     public RequestWindow() {
         this.setupStyles();
@@ -72,8 +79,56 @@ public class RequestWindow {
         return mainPanel;
     }
 
-    public void registerSendListener(RequestSendListener listener) {
-        this.sendListener = listener;
+    public void setupChangeListener() {
+        this.jsonBodyInput.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void documentChanged(@NotNull DocumentEvent event) {
+                RequestWindow.this.updateSelection();
+            }
+        });
+
+        javax.swing.event.DocumentListener listener = new javax.swing.event.DocumentListener() {
+            @Override
+            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                RequestWindow.this.updateSelection();
+            }
+
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+                RequestWindow.this.updateSelection();
+            }
+
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+                RequestWindow.this.updateSelection();
+            }
+        };
+
+        this.urlInputField.getDocument().addDocumentListener(listener);
+        this.nameInputField.getDocument().addDocumentListener(listener);
+        this.authComboBox.addActionListener((l) -> this.updateSelection());
+        this.bodyTypePicker.addActionListener((l) -> this.updateSelection());
+        this.requestTypeComboBox.addActionListener((l) -> this.updateSelection());
+        this.paramsTable.getModel().addTableModelListener((l) -> this.updateSelection());
+    }
+
+    public void updateSelection() {
+        if (this.omitUpdates || this.selection == null || this.authComboBox.getSelectedItem() == null) {
+            return;
+        }
+
+        this.selection.setName(this.nameInputField.getText());
+        this.selection.setUrl(this.urlInputField.getText());
+        this.selection.setType((RequestType) this.requestTypeComboBox.getSelectedItem());
+        this.selection.setAuthenticationDataKey(((AuthenticationData) this.authComboBox.getSelectedItem()).getName());
+        this.selection.setParams(this.paramHandler.getParams());
+        this.selection.setBody(this.jsonBodyInput.getText());
+        this.selection.setBodyType((RequestBodyType) this.bodyTypePicker.getSelectedItem());
+        this.windowListener.onChange();
+    }
+
+    public void registerWindowListener(RequestWindowListener listener) {
+        this.windowListener = listener;
     }
 
     public void setProject(Project project) {
@@ -103,9 +158,9 @@ public class RequestWindow {
     private void setBodyTextField(ActionEvent event) {
 
         String content;
-        if(this.lastSelection == RequestBodyType.XML){
+        if (this.lastSelection == RequestBodyType.XML) {
             content = this.xmlBodyInput.getText();
-        } else if(this.lastSelection == RequestBodyType.JSON){
+        } else if (this.lastSelection == RequestBodyType.JSON) {
             content = this.jsonBodyInput.getText();
         } else {
             content = this.plainBodyInput.getText();
@@ -212,7 +267,7 @@ public class RequestWindow {
         this.sendButton.setRolloverEnabled(true);
         this.sendButton.addActionListener((e) -> {
             this.sendButton.setIcon(AllIcons.Actions.Suspend);
-            this.sendListener.onSendRequest();
+            this.windowListener.onSendRequest();
         });
 
     }
@@ -230,6 +285,7 @@ public class RequestWindow {
     public void setVariablesWindow(VariablesWindow varWindow) {
         this.variablesHandler = varWindow.getVariablesHandler();
         this.urlInputHandler = new UrlInputHandler(this.urlInputField, variablesHandler);
+        this.setupChangeListener();
     }
 
     public AuthenticationData getAuthData(boolean rawData) {
@@ -266,12 +322,15 @@ public class RequestWindow {
     }
 
     public void setRequestData(RequestTreeNodeData data) {
+        this.omitUpdates = true;
+        this.selection = data;
+
         if (!this.urlInputField.getText().equals(data.getUrl())) {
             // only update url input if text changed
             // otherwise the coloring might not be updated
             this.urlInputField.setText(data.getUrl());
         }
-        this.nameInputField.setText(data.getTag());
+        this.nameInputField.setText(data.getName());
         this.paramHandler.loadParams(data.getParams());
         this.jsonBodyInput.setText(data.getBody());
         this.xmlBodyInput.setText(data.getBody());
@@ -292,17 +351,21 @@ public class RequestWindow {
             }
         }
 
-        for (int i = 0; i < this.authComboBox.getItemCount(); i++) {
-            if (this.authComboBox.getItemAt(i).getName().equals(data.setAuthenticationDataKey())) {
-                this.authComboBox.setSelectedIndex(i);
-                return;
+        if (!data.getAuthenticationDataKey().isEmpty()) {
+            for (int i = 0; i < this.authComboBox.getItemCount(); i++) {
+                if (this.authComboBox.getItemAt(i).getName().equals(data.getAuthenticationDataKey())) {
+                    this.authComboBox.setSelectedIndex(i);
+                    this.omitUpdates = false;
+                    return;
+                }
+            }
+
+            if (this.project != null) {
+                RestTesterNotifier.notifyError(this.project, "Could not find authentication data with name " + data.getAuthenticationDataKey());
             }
         }
-
-        if (this.project != null) {
-            RestTesterNotifier.notifyError(this.project, "Could not find authentication data with name " + data.setAuthenticationDataKey());
-        }
         this.authComboBox.setSelectedIndex(0);
+        this.omitUpdates = false;
     }
 
     public void setRequestStarted(boolean started) {

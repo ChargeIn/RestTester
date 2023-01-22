@@ -1,3 +1,10 @@
+/*
+ * Rest Tester
+ * Copyright (C) 2022-2023 Florian Plesker <florian dot plesker at web dot de>
+ *
+ * This file is licensed under LGPLv3
+ */
+
 package com.flop.resttester.auth;
 
 import com.flop.resttester.RestTesterNotifier;
@@ -6,15 +13,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 
-import javax.swing.BorderFactory;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTextField;
-import javax.swing.JTree;
+import javax.swing.*;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import java.util.List;
 

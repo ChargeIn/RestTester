@@ -1,3 +1,10 @@
+<!--
+  ~ Rest Tester
+  ~ Copyright (C) 2022-2023 Florian Plesker <florian dot plesker at web dot de>
+  ~
+  ~ This file is licensed under LGPLv3
+  -->
+
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->

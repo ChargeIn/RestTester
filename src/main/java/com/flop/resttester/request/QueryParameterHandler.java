@@ -1,3 +1,10 @@
+/*
+ * Rest Tester
+ * Copyright (C) 2022-2023 Florian Plesker <florian dot plesker at web dot de>
+ *
+ * This file is licensed under LGPLv3
+ */
+
 package com.flop.resttester.request;
 
 import javax.swing.*;
@@ -22,7 +29,7 @@ public class QueryParameterHandler {
     }
 
     public void tableChanged(TableModelEvent e) {
-        if(this.model.getRowCount() == 0) {
+        if (this.model.getRowCount() == 0) {
             this.model.addRow(new String[]{"", ""});
             return;
         }
@@ -38,14 +45,14 @@ public class QueryParameterHandler {
         }
     }
 
-    public List<QueryParam> getParams(){
+    public List<QueryParam> getParams() {
         List<QueryParam> params = new ArrayList<>();
 
-        for(int i = 0; i < this.model.getRowCount(); i++) {
+        for (int i = 0; i < this.model.getRowCount(); i++) {
             String key = this.model.getValueAt(i, 0).toString();
             String value = this.model.getValueAt(i, 1).toString();
 
-            if(!key.isEmpty() && !value.isEmpty()) {
+            if (!key.isEmpty() && !value.isEmpty()) {
                 params.add(new QueryParam(key, value));
             }
         }
@@ -55,14 +62,14 @@ public class QueryParameterHandler {
     public void loadParams(List<QueryParam> params) {
         this.model.removeTableModelListener(this.listener);
 
-        while(this.model.getRowCount() > 0){
+        while (this.model.getRowCount() > 0) {
             this.model.removeRow(0);
         }
 
         for (QueryParam param : params) {
             this.model.addRow(new String[]{param.key, param.value});
         }
-        this.model.addRow(new String[] { "", "" });
+        this.model.addRow(new String[]{"", ""});
 
         this.model.addTableModelListener(this.listener);
     }

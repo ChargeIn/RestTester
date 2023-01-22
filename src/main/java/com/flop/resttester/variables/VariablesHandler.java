@@ -1,10 +1,11 @@
-package com.flop.resttester.variables;
+/*
+ * Rest Tester
+ * Copyright (C) 2022-2023 Florian Plesker <florian dot plesker at web dot de>
+ *
+ * This file is licensed under LGPLv3
+ */
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+package com.flop.resttester.variables;
 
 import com.flop.resttester.RestTesterNotifier;
 import com.flop.resttester.state.RestTesterStateService;
@@ -14,11 +15,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.intellij.openapi.project.Project;
 
-import javax.swing.JTable;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
+import java.util.*;
 
 public class VariablesHandler {
     private static final String VERSION = "1.0";

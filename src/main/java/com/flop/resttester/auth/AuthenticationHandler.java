@@ -1,3 +1,10 @@
+/*
+ * Rest Tester
+ * Copyright (C) 2022-2023 Florian Plesker <florian dot plesker at web dot de>
+ *
+ * This file is licensed under LGPLv3
+ */
+
 package com.flop.resttester.auth;
 
 import com.flop.resttester.RestTesterNotifier;
@@ -8,9 +15,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.intellij.openapi.project.Project;
 
-import javax.swing.BorderFactory;
-import javax.swing.JTree;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeModel;

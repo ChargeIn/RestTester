@@ -1,13 +1,16 @@
+/*
+ * Rest Tester
+ * Copyright (C) 2022-2023 Florian Plesker <florian dot plesker at web dot de>
+ *
+ * This file is licensed under LGPLv3
+ */
+
 package com.flop.resttester.components;
 
 import com.intellij.ui.JBColor;
 
 import javax.swing.border.AbstractBorder;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Shape;
+import java.awt.*;
 import java.awt.geom.RoundRectangle2D;
 
 public class RoundedBorder extends AbstractBorder {

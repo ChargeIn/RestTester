@@ -1,13 +1,18 @@
+/*
+ * Rest Tester
+ * Copyright (C) 2022-2023 Florian Plesker <florian dot plesker at web dot de>
+ *
+ * This file is licensed under LGPLv3
+ */
+
 package com.flop.resttester.components.combobox;
 
 import com.intellij.ide.ui.laf.darcula.ui.DarculaComboBoxUI;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.JBUI;
 
-import javax.swing.JButton;
-import javax.swing.SwingConstants;
-
-import java.awt.Color;
+import javax.swing.*;
+import java.awt.*;
 
 public class CustomComboBoxUI extends DarculaComboBoxUI {
 

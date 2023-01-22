@@ -1,12 +1,18 @@
+/*
+ * Rest Tester
+ * Copyright (C) 2022-2023 Florian Plesker <florian dot plesker at web dot de>
+ *
+ * This file is licensed under LGPLv3
+ */
+
 package com.flop.resttester.auth;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.JBColor;
 
-import javax.swing.JTree;
+import javax.swing.*;
 import javax.swing.tree.DefaultTreeCellRenderer;
-
-import java.awt.Component;
+import java.awt.*;
 
 public class AuthenticationTreeCellRenderer extends DefaultTreeCellRenderer {
 

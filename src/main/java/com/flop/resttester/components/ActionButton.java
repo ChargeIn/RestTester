@@ -1,3 +1,10 @@
+/*
+ * Rest Tester
+ * Copyright (C) 2022-2023 Florian Plesker <florian dot plesker at web dot de>
+ *
+ * This file is licensed under LGPLv3
+ */
+
 package com.flop.resttester.components;
 
 import com.intellij.openapi.actionSystem.ActionButtonComponent;
@@ -6,12 +13,9 @@ import com.intellij.openapi.keymap.impl.IdeMouseEventDispatcher;
 import com.intellij.util.ui.StartupUiUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.Color;
-import java.awt.Graphics;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseEvent;
-
-import javax.swing.Icon;
-import javax.swing.JButton;
 
 public class ActionButton extends JButton implements ActionButtonComponent {
 

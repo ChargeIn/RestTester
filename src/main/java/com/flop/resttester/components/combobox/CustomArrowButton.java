@@ -1,3 +1,10 @@
+/*
+ * Rest Tester
+ * Copyright (C) 2022-2023 Florian Plesker <florian dot plesker at web dot de>
+ *
+ * This file is licensed under LGPLv3
+ */
+
 package com.flop.resttester.components.combobox;
 
 import com.intellij.ui.scale.JBUIScale;
@@ -5,14 +12,7 @@ import com.intellij.util.ui.JBInsets;
 import com.intellij.util.ui.JBUI;
 
 import javax.swing.plaf.basic.BasicArrowButton;
-
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Shape;
+import java.awt.*;
 import java.awt.geom.Path2D;
 
 import static com.intellij.ide.ui.laf.darcula.DarculaUIUtil.*;

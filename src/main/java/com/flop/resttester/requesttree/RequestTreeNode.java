@@ -23,7 +23,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
-public class RequestTreeNode extends DefaultMutableTreeNode {
+public class RequestTreeNode extends DefaultMutableTreeNode implements Cloneable {
     private final Comparator<TreeNode> comparator = new RequestTreeNodeComparator();
 
     public RequestTreeNode(Object userObject) {
@@ -131,7 +131,7 @@ public class RequestTreeNode extends DefaultMutableTreeNode {
                 }
                 jNode.add("children", childArray);
             }
-            
+
             return jNode;
         }
 
@@ -151,6 +151,17 @@ public class RequestTreeNode extends DefaultMutableTreeNode {
         jNode.addProperty("bodyType", data.getBodyType().toString());
 
         return jNode;
+    }
+
+    public RequestTreeNode clone() {
+        RequestTreeNode copy = new RequestTreeNode(this.getRequestData().clone());
+
+        for (int i = 0; i < this.getChildCount(); i++) {
+            RequestTreeNode child = (RequestTreeNode) this.getChildAt(i);
+            copy.add(child.clone());
+        }
+
+        return copy;
     }
 }
 

@@ -15,7 +15,7 @@ import com.flop.resttester.response.ResponseData;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RequestTreeNodeData {
+public class RequestTreeNodeData implements Cloneable {
 
     private String url;
     private RequestType type;
@@ -37,7 +37,6 @@ public class RequestTreeNodeData {
                 new ArrayList<>(),
                 "",
                 RequestBodyType.JSON
-
         );
     }
 
@@ -70,10 +69,6 @@ public class RequestTreeNodeData {
             return this.name;
         }
         return this.type + ": " + this.name;
-    }
-
-    public String getID() {
-        return this.type + ": " + this.url + " - " + this.name;
     }
 
     public boolean isFolder() {
@@ -144,6 +139,22 @@ public class RequestTreeNodeData {
         this.setUrl(newNodeData.getUrl());
         this.setBodyType(newNodeData.getBodyType());
         this.setAuthenticationDataKey(newNodeData.getAuthenticationDataKey());
+    }
+
+    public RequestTreeNodeData clone() {
+        if (this.isFolder()) {
+            return new RequestTreeNodeData(this.name);
+        }
+
+        return new RequestTreeNodeData(
+                this.url,
+                this.name,
+                this.type,
+                this.authDataKey,
+                this.params.stream().map(QueryParam::clone).toList(),
+                this.body,
+                this.bodyType
+        );
     }
 
     public void setResponseCache(ResponseData data) {

@@ -95,6 +95,10 @@ public class RequestTreeHandler {
             if (path != null) {
                 contextMenu.addSeparator();
 
+                JBMenuItem copyEntry = new JBMenuItem("Copy");
+                copyEntry.addActionListener((l) -> this.copyNode(path));
+                contextMenu.add(copyEntry);
+
                 JBMenuItem deleteEntry = new JBMenuItem("Delete");
                 deleteEntry.addActionListener((l) -> this.deleteNode(path));
                 contextMenu.add(deleteEntry);
@@ -293,7 +297,7 @@ public class RequestTreeHandler {
     }
 
     /**
-     * Deletes the node located at the end of the node
+     * Deletes the node located at the end of the path
      * If the path is null, the current selection will be deleted
      *
      * @param path TreePath to the node or null
@@ -328,6 +332,38 @@ public class RequestTreeHandler {
             }
             this.tree.updateUI();
             this.saveTree();
+        }
+    }
+
+    /**
+     * Copy the node located at the end of the path
+     * If the path is null, the current selection will be deleted
+     * Note: It will only copy request and not folders
+     *
+     * @param path TreePath to the node or null
+     */
+    public void copyNode(@Nullable TreePath path) {
+        if (path == null) {
+            path = this.tree.getSelectionPath();
+        }
+
+        if (path == null) {
+            return;
+        }
+
+        RequestTreeNode node = (RequestTreeNode) path.getLastPathComponent();
+        if (node != null) {
+            RequestTreeNode parent = (RequestTreeNode) node.getParent();
+
+            if (parent != null) {
+                RequestTreeNode clone = node.clone();
+                clone.getRequestData().setName(clone.getRequestData().getName() + " (Copy)");
+                parent.add(clone);
+
+                this.tree.setSelectionPath(new TreePath(clone.getPath()));
+                this.tree.updateUI();
+                this.saveTree();
+            }
         }
     }
 

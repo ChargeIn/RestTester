@@ -35,7 +35,7 @@ public class RestTesterWindow {
     private final RestTesterStateService state = RestTesterStateService.getInstance();
     private JPanel myToolWindowContent;
     private DnDAwareTree requestTree;
-    private ActionButton removeTreeSelectionButton;
+    private ActionButton removeButton;
     private ActionButton addRequestButton;
     private JSplitPane splitPaneLeft;
     private JPanel treeActionBar;
@@ -44,6 +44,7 @@ public class RestTesterWindow {
     private ResponseWindow responseWindow;
     private RequestWindow requestWindow;
     private ActionButton addFolderButton;
+    private ActionButton copyButton;
     private RequestThread requestThread;
     private Timer loadingTimer = new Timer();
 
@@ -71,7 +72,6 @@ public class RestTesterWindow {
         });
 
         this.responseWindow.setProject(project);
-
         this.setupStyles();
     }
 
@@ -89,6 +89,8 @@ public class RestTesterWindow {
     }
 
     private void updateInputs(RequestTreeNodeData data) {
+        this.copyButton.setEnabled(data.isFolder());
+
         if (data.isFolder()) {
             return;
         }
@@ -97,8 +99,8 @@ public class RestTesterWindow {
         this.requestWindow.setRequestData(data);
         this.responseWindow.loadResult(data.getResponseCache());
 
-        this.removeTreeSelectionButton.setEnabled(true);
-        this.removeTreeSelectionButton.updateUI();
+        this.removeButton.setEnabled(true);
+        this.removeButton.updateUI();
     }
 
     public JPanel getContent() {
@@ -158,14 +160,22 @@ public class RestTesterWindow {
 
     private void createUIComponents() {
         this.setupRemoveButton();
+        this.setupCopyButton();
         this.setupAddFolderButton();
         this.setupAddRequestButton();
     }
 
     private void setupRemoveButton() {
-        this.removeTreeSelectionButton = new ActionButton("", AllIcons.Vcs.Remove);
-        this.removeTreeSelectionButton.addActionListener((e) -> this.treeHandler.deleteNode(null));
-        this.removeTreeSelectionButton.setToolTipText("Delete selection");
+        this.removeButton = new ActionButton("", AllIcons.Vcs.Remove);
+        this.removeButton.addActionListener((e) -> this.treeHandler.deleteNode(null));
+        this.removeButton.setToolTipText("Delete selection");
+    }
+
+    private void setupCopyButton() {
+        this.copyButton = new ActionButton("", AllIcons.Actions.Copy);
+        this.copyButton.addActionListener((e) -> this.treeHandler.copyNode(null));
+        this.copyButton.setToolTipText("Copy selection");
+        this.copyButton.setEnabled(false);
     }
 
     private void setupAddRequestButton() {

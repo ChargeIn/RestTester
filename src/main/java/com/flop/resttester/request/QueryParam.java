@@ -9,7 +9,7 @@ package com.flop.resttester.request;
 
 import com.google.gson.JsonObject;
 
-public class QueryParam {
+public class QueryParam implements Cloneable {
 
     public String key;
     public String value;
@@ -31,5 +31,9 @@ public class QueryParam {
             throw new RuntimeException("Invalid query param object. Key or value property not found.");
         }
         return new QueryParam(jObj.get("key").getAsString(), jObj.get("value").getAsString());
+    }
+
+    public QueryParam clone() {
+        return new QueryParam(this.key, this.value);
     }
 }

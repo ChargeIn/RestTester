@@ -160,7 +160,6 @@ public class RequestTreeNode extends DefaultMutableTreeNode implements Cloneable
             RequestTreeNode child = (RequestTreeNode) this.getChildAt(i);
             copy.add(child.clone());
         }
-
         return copy;
     }
 }

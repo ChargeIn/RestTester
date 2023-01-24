@@ -127,7 +127,7 @@ public class RequestTreeHandler {
     }
 
     private void addNodeToTree(RequestTreeNode newNode, @Nullable MouseEvent mouseEvent) {
-        TreePath path = mouseEvent == null ? null : this.tree.getPathForLocation(mouseEvent.getX(), mouseEvent.getY());
+        TreePath path = mouseEvent == null ? this.tree.getSelectionPath() : this.tree.getPathForLocation(mouseEvent.getX(), mouseEvent.getY());
         if (path == null) {
             this.root.add(newNode);
             this.tree.setSelectionPath(new TreePath(newNode.getPath()));
@@ -314,11 +314,12 @@ public class RequestTreeHandler {
         RequestTreeNode node = (RequestTreeNode) path.getLastPathComponent();
         if (node != null) {
             RequestTreeNode parent = (RequestTreeNode) node.getParent();
-            int index = parent.getIndex(node);
-            node.removeFromParent();
 
             // select the parent of the node if available
             if (parent != null) {
+                int index = parent.getIndex(node);
+                node.removeFromParent();
+
                 DefaultMutableTreeNode next = index < parent.getChildCount() ? (DefaultMutableTreeNode) parent.getChildAt(index) : null;
                 if (next == null) {
                     next = parent.getNextNode();

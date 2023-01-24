@@ -89,7 +89,7 @@ public class RestTesterWindow {
     }
 
     private void updateInputs(RequestTreeNodeData data) {
-        this.copyButton.setEnabled(data.isFolder());
+        this.copyButton.setEnabled(true);
 
         if (data.isFolder()) {
             return;

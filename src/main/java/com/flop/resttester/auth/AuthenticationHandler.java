@@ -229,6 +229,7 @@ public class AuthenticationHandler {
             }
 
             this.tree.updateUI();
+            this.updateListListener();
             this.saveAuth();
         }
     }

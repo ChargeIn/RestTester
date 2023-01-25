@@ -102,14 +102,14 @@ public class AuthenticationWindow {
                 return;
             }
             this.authenticationHandler.saveAuthData(new AuthenticationData(name, username, password));
-        } else if (type == AuthenticationType.Token) {
+        } else if (type == AuthenticationType.BearerToken) {
             String token = this.tokenInput.getText();
 
             if (token.isEmpty()) {
                 RestTesterNotifier.notifyError(this.project, "Token must not be empty.");
                 return;
             }
-            this.authenticationHandler.saveAuthData(new AuthenticationData(name, token, ""));
+            this.authenticationHandler.saveAuthData(new AuthenticationData(name, token));
         }
     }
 
@@ -125,7 +125,7 @@ public class AuthenticationWindow {
 
     private void loadTypeBox() {
         this.authTypeBox.addItem(AuthenticationType.Basic);
-        this.authTypeBox.addItem(AuthenticationType.Token);
+        this.authTypeBox.addItem(AuthenticationType.BearerToken);
         this.authTypeBox.setSelectedIndex(0);
 
         this.authTypeBox.addActionListener((e) -> this.updateInputFields());
@@ -148,6 +148,14 @@ public class AuthenticationWindow {
         this.usernameInput.setText(data.getUsername());
         this.passwordInput.setText(data.getPassword());
         this.tokenInput.setText(data.getToken());
+
+        for (int i = 0; i < this.authTypeBox.getItemCount(); i++) {
+            if (this.authTypeBox.getItemAt(i) == data.getType()) {
+                this.authTypeBox.setSelectedIndex(i);
+                this.updateInputFields();
+                return;
+            }
+        }
     }
 
     private void setBasicVisible(boolean visible) {

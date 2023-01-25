@@ -27,7 +27,7 @@ public class AuthenticationData {
     public AuthenticationData(String name, String token) {
         this.name = name;
         this.token = token;
-        this.type = AuthenticationType.Token;
+        this.type = AuthenticationType.BearerToken;
     }
 
     public static AuthenticationData createFromJson(JsonObject jAuthData) {
@@ -91,7 +91,7 @@ public class AuthenticationData {
         if (this.getType() == AuthenticationType.Basic) {
             jAuthData.addProperty("username", this.getUsername());
             jAuthData.addProperty("password", this.getPassword());
-        } else if (this.getType() == AuthenticationType.Token) {
+        } else if (this.getType() == AuthenticationType.BearerToken) {
             jAuthData.addProperty("token", this.getToken());
         }
         return jAuthData;

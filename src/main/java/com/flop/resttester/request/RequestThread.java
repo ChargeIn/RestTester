@@ -85,8 +85,8 @@ public class RequestThread extends Thread {
                 byte[] encodedAuth = Base64.encodeBase64(auth.getBytes(StandardCharsets.UTF_8));
                 String authHeaderValue = "Basic " + new String(encodedAuth);
                 builder = builder.header("Authorization", authHeaderValue);
-            } else if (authData.getType() == AuthenticationType.Token) {
-                String authHeaderValue = "Basic " + this.data.authData.getToken();
+            } else if (authData.getType() == AuthenticationType.BearerToken) {
+                String authHeaderValue = "Bearer " + this.data.authData.getToken();
                 builder = builder.header("Authorization", authHeaderValue);
             }
         }

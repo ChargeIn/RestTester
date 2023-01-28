@@ -24,7 +24,8 @@
         <![CDATA[
             Rest Tester | <a href="https://github.com/ChargeIn/RestTester">Github</a>
 
-            <br><br>An open-source plugin for testing and debugging<br> REST- and Web-APIs.
+
+            <br><br>A simple tool window for storing, sending and analyzing http requests to improve Web Api development.
             <ul>
                 <li>Send and display http(s) request</li>
                 <li>Store defined request in a tree structure</li>

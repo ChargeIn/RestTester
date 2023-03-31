@@ -1,10 +1,10 @@
 plugins {
     id("java")
-    id("org.jetbrains.intellij") version "1.11.0"
+    id("org.jetbrains.intellij") version "1.13.3"
 }
 
 group = "com.flop"
-version = "1.0.2"
+version = "1.0.3"
 
 repositories {
     mavenCentral()
@@ -30,10 +30,10 @@ tasks {
         enabled = false
     }
 
-    patchPluginXml {
-        sinceBuild.set("223")
-        untilBuild.set("225.*")
+    intellij {
+        updateSinceUntilBuild.set(false)
     }
+
 
     signPlugin {
         certificateChain.set(System.getenv("CERTIFICATE_CHAIN"))

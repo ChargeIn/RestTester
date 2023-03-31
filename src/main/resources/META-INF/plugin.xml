@@ -36,6 +36,8 @@
         ]]>
     </description>
 
+    <idea-version since-build="223"/>
+
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
     <depends>com.intellij.modules.platform</depends>

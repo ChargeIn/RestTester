@@ -150,7 +150,10 @@ public class RestTesterWindow {
                             this.requestThread = null;
                             this.loadingTimer.cancel();
                             this.responseWindow.setResult(response);
-                            this.selection.setResponseCache(response);
+
+                            if (this.selection != null) {
+                                this.selection.setResponseCache(response);
+                            }
 
                             this.requestWindow.setRequestStarted(false);
                         }

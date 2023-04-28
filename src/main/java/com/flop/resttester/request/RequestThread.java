@@ -151,9 +151,9 @@ public class RequestThread extends Thread {
 
         long time = System.currentTimeMillis() - this.startTime;
         if (time > 60_000) {
-            long minutes = (int) time / 60_000;
-            long sec = (time - minutes * 60_000) / 1000;
-            return String.format("%.0f", minutes) + "m " + String.format("%.1f", sec) + "s ";
+            int minutes = (int) time / 60_000;
+            int sec = (int) (time - minutes * 60_000) / 1000;
+            return String.format("%d", minutes) + " m " + String.format("%d", sec) + " s";
         }
         return String.format("%.1f", (System.currentTimeMillis() - this.startTime) / 1000f) + " s";
     }

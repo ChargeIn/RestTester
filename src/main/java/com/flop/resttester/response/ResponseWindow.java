@@ -194,6 +194,7 @@ public class ResponseWindow {
     public void setCanceled(String elapsedTime) {
         this.headersTextPane.setText("Canceled after " + elapsedTime + "econds.");
         this.resultJsonPane.setText("Canceled after " + elapsedTime + "econds.");
+        this.resultHtmlPane.setText("Canceled after " + elapsedTime + "econds.");
         this.resultCodeField.setText("Canceled");
         this.resultCodeField.setBackground(new Color(200, 150, 50));
         this.resultCodeField.setForeground(Color.white);

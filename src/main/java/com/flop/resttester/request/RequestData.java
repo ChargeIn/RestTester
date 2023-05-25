@@ -8,6 +8,7 @@
 package com.flop.resttester.request;
 
 import com.flop.resttester.auth.AuthenticationData;
+import com.flop.resttester.components.keyvaluelist.KeyValuePair;
 
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class RequestData {
     public String body;
     public RequestBodyType bodyType;
     public AuthenticationData authData;
-    public List<QueryParam> queryParams;
+    public List<KeyValuePair> queryParams;
     public boolean validateSSL;
 
     public RequestData(
@@ -26,7 +27,7 @@ public class RequestData {
             AuthenticationData authData,
             String body,
             RequestBodyType bodyType,
-            List<QueryParam> queryParams,
+            List<KeyValuePair> queryParams,
             boolean validateSSL
     ) {
         this.url = url;

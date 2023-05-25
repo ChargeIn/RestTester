@@ -7,6 +7,8 @@
 
 package com.flop.resttester.request;
 
+import com.flop.resttester.components.keyvaluelist.KeyValuePair;
+
 import javax.swing.*;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -45,28 +47,28 @@ public class QueryParameterHandler {
         }
     }
 
-    public List<QueryParam> getParams() {
-        List<QueryParam> params = new ArrayList<>();
+    public List<KeyValuePair> getParams() {
+        List<KeyValuePair> params = new ArrayList<>();
 
         for (int i = 0; i < this.model.getRowCount(); i++) {
             String key = this.model.getValueAt(i, 0).toString();
             String value = this.model.getValueAt(i, 1).toString();
 
             if (!key.isEmpty() && !value.isEmpty()) {
-                params.add(new QueryParam(key, value));
+                params.add(new KeyValuePair(key, value));
             }
         }
         return params;
     }
 
-    public void loadParams(List<QueryParam> params) {
+    public void loadParams(List<KeyValuePair> params) {
         this.model.removeTableModelListener(this.listener);
 
         while (this.model.getRowCount() > 0) {
             this.model.removeRow(0);
         }
 
-        for (QueryParam param : params) {
+        for (KeyValuePair param : params) {
             this.model.addRow(new String[]{param.key, param.value});
         }
         this.model.addRow(new String[]{"", ""});

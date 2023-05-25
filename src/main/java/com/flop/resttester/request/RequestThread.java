@@ -9,6 +9,7 @@ package com.flop.resttester.request;
 
 import com.flop.resttester.auth.AuthenticationData;
 import com.flop.resttester.auth.AuthenticationType;
+import com.flop.resttester.components.keyvaluelist.KeyValuePair;
 import com.flop.resttester.response.ResponseData;
 import org.apache.commons.codec.binary.Base64;
 
@@ -43,12 +44,12 @@ public class RequestThread extends Thread {
         StringBuilder urlString = new StringBuilder(this.data.url);
 
         if (this.data.queryParams != null) {
-            List<QueryParam> params = this.data.queryParams.stream().filter(param -> !param.key.isEmpty()).toList();
+            List<KeyValuePair> params = this.data.queryParams.stream().filter(param -> !param.key.isEmpty()).toList();
 
             if (params.size() > 0) {
                 urlString.append('?');
                 boolean first = true;
-                for (QueryParam param : params) {
+                for (KeyValuePair param : params) {
                     if (first) {
                         first = false;
                     } else {

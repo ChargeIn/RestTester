@@ -15,6 +15,8 @@ import com.flop.resttester.components.CustomPanel;
 import com.flop.resttester.components.UrlInputHandler;
 import com.flop.resttester.components.combobox.CustomComboBox;
 import com.flop.resttester.components.combobox.CustomComboBoxUI;
+import com.flop.resttester.components.keyvaluelist.KeyValueList;
+import com.flop.resttester.components.keyvaluelist.KeyValuePair;
 import com.flop.resttester.requesttree.RequestTreeNodeData;
 import com.flop.resttester.variables.VariablesHandler;
 import com.flop.resttester.variables.VariablesWindow;
@@ -63,6 +65,7 @@ public class RequestWindow {
     private JTextPane urlInputField;
     private LanguageTextField xmlBodyInput;
     private LanguageTextField plainBodyInput;
+    private KeyValueList headerList;
     private Project project;
     private RequestWindowListener windowListener;
     private VariablesHandler variablesHandler;
@@ -221,6 +224,7 @@ public class RequestWindow {
         this.setupInputField();
         this.setupSendButton();
         this.setupParamsTable();
+        this.setupHeaderList();
         this.jsonBodyInput = this.createLanguageTextField(JsonLanguage.INSTANCE);
         this.xmlBodyInput = this.createLanguageTextField(XMLLanguage.INSTANCE);
         this.plainBodyInput = this.createLanguageTextField(PlainTextLanguage.INSTANCE);
@@ -269,6 +273,10 @@ public class RequestWindow {
         model.addColumn("Value");
     }
 
+    private void setupHeaderList() {
+        this.headerList = new KeyValueList();
+    }
+
     private void setupSendButton() {
         this.sendButton = new ActionButton("", AllIcons.Actions.Execute);
         this.sendButton.setRolloverEnabled(true);
@@ -314,7 +322,7 @@ public class RequestWindow {
         RequestType type = (RequestType) this.requestTypeComboBox.getSelectedItem();
         AuthenticationData authData = (AuthenticationData) this.authComboBox.getSelectedItem();
         String tag = this.nameInputField.getText();
-        List<QueryParam> params = this.paramHandler.getParams();
+        List<KeyValuePair> params = this.paramHandler.getParams();
         String body = this.jsonBodyInput.getText();
         RequestBodyType bodyType = (RequestBodyType) this.bodyTypePicker.getSelectedItem();
 

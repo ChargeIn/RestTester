@@ -5,16 +5,16 @@
  * This file is licensed under LGPLv3
  */
 
-package com.flop.resttester.request;
+package com.flop.resttester.components.keyvaluelist;
 
 import com.google.gson.JsonObject;
 
-public class QueryParam implements Cloneable {
+public class KeyValuePair implements Cloneable {
 
     public String key;
     public String value;
 
-    public QueryParam(String key, String value) {
+    public KeyValuePair(String key, String value) {
         this.key = key;
         this.value = value;
     }
@@ -26,14 +26,14 @@ public class QueryParam implements Cloneable {
         return jObj;
     }
 
-    public static QueryParam createFromJson(JsonObject jObj) {
+    public static KeyValuePair createFromJson(JsonObject jObj) {
         if (!jObj.has("key") && !jObj.has("value")) {
-            throw new RuntimeException("Invalid query param object. Key or value property not found.");
+            throw new RuntimeException("Invalid key value object. Key or value property not found.");
         }
-        return new QueryParam(jObj.get("key").getAsString(), jObj.get("value").getAsString());
+        return new KeyValuePair(jObj.get("key").getAsString(), jObj.get("value").getAsString());
     }
 
-    public QueryParam clone() {
-        return new QueryParam(this.key, this.value);
+    public KeyValuePair clone() {
+        return new KeyValuePair(this.key, this.value);
     }
 }

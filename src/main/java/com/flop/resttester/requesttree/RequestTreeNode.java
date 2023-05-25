@@ -7,7 +7,7 @@
 
 package com.flop.resttester.requesttree;
 
-import com.flop.resttester.request.QueryParam;
+import com.flop.resttester.components.keyvaluelist.KeyValuePair;
 import com.flop.resttester.request.RequestBodyType;
 import com.flop.resttester.request.RequestType;
 import com.google.gson.JsonArray;
@@ -76,13 +76,13 @@ public class RequestTreeNode extends DefaultMutableTreeNode implements Cloneable
             url = obj.get("url").getAsString();
         }
 
-        List<QueryParam> params = null;
+        List<KeyValuePair> params = null;
         if (obj.has("params")) {
             params = new ArrayList<>();
             JsonArray jParams = obj.get("params").getAsJsonArray();
 
             for (int i = 0; i < jParams.size(); i++) {
-                params.add(QueryParam.createFromJson(jParams.get(i).getAsJsonObject()));
+                params.add(KeyValuePair.createFromJson(jParams.get(i).getAsJsonObject()));
             }
         }
 
@@ -139,7 +139,7 @@ public class RequestTreeNode extends DefaultMutableTreeNode implements Cloneable
         jNode.addProperty("url", data.getUrl());
 
         JsonArray jParams = new JsonArray();
-        for (QueryParam param : data.getParams()) {
+        for (KeyValuePair param : data.getParams()) {
             if (!Objects.equals(param.key, "")) {
                 jParams.add(param.getAsJson());
             }

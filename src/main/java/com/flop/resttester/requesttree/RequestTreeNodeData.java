@@ -7,7 +7,7 @@
 
 package com.flop.resttester.requesttree;
 
-import com.flop.resttester.request.QueryParam;
+import com.flop.resttester.components.keyvaluelist.KeyValuePair;
 import com.flop.resttester.request.RequestBodyType;
 import com.flop.resttester.request.RequestType;
 import com.flop.resttester.response.ResponseData;
@@ -22,7 +22,7 @@ public class RequestTreeNodeData implements Cloneable {
 
     private String authDataKey;
     private String name = "";
-    private List<QueryParam> params;
+    private List<KeyValuePair> params;
     private String body;
     private RequestBodyType bodyType;
 
@@ -50,7 +50,7 @@ public class RequestTreeNodeData implements Cloneable {
             String name,
             RequestType type,
             String authDataKey,
-            List<QueryParam> params,
+            List<KeyValuePair> params,
             String body,
             RequestBodyType bodyType
     ) {
@@ -123,11 +123,11 @@ public class RequestTreeNodeData implements Cloneable {
         this.name = name;
     }
 
-    public List<QueryParam> getParams() {
+    public List<KeyValuePair> getParams() {
         return this.params;
     }
 
-    public void setParams(List<QueryParam> params) {
+    public void setParams(List<KeyValuePair> params) {
         this.params = params;
     }
 
@@ -151,7 +151,7 @@ public class RequestTreeNodeData implements Cloneable {
                 this.name,
                 this.type,
                 this.authDataKey,
-                this.params.stream().map(QueryParam::clone).toList(),
+                this.params.stream().map(KeyValuePair::clone).toList(),
                 this.body,
                 this.bodyType
         );

@@ -8,6 +8,7 @@
 package com.flop.resttester.components.keyvaluelist;
 
 import com.flop.resttester.components.ActionButton;
+import com.flop.resttester.components.CustomTextField;
 import com.intellij.icons.AllIcons;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
@@ -17,14 +18,16 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.util.ArrayList;
 import java.util.List;
 
-public class KeyValueInput extends JPanel {
+public class KeyValueInput extends JPanel implements FocusListener {
 
-    public JTextField keyInput = new JTextField();
-    public JTextField valueInput = new JTextField();
-    public ActionButton deleteButton = new ActionButton("", AllIcons.Actions.Cancel);
+    private final JTextField keyInput = new CustomTextField("Header");
+    private final JTextField valueInput = new CustomTextField("Value");
+    private final ActionButton deleteButton = new ActionButton("", AllIcons.Actions.Cancel);
 
     public List<KeyValueInputChangeListener> listeners = new ArrayList<>();
 
@@ -40,47 +43,52 @@ public class KeyValueInput extends JPanel {
         DocumentListener keyListener = new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                KeyValueInput.this.onKeyChange();
+                KeyValueInput.this.onChange(KeyValueChangeEventType.KEY);
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                KeyValueInput.this.onKeyChange();
+                KeyValueInput.this.onChange(KeyValueChangeEventType.KEY);
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                KeyValueInput.this.onKeyChange();
+                KeyValueInput.this.onChange(KeyValueChangeEventType.KEY);
             }
         };
 
         this.keyInput.getDocument().addDocumentListener(keyListener);
+        this.keyInput.addFocusListener(this);
 
         DocumentListener valueListener = new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                KeyValueInput.this.onValueChange();
+                KeyValueInput.this.onChange(KeyValueChangeEventType.VALUE);
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                KeyValueInput.this.onValueChange();
+                KeyValueInput.this.onChange(KeyValueChangeEventType.VALUE);
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                KeyValueInput.this.onValueChange();
+                KeyValueInput.this.onChange(KeyValueChangeEventType.VALUE);
             }
         };
 
-        this.keyInput.getDocument().addDocumentListener(valueListener);
+        this.valueInput.getDocument().addDocumentListener(valueListener);
+        this.valueInput.addFocusListener(this);
 
-        this.deleteButton.addActionListener((e) -> this.onDelete());
+        this.deleteButton.addActionListener((e) -> this.onChange(KeyValueChangeEventType.DELETE));
     }
 
     private void initView() {
-        GridLayoutManager layoutManager = new GridLayoutManager(1, 3);
-        layoutManager.setMargin(JBUI.insets(10));
+        this.keyInput.setToolTipText("Header Field");
+        this.valueInput.setToolTipText("Header Value");
+
+        GridLayoutManager layoutManager = new GridLayoutManager(1, 5);
+        layoutManager.setMargin(JBUI.insets(4));
         this.setLayout(layoutManager);
 
         GridConstraints keyConstraint = new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_HORIZONTAL,
@@ -104,15 +112,29 @@ public class KeyValueInput extends JPanel {
         this.listeners.add(listener);
     }
 
-    public void onKeyChange() {
-        this.listeners.forEach(listener -> listener.onChange(KeyValueChangeEventType.KEY, this.keyInput.getText()));
+    public void removeChangeEventListener(int index) {
+        this.listeners.remove(index);
     }
 
-    public void onValueChange() {
-        this.listeners.forEach(listener -> listener.onChange(KeyValueChangeEventType.VALUE, this.valueInput.getText()));
+    public void onChange(KeyValueChangeEventType type) {
+        this.listeners.forEach(listener -> listener.onChange(type, this));
     }
 
-    public void onDelete() {
-        this.listeners.forEach(listener -> listener.onChange(KeyValueChangeEventType.DELETE, null));
+    @Override
+    public void focusGained(FocusEvent e) {
+        this.listeners.forEach(listener -> listener.onChange(KeyValueChangeEventType.FOCUS_GAINED, this));
+    }
+
+    @Override
+    public void focusLost(FocusEvent e) {
+        this.listeners.forEach(listener -> listener.onChange(KeyValueChangeEventType.FOCUS_LOST, this));
+    }
+
+    public String getValue() {
+        return this.valueInput.getText();
+    }
+
+    public String getKey() {
+        return this.keyInput.getText();
     }
 }

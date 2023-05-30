@@ -21,7 +21,7 @@ public class RequestTreeNodeData implements Cloneable {
     private RequestType type;
 
     private String authDataKey;
-    private String name = "";
+    private String name;
     private List<KeyValuePair> params;
     private String body;
     private RequestBodyType bodyType;

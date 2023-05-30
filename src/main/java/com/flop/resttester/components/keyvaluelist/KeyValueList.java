@@ -19,7 +19,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class KeyValueList extends JPanel {
-    List<KeyValuePair> items = new ArrayList<>();
 
     public KeyValueList() {
         this.initView();
@@ -29,10 +28,11 @@ public class KeyValueList extends JPanel {
 
     private int lastWidth = 0;
 
-    public void setItems(List<KeyValuePair> items) {
-        this.items.addAll(items);
-        // TODO
-    }
+    private boolean changed = false;
+
+    private final int childHeight = 34;
+
+    private final List<KeyValueListChangeListener> listeners = new ArrayList<>();
 
     public void initView() {
 
@@ -51,6 +51,27 @@ public class KeyValueList extends JPanel {
                 null, null, null);
 
         this.add(scrollPane, constraint);
+        this.fillView(List.of(new KeyValuePair("", "")));
+    }
+
+    public void fillView(List<KeyValuePair> items) {
+        this.panel.removeAll();
+
+        for (KeyValuePair item : items) {
+            KeyValueInput input = new KeyValueInput(item.value, item.key);
+            input.addChangeEventListener(this::onInputChange);
+            this.panel.add(input);
+        }
+    }
+
+    public void setItems(List<KeyValuePair> items) {
+        List<KeyValuePair> pairs = new ArrayList<>(items);
+        pairs.add(new KeyValuePair("", ""));
+        this.fillView(pairs);
+    }
+
+    public void addChangeListener(KeyValueListChangeListener listener) {
+        this.listeners.add(listener);
     }
 
     @Override
@@ -75,13 +96,57 @@ public class KeyValueList extends JPanel {
 
                 Component[] components = KeyValueList.this.panel.getComponents();
 
-                KeyValueList.this.panel.setPreferredSize(new Dimension(width, (components.length) * 40));
+                KeyValueList.this.panel.setPreferredSize(new Dimension(width, (components.length) * KeyValueList.this.childHeight));
                 Arrays.stream(components).forEach(component ->
-                        component.setPreferredSize(new Dimension(width, 40)));
+                        component.setPreferredSize(new Dimension(width, KeyValueList.this.childHeight)));
 
                 KeyValueList.this.panel.updateUI();
                 KeyValueList.this.updateUI();
             }
         });
+    }
+
+    public void onInputChange(KeyValueChangeEventType event, KeyValueInput input) {
+
+        switch (event) {
+            case FOCUS_GAINED -> {
+                // Add a new input if the last one is interacted with;
+                if (input == this.panel.getComponent(this.panel.getComponentCount() - 1)) {
+                    KeyValueInput newInput = new KeyValueInput("", "");
+                    newInput.addChangeEventListener(this::onInputChange);
+
+                    int width = this.getParent().getWidth();
+                    newInput.setPreferredSize(new Dimension(width, this.childHeight));
+
+                    this.panel.add(newInput);
+                }
+            }
+            case FOCUS_LOST -> this.updateKeyValueList();
+            case DELETE -> this.panel.remove(input);
+            case VALUE, KEY -> this.changed = true;
+        }
+    }
+
+    public void updateKeyValueList() {
+        if (!this.changed) {
+            return;
+        }
+        this.changed = false;
+
+        List<KeyValuePair> values = new ArrayList<>();
+
+        for (int i = 0; i < this.panel.getComponentCount(); i++) {
+            KeyValueInput input = (KeyValueInput) this.panel.getComponent(i);
+
+            String key = input.getKey();
+            String value = input.getValue();
+
+            if (key.isBlank() || value.isBlank()) {
+                continue;
+            }
+
+            values.add(new KeyValuePair(key, value));
+        }
+        this.listeners.forEach(listener -> listener.onChange(values));
     }
 }

@@ -7,10 +7,9 @@
 
 package com.flop.resttester.components.keyvaluelist;
 
-public enum KeyValueChangeEventType {
-    KEY,
-    VALUE,
-    DELETE,
-    FOCUS_GAINED,
-    FOCUS_LOST
+import java.util.EventListener;
+import java.util.List;
+
+public interface KeyValueListChangeListener extends EventListener {
+    void onChange(List<KeyValuePair> values);
 }

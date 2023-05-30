@@ -7,10 +7,8 @@
 
 package com.flop.resttester.components.keyvaluelist;
 
-import org.jetbrains.annotations.Nullable;
-
 import java.util.EventListener;
 
 public interface KeyValueInputChangeListener extends EventListener {
-    void onChange(KeyValueChangeEventType type, @Nullable String value);
+    void onChange(KeyValueChangeEventType type, KeyValueInput input);
 }

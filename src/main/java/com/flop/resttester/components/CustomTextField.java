@@ -21,14 +21,19 @@ public class CustomTextField extends JTextField {
     }
 
     @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
+    protected void paintComponent(Graphics pG) {
+        super.paintComponent(pG);
 
         if (this.getText().isEmpty()) {
+            final Graphics2D g = (Graphics2D) pG;
+
             Color caretColor = this.getCaretColor();
             g.setFont(JBFont.label());
+            g.setRenderingHint(
+                    RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON);
             g.setColor(new Color(caretColor.getRed(), caretColor.getGreen(), caretColor.getBlue(), 155));
-            g.drawString(this.label, 10, this.getHeight() / 2 + 4);
+            g.drawString(this.label, 10, this.getHeight() / 2 + 5);
         }
     }
 }

@@ -250,6 +250,7 @@ public class RequestWindow {
         this.requestTypeComboBox.addItem(RequestType.POST);
         this.requestTypeComboBox.addItem(RequestType.DELETE);
         this.requestTypeComboBox.addItem(RequestType.PATCH);
+        this.requestTypeComboBox.addItem(RequestType.PUT);
         this.requestTypeComboBox.setSelectedIndex(0);
     }
 

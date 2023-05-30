@@ -118,6 +118,7 @@ public class InsomniaParserService {
             case "PATCH" -> RequestType.PATCH;
             case "DELETE" -> RequestType.DELETE;
             case "POST" -> RequestType.POST;
+            case "PUT" -> RequestType.PUT;
             default -> RequestType.GET;
         };
 

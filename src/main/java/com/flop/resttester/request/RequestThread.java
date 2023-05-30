@@ -75,8 +75,7 @@ public class RequestThread extends Thread {
         HttpClient.Builder clientBuilder = HttpClient.newBuilder();
 
         // create a request
-        HttpRequest.Builder builder = HttpRequest.newBuilder(uri)
-                .method(this.data.type.toString(), HttpRequest.BodyPublishers.ofString(this.data.body));
+        HttpRequest.Builder builder = HttpRequest.newBuilder(uri).method(this.data.type.toString(), HttpRequest.BodyPublishers.ofString(this.data.body));
 
         if (this.data.authData != null) {
             AuthenticationData authData = this.data.authData;
@@ -92,7 +91,7 @@ public class RequestThread extends Thread {
             }
         }
 
-        if (this.data.type == RequestType.PATCH || this.data.type == RequestType.POST) {
+        if (this.data.type == RequestType.PATCH || this.data.type == RequestType.POST || this.data.type == RequestType.PUT) {
             if (this.data.bodyType == RequestBodyType.JSON) {
                 builder = builder.header("Content-Type", "application/json");
             } else if (this.data.bodyType == RequestBodyType.XML) {

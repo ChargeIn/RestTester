@@ -112,17 +112,17 @@ public class KeyValueList extends JPanel {
             case FOCUS_GAINED -> {
                 // Add a new input if the last one is interacted with;
                 if (input == this.panel.getComponent(this.panel.getComponentCount() - 1)) {
-                    KeyValueInput newInput = new KeyValueInput("", "");
-                    newInput.addChangeEventListener(this::onInputChange);
+                    this.addEmptyInput();
+                }
+            }
+            case DELETE -> {
+                this.panel.remove(input);
 
-                    int width = this.getParent().getWidth();
-                    newInput.setPreferredSize(new Dimension(width, this.childHeight));
-
-                    this.panel.add(newInput);
+                if (this.panel.getComponentCount() == 0) {
+                    this.addEmptyInput();
                 }
             }
             case FOCUS_LOST -> this.updateKeyValueList();
-            case DELETE -> this.panel.remove(input);
             case VALUE, KEY -> this.changed = true;
         }
     }
@@ -148,5 +148,15 @@ public class KeyValueList extends JPanel {
             values.add(new KeyValuePair(key, value));
         }
         this.listeners.forEach(listener -> listener.onChange(values));
+    }
+
+    private void addEmptyInput() {
+        KeyValueInput newInput = new KeyValueInput("", "");
+        newInput.addChangeEventListener(this::onInputChange);
+
+        int width = this.getParent().getWidth();
+        newInput.setPreferredSize(new Dimension(width, this.childHeight));
+
+        this.panel.add(newInput);
     }
 }

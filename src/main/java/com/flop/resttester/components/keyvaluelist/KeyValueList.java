@@ -51,22 +51,27 @@ public class KeyValueList extends JPanel {
                 null, null, null);
 
         this.add(scrollPane, constraint);
-        this.fillView(List.of(new KeyValuePair("", "")));
+
+        KeyValueInput input = new KeyValueInput("", "");
+        input.addChangeEventListener(this::onInputChange);
+        this.panel.add(input);
     }
 
     public void fillView(List<KeyValuePair> items) {
         this.panel.removeAll();
+        int width = this.getParent().getWidth();
 
         for (KeyValuePair item : items) {
             KeyValueInput input = new KeyValueInput(item.value, item.key);
             input.addChangeEventListener(this::onInputChange);
+            input.setPreferredSize(new Dimension(width, this.childHeight));
             this.panel.add(input);
         }
+        this.addEmptyInput();
     }
 
     public void setItems(List<KeyValuePair> items) {
         List<KeyValuePair> pairs = new ArrayList<>(items);
-        pairs.add(new KeyValuePair("", ""));
         this.fillView(pairs);
     }
 
@@ -96,11 +101,10 @@ public class KeyValueList extends JPanel {
 
                 Component[] components = KeyValueList.this.panel.getComponents();
 
-                KeyValueList.this.panel.setPreferredSize(new Dimension(width, (components.length) * KeyValueList.this.childHeight));
                 Arrays.stream(components).forEach(component ->
                         component.setPreferredSize(new Dimension(width, KeyValueList.this.childHeight)));
 
-                KeyValueList.this.panel.updateUI();
+                KeyValueList.this.updatePanelSize();
                 KeyValueList.this.updateUI();
             }
         });
@@ -116,11 +120,13 @@ public class KeyValueList extends JPanel {
                 }
             }
             case DELETE -> {
+                this.panel.requestFocus();
                 this.panel.remove(input);
 
                 if (this.panel.getComponentCount() == 0) {
                     this.addEmptyInput();
                 }
+                this.updatePanelSize();
             }
             case FOCUS_LOST -> this.updateKeyValueList();
             case VALUE, KEY -> this.changed = true;
@@ -158,5 +164,13 @@ public class KeyValueList extends JPanel {
         newInput.setPreferredSize(new Dimension(width, this.childHeight));
 
         this.panel.add(newInput);
+        this.updatePanelSize();
+    }
+
+    private void updatePanelSize() {
+        int width = this.getParent().getWidth();
+        Dimension panelSize = new Dimension(width, (this.panel.getComponentCount() + 2) * KeyValueList.this.childHeight);
+        this.panel.setPreferredSize(panelSize);
+        this.panel.setMinimumSize(panelSize);
     }
 }

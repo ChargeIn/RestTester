@@ -87,8 +87,8 @@ public class KeyValueInput extends JPanel implements FocusListener {
         this.keyInput.setToolTipText("Header Field");
         this.valueInput.setToolTipText("Header Value");
 
-        GridLayoutManager layoutManager = new GridLayoutManager(1, 5);
-        layoutManager.setMargin(JBUI.insets(4));
+        GridLayoutManager layoutManager = new GridLayoutManager(1, 3);
+        layoutManager.setMargin(JBUI.insets(4, 12, 4, 8));
         this.setLayout(layoutManager);
 
         GridConstraints keyConstraint = new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_HORIZONTAL,

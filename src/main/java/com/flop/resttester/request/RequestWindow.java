@@ -45,6 +45,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
 
 public class RequestWindow {
@@ -90,36 +91,101 @@ public class RequestWindow {
     }
 
     public void setupChangeListener() {
-        this.jsonBodyInput.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void documentChanged(@NotNull DocumentEvent event) {
+        this.jsonBodyInput.getDocument().addDocumentListener(this.getJsonBodyChangeListener());
+        this.urlInputField.getDocument().addDocumentListener(this.getUrlChangeListener());
+        this.nameInputField.getDocument().addDocumentListener(this.getNameChangeListener());
+        this.authComboBox.addActionListener(this.getAuthChangeListener());
+        this.bodyTypePicker.addActionListener(this.getBodyTypeChangeListener());
+        this.requestTypeComboBox.addActionListener(this.getRequestTypeChangeListener());
+        this.paramsTable.getModel().addTableModelListener((l) -> this.updateSelection());
+    }
+
+    private ActionListener getAuthChangeListener() {
+        return (l) -> {
+            if (RequestWindow.this.selection != null) {
+                AuthenticationData data = ((AuthenticationData) this.authComboBox.getSelectedItem());
+                if (data != null && !RequestWindow.this.selection.getAuthenticationDataKey().equals(data.getName())) {
+                    RequestWindow.this.updateSelection();
+                }
+            }
+        };
+    }
+
+    private ActionListener getBodyTypeChangeListener() {
+        return (l) -> {
+            if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getBodyType().equals(RequestWindow.this.bodyTypePicker.getSelectedItem())) {
                 RequestWindow.this.updateSelection();
             }
-        });
+        };
+    }
 
-        javax.swing.event.DocumentListener listener = new javax.swing.event.DocumentListener() {
+    private ActionListener getRequestTypeChangeListener() {
+        return (l) -> {
+            if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getType().equals(RequestWindow.this.requestTypeComboBox.getSelectedItem())) {
+                RequestWindow.this.updateSelection();
+            }
+        };
+    }
+
+    private DocumentListener getJsonBodyChangeListener() {
+        return new DocumentListener() {
+            @Override
+            public void documentChanged(@NotNull DocumentEvent event) {
+                if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getBody().equals(RequestWindow.this.jsonBodyInput.getText())) {
+                    RequestWindow.this.updateSelection();
+                }
+            }
+        };
+    }
+
+    private javax.swing.event.DocumentListener getUrlChangeListener() {
+        return new javax.swing.event.DocumentListener() {
             @Override
             public void insertUpdate(javax.swing.event.DocumentEvent e) {
-                RequestWindow.this.updateSelection();
+                if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getUrl().equals(RequestWindow.this.urlInputField.getText())) {
+                    RequestWindow.this.updateSelection();
+                }
             }
 
             @Override
             public void removeUpdate(javax.swing.event.DocumentEvent e) {
-                RequestWindow.this.updateSelection();
+                if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getUrl().equals(RequestWindow.this.urlInputField.getText())) {
+                    RequestWindow.this.updateSelection();
+                }
             }
 
             @Override
             public void changedUpdate(javax.swing.event.DocumentEvent e) {
-                RequestWindow.this.updateSelection();
+                if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getUrl().equals(RequestWindow.this.urlInputField.getText())) {
+                    RequestWindow.this.updateSelection();
+                }
             }
         };
+    }
 
-        this.urlInputField.getDocument().addDocumentListener(listener);
-        this.nameInputField.getDocument().addDocumentListener(listener);
-        this.authComboBox.addActionListener((l) -> this.updateSelection());
-        this.bodyTypePicker.addActionListener((l) -> this.updateSelection());
-        this.requestTypeComboBox.addActionListener((l) -> this.updateSelection());
-        this.paramsTable.getModel().addTableModelListener((l) -> this.updateSelection());
+    private javax.swing.event.DocumentListener getNameChangeListener() {
+        return new javax.swing.event.DocumentListener() {
+            @Override
+            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getName().equals(RequestWindow.this.nameInputField.getText())) {
+                    RequestWindow.this.updateSelection();
+                }
+            }
+
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+                if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getName().equals(RequestWindow.this.nameInputField.getText())) {
+                    RequestWindow.this.updateSelection();
+                }
+            }
+
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+                if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getName().equals(RequestWindow.this.nameInputField.getText())) {
+                    RequestWindow.this.updateSelection();
+                }
+            }
+        };
     }
 
     public void updateSelection() {

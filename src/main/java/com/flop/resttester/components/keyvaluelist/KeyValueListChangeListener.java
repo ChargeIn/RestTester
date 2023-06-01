@@ -8,8 +8,7 @@
 package com.flop.resttester.components.keyvaluelist;
 
 import java.util.EventListener;
-import java.util.List;
 
 public interface KeyValueListChangeListener extends EventListener {
-    void onChange(List<KeyValuePair> values);
+    void onChange();
 }

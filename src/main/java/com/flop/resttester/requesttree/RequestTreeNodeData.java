@@ -17,12 +17,12 @@ import java.util.List;
 
 public class RequestTreeNodeData implements Cloneable {
 
+    private String name;
     private String url;
     private RequestType type;
-
     private String authDataKey;
-    private String name;
     private List<KeyValuePair> params;
+    private List<KeyValuePair> headers;
     private String body;
     private RequestBodyType bodyType;
 
@@ -34,6 +34,7 @@ public class RequestTreeNodeData implements Cloneable {
                 name,
                 RequestType.GET,
                 "None",
+                new ArrayList<>(),
                 new ArrayList<>(),
                 "",
                 RequestBodyType.JSON
@@ -51,6 +52,7 @@ public class RequestTreeNodeData implements Cloneable {
             RequestType type,
             String authDataKey,
             List<KeyValuePair> params,
+            List<KeyValuePair> headers,
             String body,
             RequestBodyType bodyType
     ) {
@@ -58,6 +60,7 @@ public class RequestTreeNodeData implements Cloneable {
         this.name = name;
         this.authDataKey = authDataKey;
         this.params = params;
+        this.headers = headers;
         this.body = body;
         this.bodyType = bodyType;
         this.setUrl(url);
@@ -131,14 +134,23 @@ public class RequestTreeNodeData implements Cloneable {
         this.params = params;
     }
 
+    public List<KeyValuePair> getHeaders() {
+        return this.headers;
+    }
+
+    public void setHeaders(List<KeyValuePair> headers) {
+        this.headers = headers;
+    }
+
     public void update(RequestTreeNodeData newNodeData) {
         // only need to update non id related fields
-        this.setBody(newNodeData.getBody());
-        this.setParams(newNodeData.getParams());
-        this.setType(newNodeData.getType());
         this.setUrl(newNodeData.getUrl());
-        this.setBodyType(newNodeData.getBodyType());
+        this.setType(newNodeData.getType());
         this.setAuthenticationDataKey(newNodeData.getAuthenticationDataKey());
+        this.setParams(newNodeData.getParams());
+        this.setHeaders(newNodeData.getHeaders());
+        this.setBodyType(newNodeData.getBodyType());
+        this.setBody(newNodeData.getBody());
     }
 
     public RequestTreeNodeData clone() {
@@ -152,6 +164,7 @@ public class RequestTreeNodeData implements Cloneable {
                 this.type,
                 this.authDataKey,
                 this.params.stream().map(KeyValuePair::clone).toList(),
+                this.headers.stream().map(KeyValuePair::clone).toList(),
                 this.body,
                 this.bodyType
         );

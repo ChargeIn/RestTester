@@ -23,7 +23,6 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
-import java.util.HashMap;
 import java.util.List;
 
 public class RequestThread extends Thread {
@@ -66,7 +65,7 @@ public class RequestThread extends Thread {
             uri = url.toURI();
         } catch (MalformedURLException | URISyntaxException e) {
             if (!this.stopped) {
-                ResponseData data = new ResponseData(new HashMap<>(), -1, e.getMessage().getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
+                ResponseData data = new ResponseData(urlString.toString(), null, null, null, -1, e.getMessage().getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
                 this.finishedListener.onRequestFinished(data);
             }
             return;
@@ -101,6 +100,16 @@ public class RequestThread extends Thread {
             }
         }
 
+        if (this.data.headers != null) {
+            List<KeyValuePair> headers = this.data.headers.stream().filter(param -> !param.key.isEmpty()).toList();
+
+            if (headers.size() > 0) {
+                for (KeyValuePair header : headers) {
+                    builder = builder.header(header.key, header.value);
+                }
+            }
+        }
+
         if (!this.data.validateSSL) {
             TrustManager DUMMY_TRUST_MANAGER = this.getFakeTrustManager();
             SSLContext sslContext;
@@ -122,19 +131,19 @@ public class RequestThread extends Thread {
             byte[] bytes = response.body().getBytes();
 
             if (!this.stopped) {
-                ResponseData data = new ResponseData(response.headers().map(), responseCode, bytes, this.getElapsedTime());
+                ResponseData data = new ResponseData(request.uri().toString(), request.method(), request.headers().map(), response.headers().map(), responseCode, bytes, this.getElapsedTime());
                 this.finishedListener.onRequestFinished(data);
             }
         } catch (Exception e) {
             if (!this.stopped) {
                 if (e instanceof SSLHandshakeException) {
                     String error = e.getMessage() + "\n\nTry changing the rest tester setting to allow requests without ssl validation.";
-                    ResponseData data = new ResponseData(new HashMap<>(), -1, error.getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
+                    ResponseData data = new ResponseData(urlString.toString(), null, null, null, -1, error.getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
                     this.finishedListener.onRequestFinished(data);
                     return;
                 }
 
-                ResponseData data = new ResponseData(request.headers().map(), -1, e.getMessage().getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
+                ResponseData data = new ResponseData(urlString.toString(), request.method(), request.headers().map(), request.headers().map(), -1, e.getMessage().getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
                 this.finishedListener.onRequestFinished(data);
             }
         }

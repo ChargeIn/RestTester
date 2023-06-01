@@ -19,6 +19,7 @@ public class RequestData {
     public RequestBodyType bodyType;
     public AuthenticationData authData;
     public List<KeyValuePair> queryParams;
+    public List<KeyValuePair> headers;
     public boolean validateSSL;
 
     public RequestData(
@@ -28,6 +29,7 @@ public class RequestData {
             String body,
             RequestBodyType bodyType,
             List<KeyValuePair> queryParams,
+            List<KeyValuePair> headers,
             boolean validateSSL
     ) {
         this.url = url;
@@ -36,6 +38,7 @@ public class RequestData {
         this.body = body;
         this.bodyType = bodyType;
         this.queryParams = queryParams;
+        this.headers = headers;
         this.validateSSL = validateSSL;
     }
 }

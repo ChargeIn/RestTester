@@ -7,11 +7,16 @@
 
 package com.flop.resttester.response;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.List;
 import java.util.Map;
 
 public record ResponseData(
-        Map<String, List<String>> headers,
+        String url,
+        @Nullable String method,
+        @Nullable Map<String, List<String>> requestHeaders,
+        @Nullable Map<String, List<String>> responseHeaders,
         int code,
         byte[] content,
         String elapsedTime

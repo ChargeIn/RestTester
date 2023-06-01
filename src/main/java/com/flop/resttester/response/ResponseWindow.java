@@ -34,7 +34,6 @@ import org.jsoup.Jsoup;
 import javax.swing.*;
 import java.awt.*;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.List;
 
 public class ResponseWindow {
@@ -228,7 +227,7 @@ public class ResponseWindow {
         if (data != null) {
             this.handleResponse(data);
         } else {
-            this.handleResponse(new ResponseData(new HashMap<>(), -2, "".getBytes(StandardCharsets.UTF_8), ""));
+            this.handleResponse(new ResponseData("", null, null, null, -2, "".getBytes(StandardCharsets.UTF_8), ""));
         }
     }
 
@@ -241,8 +240,8 @@ public class ResponseWindow {
             return;
         }
 
-        this.parseHeaders(responseData);
-        List<String> contentType = responseData.headers().get("Content-Type");
+        this.parseHeadersInfo(responseData);
+        List<String> contentType = responseData.responseHeaders().get("Content-Type");
 
         if (contentType == null || contentType.isEmpty()) {
             this.parseAsHtml(responseData);
@@ -254,7 +253,7 @@ public class ResponseWindow {
         this.resultTypeField.setText(type.split(";")[0]);
         type = type.toLowerCase();
 
-        if (type.contains("image")) {
+        if (type.contains("image") && !type.contains("svg")) {
             this.parseAsImage(responseData);
         } else if (type.contains("html") || type.contains("xml")) {
             this.parseAsHtml(responseData);
@@ -263,11 +262,19 @@ public class ResponseWindow {
         }
     }
 
-    private void parseHeaders(ResponseData data) {
+    private void parseHeadersInfo(ResponseData data) {
         StringBuilder content = new StringBuilder();
 
-        for (String key : data.headers().keySet()) {
-            List<String> headers = data.headers().get(key);
+        content
+                .append(" ============= General Info ============= \n")
+                .append("URL: ")
+                .append(data.url())
+                .append("\nRequest Method: ")
+                .append(data.method())
+                .append("\n\n\n =========== Response Headers =========== \n");
+
+        for (String key : data.responseHeaders().keySet()) {
+            List<String> headers = data.responseHeaders().get(key);
             String headerString = String.join(", ", headers);
 
             if (key == null) {
@@ -278,6 +285,22 @@ public class ResponseWindow {
             }
             content.append("\n");
         }
+
+        content.append("\n\n =========== Request Headers ============ \n");
+
+        for (String key : data.requestHeaders().keySet()) {
+            List<String> headers = data.requestHeaders().get(key);
+            String headerString = String.join(", ", headers);
+
+            if (key == null) {
+                content.append(headerString);
+            } else {
+                content.append(key).append(": ");
+                content.append(headerString);
+            }
+            content.append("\n");
+        }
+
         this.headersTextPane.setText(content.toString());
     }
 

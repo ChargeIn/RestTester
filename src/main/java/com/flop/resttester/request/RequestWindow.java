@@ -324,10 +324,11 @@ public class RequestWindow {
         AuthenticationData authData = (AuthenticationData) this.authComboBox.getSelectedItem();
         String tag = this.nameInputField.getText();
         List<KeyValuePair> params = this.paramHandler.getParams();
+        List<KeyValuePair> headers = this.headerList.getValues();
         String body = this.jsonBodyInput.getText();
         RequestBodyType bodyType = (RequestBodyType) this.bodyTypePicker.getSelectedItem();
 
-        return new RequestTreeNodeData(url, tag, type, authData.getName(), params, body, bodyType);
+        return new RequestTreeNodeData(url, tag, type, authData.getName(), params, headers, body, bodyType);
     }
 
     public String getRawID() {

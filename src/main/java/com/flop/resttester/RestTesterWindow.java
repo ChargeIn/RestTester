@@ -142,6 +142,7 @@ public class RestTesterWindow {
                 nodeData.getBody(),
                 nodeData.getBodyType(),
                 nodeData.getParams(),
+                nodeData.getHeaders(),
                 this.state.getValidateSSL()
         );
 

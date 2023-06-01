@@ -76,6 +76,16 @@ public class RequestTreeNode extends DefaultMutableTreeNode implements Cloneable
             url = obj.get("url").getAsString();
         }
 
+        RequestType type = null;
+        if (obj.has("type")) {
+            type = RequestType.valueOf(obj.get("type").getAsString());
+        }
+
+        String authDataKey = null;
+        if (obj.has("authKey")) {
+            authDataKey = obj.get("authKey").getAsString();
+        }
+
         List<KeyValuePair> params = null;
         if (obj.has("params")) {
             params = new ArrayList<>();
@@ -86,14 +96,14 @@ public class RequestTreeNode extends DefaultMutableTreeNode implements Cloneable
             }
         }
 
-        RequestType type = null;
-        if (obj.has("type")) {
-            type = RequestType.valueOf(obj.get("type").getAsString());
-        }
+        // to keep compatibility headers can be empty
+        List<KeyValuePair> headers = new ArrayList<>();
+        if (obj.has("headers")) {
+            JsonArray jHeaders = obj.get("headers").getAsJsonArray();
 
-        String authDataKey = null;
-        if (obj.has("authKey")) {
-            authDataKey = obj.get("authKey").getAsString();
+            for (int i = 0; i < jHeaders.size(); i++) {
+                headers.add(KeyValuePair.createFromJson(jHeaders.get(i).getAsJsonObject()));
+            }
         }
 
         String body = null;
@@ -108,7 +118,7 @@ public class RequestTreeNode extends DefaultMutableTreeNode implements Cloneable
 
         RequestTreeNodeData data;
         if (type != null && authDataKey != null && params != null && body != null && bodyType != null) {
-            data = new RequestTreeNodeData(url, name, type, authDataKey, params, body, bodyType);
+            data = new RequestTreeNodeData(url, name, type, authDataKey, params, headers, body, bodyType);
         } else {
             throw new RuntimeException("Invalid save sate node: " + name);
         }
@@ -146,6 +156,14 @@ public class RequestTreeNode extends DefaultMutableTreeNode implements Cloneable
         }
         jNode.add("params", jParams);
 
+        JsonArray jHeaders = new JsonArray();
+        for (KeyValuePair header : data.getHeaders()) {
+            if (!header.key.isBlank()) {
+                jHeaders.add(header.getAsJson());
+            }
+        }
+        jNode.add("headers", jHeaders);
+
         jNode.addProperty("authKey", data.getAuthenticationDataKey());
         jNode.addProperty("body", data.getBody());
         jNode.addProperty("bodyType", data.getBodyType().toString());
@@ -163,4 +181,3 @@ public class RequestTreeNode extends DefaultMutableTreeNode implements Cloneable
         return copy;
     }
 }
-

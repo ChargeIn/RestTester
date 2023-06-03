@@ -98,6 +98,7 @@ public class RequestWindow {
         this.bodyTypePicker.addActionListener(this.getBodyTypeChangeListener());
         this.requestTypeComboBox.addActionListener(this.getRequestTypeChangeListener());
         this.paramsTable.getModel().addTableModelListener((l) -> this.updateSelection());
+        this.headerList.addChangeListener(this::updateSelection);
     }
 
     private ActionListener getAuthChangeListener() {
@@ -198,6 +199,7 @@ public class RequestWindow {
         this.selection.setType((RequestType) this.requestTypeComboBox.getSelectedItem());
         this.selection.setAuthenticationDataKey(((AuthenticationData) this.authComboBox.getSelectedItem()).getName());
         this.selection.setParams(this.paramHandler.getParams());
+        this.selection.setHeaders(this.headerList.getValues());
         this.selection.setBody(this.jsonBodyInput.getText());
         this.selection.setBodyType((RequestBodyType) this.bodyTypePicker.getSelectedItem());
         this.windowListener.onChange();
@@ -415,6 +417,7 @@ public class RequestWindow {
         }
         this.nameInputField.setText(data.getName());
         this.paramHandler.loadParams(data.getParams());
+        this.headerList.setItems(data.getHeaders());
         this.jsonBodyInput.setText(data.getBody());
         this.xmlBodyInput.setText(data.getBody());
         this.plainBodyInput.setText(data.getBody());

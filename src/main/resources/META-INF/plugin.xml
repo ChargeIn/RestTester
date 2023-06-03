@@ -39,9 +39,9 @@
     <change-notes><![CDATA[
         <h3>1.1.0 New Features</h2>
         <ul>
-          <li>Support ot customize response headers.</li>
+          <li>Added support to customize response headers.</li>
           <li>Added PUT-Method support.</li>
-          <li>Fixed svg not displayed correctly</li>
+          <li>Fixed SVGs not being displayed correctly.</li>
         </ul>
 
         <h3>1.0.4 Bug Fixes</h2>

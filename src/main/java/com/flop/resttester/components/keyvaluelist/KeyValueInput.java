@@ -29,6 +29,8 @@ public class KeyValueInput extends JPanel implements FocusListener {
     private final JTextField valueInput = new CustomTextField("Value");
     private final ActionButton deleteButton = new ActionButton("", AllIcons.Actions.Cancel);
 
+    private int lastWidth = 0;
+
     public List<KeyValueInputChangeListener> listeners = new ArrayList<>();
 
     public KeyValueInput(String key, String value) {
@@ -40,44 +42,27 @@ public class KeyValueInput extends JPanel implements FocusListener {
     }
 
     private void initListeners() {
-        DocumentListener keyListener = new DocumentListener() {
+        DocumentListener valueChangeListener = new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
-                KeyValueInput.this.onChange(KeyValueChangeEventType.KEY);
+                KeyValueInput.this.notifyChange();
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
-                KeyValueInput.this.onChange(KeyValueChangeEventType.KEY);
+                KeyValueInput.this.notifyChange();
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                KeyValueInput.this.onChange(KeyValueChangeEventType.KEY);
+                KeyValueInput.this.notifyChange();
             }
         };
 
-        this.keyInput.getDocument().addDocumentListener(keyListener);
+        this.keyInput.getDocument().addDocumentListener(valueChangeListener);
         this.keyInput.addFocusListener(this);
 
-        DocumentListener valueListener = new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                KeyValueInput.this.onChange(KeyValueChangeEventType.VALUE);
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                KeyValueInput.this.onChange(KeyValueChangeEventType.VALUE);
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                KeyValueInput.this.onChange(KeyValueChangeEventType.VALUE);
-            }
-        };
-
-        this.valueInput.getDocument().addDocumentListener(valueListener);
+        this.valueInput.getDocument().addDocumentListener(valueChangeListener);
         this.valueInput.addFocusListener(this);
 
         this.deleteButton.addActionListener((e) -> this.onChange(KeyValueChangeEventType.DELETE));
@@ -108,6 +93,30 @@ public class KeyValueInput extends JPanel implements FocusListener {
         this.add(this.deleteButton, buttonConstraint);
     }
 
+    @Override
+    public void setPreferredSize(Dimension preferredSize) {
+        super.setPreferredSize(preferredSize);
+
+        if (this.lastWidth == preferredSize.width) {
+            return;
+        }
+
+        this.lastWidth = preferredSize.width;
+
+        // padding 20, delete button 26, padding between 24
+        int inputWidth = (int) Math.floor((preferredSize.width - 70) / 2.0);
+        Dimension inputSize = new Dimension(inputWidth, 28);
+
+        this.keyInput.setPreferredSize(inputSize);
+        this.keyInput.setMinimumSize(inputSize);
+        this.keyInput.setMaximumSize(inputSize);
+        this.valueInput.setPreferredSize(inputSize);
+        this.valueInput.setMinimumSize(inputSize);
+        this.valueInput.setMaximumSize(inputSize);
+
+        this.updateUI();
+    }
+
     public void addChangeEventListener(KeyValueInputChangeListener listener) {
         this.listeners.add(listener);
     }
@@ -136,5 +145,9 @@ public class KeyValueInput extends JPanel implements FocusListener {
 
     public String getKey() {
         return this.keyInput.getText();
+    }
+
+    private void notifyChange() {
+        this.listeners.forEach(listener -> listener.onChange(KeyValueChangeEventType.VALUE, this));
     }
 }

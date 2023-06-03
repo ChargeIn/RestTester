@@ -8,7 +8,6 @@
 package com.flop.resttester.components.keyvaluelist;
 
 public enum KeyValueChangeEventType {
-    KEY,
     VALUE,
     DELETE,
     FOCUS_GAINED,

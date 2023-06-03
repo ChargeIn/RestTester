@@ -23,7 +23,9 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class RequestThread extends Thread {
     private final RequestData data;
@@ -90,22 +92,26 @@ public class RequestThread extends Thread {
             }
         }
 
-        if (this.data.type == RequestType.PATCH || this.data.type == RequestType.POST || this.data.type == RequestType.PUT) {
-            if (this.data.bodyType == RequestBodyType.JSON) {
-                builder = builder.header("Content-Type", "application/json");
-            } else if (this.data.bodyType == RequestBodyType.XML) {
-                builder = builder.header("Content-Type", "application/xml");
-            } else {
-                builder = builder.header("Content-Type", "text/plain");
-            }
-        }
-
+        Map<String, String> headersMap = new HashMap<>();
         if (this.data.headers != null) {
             List<KeyValuePair> headers = this.data.headers.stream().filter(param -> !param.key.isEmpty()).toList();
 
             if (headers.size() > 0) {
                 for (KeyValuePair header : headers) {
                     builder = builder.header(header.key, header.value);
+                    headersMap.put(header.key.toLowerCase(), header.value);
+                }
+            }
+        }
+
+        if (!headersMap.containsKey("content-type")) {
+            if (this.data.type == RequestType.PATCH || this.data.type == RequestType.POST || this.data.type == RequestType.PUT) {
+                if (this.data.bodyType == RequestBodyType.JSON) {
+                    builder = builder.header("Content-Type", "application/json");
+                } else if (this.data.bodyType == RequestBodyType.XML) {
+                    builder = builder.header("Content-Type", "application/xml");
+                } else {
+                    builder = builder.header("Content-Type", "text/plain");
                 }
             }
         }

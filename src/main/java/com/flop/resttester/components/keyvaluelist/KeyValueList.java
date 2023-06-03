@@ -6,6 +6,7 @@
  */
 package com.flop.resttester.components.keyvaluelist;
 
+import com.flop.resttester.utils.Debouncer;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
@@ -28,11 +29,11 @@ public class KeyValueList extends JPanel {
 
     private int lastWidth = 0;
 
-    private boolean changed = false;
-
     private final int childHeight = 34;
 
     private final List<KeyValueListChangeListener> listeners = new ArrayList<>();
+
+    private final Debouncer debouncer = new Debouncer(this::notifyChange);
 
     public void initView() {
 
@@ -128,20 +129,10 @@ public class KeyValueList extends JPanel {
                 }
                 this.updatePanelSize();
 
-                this.changed = true;
-                this.updateKeyValueList();
+                this.triggerChangeDebounce();
             }
-            case FOCUS_LOST -> this.updateKeyValueList();
-            case VALUE, KEY -> this.changed = true;
+            case VALUE -> this.triggerChangeDebounce();
         }
-    }
-
-    public void updateKeyValueList() {
-        if (!this.changed) {
-            return;
-        }
-        this.changed = false;
-        this.listeners.forEach(KeyValueListChangeListener::onChange);
     }
 
     public List<KeyValuePair> getValues() {
@@ -178,5 +169,14 @@ public class KeyValueList extends JPanel {
         Dimension panelSize = new Dimension(width, (this.panel.getComponentCount() + 2) * KeyValueList.this.childHeight);
         this.panel.setPreferredSize(panelSize);
         this.panel.setMinimumSize(panelSize);
+        this.panel.updateUI();
+    }
+
+    private void triggerChangeDebounce() {
+        this.debouncer.debounce();
+    }
+
+    private void notifyChange() {
+        this.listeners.forEach(KeyValueListChangeListener::onChange);
     }
 }

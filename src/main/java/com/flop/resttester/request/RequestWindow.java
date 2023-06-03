@@ -16,8 +16,10 @@ import com.flop.resttester.components.UrlInputHandler;
 import com.flop.resttester.components.combobox.CustomComboBox;
 import com.flop.resttester.components.combobox.CustomComboBoxUI;
 import com.flop.resttester.components.keyvaluelist.KeyValueList;
+import com.flop.resttester.components.keyvaluelist.KeyValueListChangeListener;
 import com.flop.resttester.components.keyvaluelist.KeyValuePair;
 import com.flop.resttester.requesttree.RequestTreeNodeData;
+import com.flop.resttester.utils.Debouncer;
 import com.flop.resttester.variables.VariablesHandler;
 import com.flop.resttester.variables.VariablesWindow;
 import com.intellij.icons.AllIcons;
@@ -43,6 +45,7 @@ import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -78,6 +81,8 @@ public class RequestWindow {
 
     private boolean omitUpdates = false;
 
+    private Debouncer debouncer = new Debouncer(this::changeCallback, 1000);
+
     public RequestWindow() {
         this.setupStyles();
         this.setupBodyTypeBox();
@@ -97,8 +102,26 @@ public class RequestWindow {
         this.authComboBox.addActionListener(this.getAuthChangeListener());
         this.bodyTypePicker.addActionListener(this.getBodyTypeChangeListener());
         this.requestTypeComboBox.addActionListener(this.getRequestTypeChangeListener());
-        this.paramsTable.getModel().addTableModelListener((l) -> this.updateSelection());
-        this.headerList.addChangeListener(this::updateSelection);
+        this.paramsTable.getModel().addTableModelListener(this.getParamsChangeListener());
+        this.headerList.addChangeListener(this.getHeadersChangeListener());
+    }
+
+    private TableModelListener getParamsChangeListener() {
+        return (l) -> {
+            if (this.selection != null) {
+                this.selection.setParams(this.paramHandler.getParams());
+                this.updateSelection();
+            }
+        };
+    }
+
+    private KeyValueListChangeListener getHeadersChangeListener() {
+        return () -> {
+            if (this.selection != null) {
+                this.selection.setHeaders(this.headerList.getValues());
+                this.updateSelection();
+            }
+        };
     }
 
     private ActionListener getAuthChangeListener() {
@@ -106,6 +129,7 @@ public class RequestWindow {
             if (RequestWindow.this.selection != null) {
                 AuthenticationData data = ((AuthenticationData) this.authComboBox.getSelectedItem());
                 if (data != null && !RequestWindow.this.selection.getAuthenticationDataKey().equals(data.getName())) {
+                    this.selection.setAuthenticationDataKey(((AuthenticationData) this.authComboBox.getSelectedItem()).getName());
                     RequestWindow.this.updateSelection();
                 }
             }
@@ -115,6 +139,7 @@ public class RequestWindow {
     private ActionListener getBodyTypeChangeListener() {
         return (l) -> {
             if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getBodyType().equals(RequestWindow.this.bodyTypePicker.getSelectedItem())) {
+                this.selection.setBodyType((RequestBodyType) this.bodyTypePicker.getSelectedItem());
                 RequestWindow.this.updateSelection();
             }
         };
@@ -123,6 +148,7 @@ public class RequestWindow {
     private ActionListener getRequestTypeChangeListener() {
         return (l) -> {
             if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getType().equals(RequestWindow.this.requestTypeComboBox.getSelectedItem())) {
+                this.selection.setType((RequestType) this.requestTypeComboBox.getSelectedItem());
                 RequestWindow.this.updateSelection();
             }
         };
@@ -133,6 +159,7 @@ public class RequestWindow {
             @Override
             public void documentChanged(@NotNull DocumentEvent event) {
                 if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getBody().equals(RequestWindow.this.jsonBodyInput.getText())) {
+                    RequestWindow.this.selection.setBody(RequestWindow.this.jsonBodyInput.getText());
                     RequestWindow.this.updateSelection();
                 }
             }
@@ -144,6 +171,7 @@ public class RequestWindow {
             @Override
             public void insertUpdate(javax.swing.event.DocumentEvent e) {
                 if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getUrl().equals(RequestWindow.this.urlInputField.getText())) {
+                    RequestWindow.this.selection.setUrl(RequestWindow.this.urlInputField.getText());
                     RequestWindow.this.updateSelection();
                 }
             }
@@ -151,6 +179,7 @@ public class RequestWindow {
             @Override
             public void removeUpdate(javax.swing.event.DocumentEvent e) {
                 if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getUrl().equals(RequestWindow.this.urlInputField.getText())) {
+                    RequestWindow.this.selection.setUrl(RequestWindow.this.urlInputField.getText());
                     RequestWindow.this.updateSelection();
                 }
             }
@@ -158,6 +187,7 @@ public class RequestWindow {
             @Override
             public void changedUpdate(javax.swing.event.DocumentEvent e) {
                 if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getUrl().equals(RequestWindow.this.urlInputField.getText())) {
+                    RequestWindow.this.selection.setUrl(RequestWindow.this.urlInputField.getText());
                     RequestWindow.this.updateSelection();
                 }
             }
@@ -169,6 +199,7 @@ public class RequestWindow {
             @Override
             public void insertUpdate(javax.swing.event.DocumentEvent e) {
                 if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getName().equals(RequestWindow.this.nameInputField.getText())) {
+                    RequestWindow.this.selection.setName(RequestWindow.this.nameInputField.getText());
                     RequestWindow.this.updateSelection();
                 }
             }
@@ -176,6 +207,7 @@ public class RequestWindow {
             @Override
             public void removeUpdate(javax.swing.event.DocumentEvent e) {
                 if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getName().equals(RequestWindow.this.nameInputField.getText())) {
+                    RequestWindow.this.selection.setName(RequestWindow.this.nameInputField.getText());
                     RequestWindow.this.updateSelection();
                 }
             }
@@ -183,6 +215,7 @@ public class RequestWindow {
             @Override
             public void changedUpdate(javax.swing.event.DocumentEvent e) {
                 if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getName().equals(RequestWindow.this.nameInputField.getText())) {
+                    RequestWindow.this.selection.setName(RequestWindow.this.nameInputField.getText());
                     RequestWindow.this.updateSelection();
                 }
             }
@@ -193,15 +226,10 @@ public class RequestWindow {
         if (this.omitUpdates || this.selection == null || this.authComboBox.getSelectedItem() == null) {
             return;
         }
+        this.debouncer.debounce();
+    }
 
-        this.selection.setName(this.nameInputField.getText());
-        this.selection.setUrl(this.urlInputField.getText());
-        this.selection.setType((RequestType) this.requestTypeComboBox.getSelectedItem());
-        this.selection.setAuthenticationDataKey(((AuthenticationData) this.authComboBox.getSelectedItem()).getName());
-        this.selection.setParams(this.paramHandler.getParams());
-        this.selection.setHeaders(this.headerList.getValues());
-        this.selection.setBody(this.jsonBodyInput.getText());
-        this.selection.setBodyType((RequestBodyType) this.bodyTypePicker.getSelectedItem());
+    private void changeCallback() {
         this.windowListener.onChange();
     }
 

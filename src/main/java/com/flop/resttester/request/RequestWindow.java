@@ -386,7 +386,7 @@ public class RequestWindow {
 
     public void updateAuthBox(List<AuthenticationData> data) {
         this.authComboBox.removeAllItems();
-        this.authComboBox.addItem(new AuthenticationData("None", "", ""));
+        this.authComboBox.addItem(new AuthenticationData());
 
         for (AuthenticationData datum : data) {
             this.authComboBox.addItem(datum);

@@ -124,7 +124,7 @@ public class RequestThread extends Thread {
                 sslContext.init(null, new TrustManager[]{DUMMY_TRUST_MANAGER}, new SecureRandom());
                 clientBuilder.sslContext(sslContext);
             } catch (NoSuchAlgorithmException | KeyManagementException e) {
-                //ignore
+                // ignore
             }
         }
 

@@ -17,6 +17,13 @@ public class AuthenticationData {
     private String password = "";
     private String token = "";
 
+    public AuthenticationData() {
+        this.name = "None";
+        this.username = "";
+        this.password = "";
+        this.type = AuthenticationType.None;
+    }
+
     public AuthenticationData(String name, String username, String password) {
         this.name = name;
         this.username = username;

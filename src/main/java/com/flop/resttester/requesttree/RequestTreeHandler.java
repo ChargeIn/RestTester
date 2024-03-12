@@ -273,7 +273,7 @@ public class RequestTreeHandler {
     }
 
     public void updateTree() {
-        this.tree.updateUI();
+        SwingUtilities.invokeLater(() -> this.tree.updateUI());
     }
 
     public void saveTree() {

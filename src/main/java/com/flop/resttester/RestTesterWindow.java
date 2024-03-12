@@ -95,6 +95,11 @@ public class RestTesterWindow {
             return;
         }
 
+        if (this.requestThread != null) {
+            // cancel running request
+            this.cancelRequest();
+        }
+
         this.selection = data;
         this.requestWindow.setRequestData(data);
         this.responseWindow.loadResult(data.getResponseCache());
@@ -110,11 +115,7 @@ public class RestTesterWindow {
     private void sendRequest() {
         if (this.requestThread != null) {
             // old request is still running
-            this.requestThread.stopRequest();
-            this.responseWindow.setCanceled(this.requestThread.getElapsedTime());
-            this.requestThread = null;
-            this.requestWindow.setRequestStarted(false);
-            this.loadingTimer.cancel();
+            this.cancelRequest();
             return;
         }
 
@@ -160,6 +161,16 @@ public class RestTesterWindow {
                         }
                 ));
         this.requestThread.start();
+    }
+
+    private void cancelRequest() {
+        if (this.requestThread != null) {
+            this.requestThread.stopRequest();
+            this.responseWindow.setCanceled(this.requestThread.getElapsedTime());
+            this.requestThread = null;
+            this.requestWindow.setRequestStarted(false);
+            this.loadingTimer.cancel();
+        }
     }
 
     private void createUIComponents() {

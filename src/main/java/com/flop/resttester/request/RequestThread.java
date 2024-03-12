@@ -26,6 +26,7 @@ import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class RequestThread extends Thread {
     private final RequestData data;
@@ -44,21 +45,18 @@ public class RequestThread extends Thread {
 
         StringBuilder urlString = new StringBuilder(this.data.url);
 
-        if (this.data.queryParams != null) {
-            List<KeyValuePair> params = this.data.queryParams.stream().filter(param -> !param.key.isEmpty()).toList();
+        if (this.data.queryParams != null && !this.data.queryParams.isEmpty()) {
+            String params = this.data.queryParams.stream()
+                    .filter(param -> !param.key.isEmpty())
+                    .map(param -> param.key + '=' + URLEncoder.encode(param.value, StandardCharsets.UTF_8))
+                    .collect(Collectors.joining("&"));
 
-            if (params.size() > 0) {
+            if (this.data.url.indexOf('?') == -1) {
                 urlString.append('?');
-                boolean first = true;
-                for (KeyValuePair param : params) {
-                    if (first) {
-                        first = false;
-                    } else {
-                        urlString.append("&");
-                    }
-                    urlString.append(param.key).append('=').append(URLEncoder.encode(param.value, StandardCharsets.UTF_8));
-                }
+            } else {
+                urlString.append('&');
             }
+            urlString.append(params);
         }
 
         URI uri;
@@ -96,7 +94,7 @@ public class RequestThread extends Thread {
         if (this.data.headers != null) {
             List<KeyValuePair> headers = this.data.headers.stream().filter(param -> !param.key.isEmpty()).toList();
 
-            if (headers.size() > 0) {
+            if (!headers.isEmpty()) {
                 for (KeyValuePair header : headers) {
                     builder = builder.header(header.key, header.value);
                     headersMap.put(header.key.toLowerCase(), header.value);

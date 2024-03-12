@@ -37,6 +37,13 @@
     </description>
 
     <change-notes><![CDATA[
+        <h3>1.1.1 Bug Fixes</h3>
+        <ul>
+          <li>Fixed query params not being appended correctly.</li>
+          <li>Fixed tree ui error from wrong thread.</li>
+          <li>Fixed request not being canceled when switching requests.</li>
+        </ul>
+
         <h3>1.1.0 New Features</h2>
         <ul>
           <li>Added support to customize response headers.</li>

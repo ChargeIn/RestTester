@@ -35,7 +35,7 @@ public class ActionButton extends JButton implements ActionButtonComponent {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         ActionButtonLook look = this.myLook;
-        if (this.isEnabled() || !StartupUiUtil.isUnderDarcula()) {
+        if (this.isEnabled() || !StartupUiUtil.INSTANCE.isDarkTheme()) {
             look.paintBackground(g, this);
         }
         look.paintIcon(g, this, this.getIcon());

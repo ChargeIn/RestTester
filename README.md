@@ -16,8 +16,8 @@ A rest api testing tool for Jetbrains IDEAs ([Marketplace](https://plugins.jetbr
 
 ## Testing
 
-&#9989; Intellij Community 2021.3.3\
-&#9989; Intellij Ultimate 2022.1
+&#9989; Intellij Community 2023.3.1\
+&#9989; Intellij Ultimate 2023.1
 
 ---
 

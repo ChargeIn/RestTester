@@ -55,7 +55,7 @@ public class QueryParameterHandler {
             String value = this.model.getValueAt(i, 1).toString();
 
             if (!key.isEmpty() && !value.isEmpty()) {
-                params.add(new KeyValuePair(key, value));
+                params.add(new KeyValuePair(key, value, true));
             }
         }
         return params;

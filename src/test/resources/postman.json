@@ -1,0 +1,127 @@
+{
+  "info": {
+    "name": "New Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "folder1",
+      "item": [
+        {
+          "name": "GET Users",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "https://gorest.co.in/public/v2/users?Parameter 1=Params Value 1"
+            }
+          }
+        },
+        {
+          "name": "PUT Users",
+          "request": {
+            "method": "PUT",
+            "url": {
+              "raw": "https://gorest.co.in/public/v2/users?Parameter 1=Params Value 1"
+            }
+          }
+        },
+        {
+          "name": "POST Users",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "Hello World!"
+            },
+            "url": {
+              "raw": "https://gorest.co.in/public/v2/users?Parameter 1=Params Value 1"
+            }
+          }
+        },
+        {
+          "name": "PATCH Users",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "https://gorest.co.in/public/v2/users?Parameter 1=Params Value 1"
+            }
+          }
+        },
+        {
+          "name": "DELETE Users",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "https://gorest.co.in/public/v2/users?Parameter 1=Params Value 1"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Example Env User",
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "password",
+              "value": "password value",
+              "type": "string"
+            },
+            {
+              "key": "username",
+              "value": "username value",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "url": {
+          "raw": "https://gorest.co.in/public/v2/{{ baseEnvUser }}"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Example Header",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer-Test",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://gorest.co.in/public/v2/users"
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Example Params",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "https://gorest.co.in/public/v2/users?Parameter 1=Params Value 1",
+          "query": [
+            {
+              "key": "param1",
+              "value": "value1",
+              "type": "text"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

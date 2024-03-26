@@ -210,14 +210,49 @@ public class VariablesHandler {
         }
         JsonArray jVariables = this.model2JSON(this.model);
 
-        JsonObject wrapper = new JsonObject();
-        wrapper.addProperty("version", VariablesHandler.VERSION);
-        wrapper.add("variables", jVariables);
+        String state = VariablesHandler.generateState(jVariables);
 
-        String jsonString = wrapper.toString();
-        this.stateService.setVariablesState(this.id, jsonString);
+        this.stateService.setVariablesState(this.id, state);
     }
 
+    /**
+     * Adds the given variables to the variables state string
+     */
+    public static String updateState(String state, Map<String, String> variables2Add) {
+        JsonArray jVariablesToAdd = VariablesHandler.map2JSON(variables2Add);
+        state = VariablesHandler.generateState(state, jVariablesToAdd);
+
+        return state;
+    }
+
+    /**
+     * Generates a new state string based on the give variables
+     */
+    private static String generateState(JsonArray variables) {
+        return VariablesHandler.generateState("", variables);
+    }
+
+    /**
+     * Generates a new state string based on the old state and the variables which should be added to the state
+     */
+    private static String generateState(String state, JsonArray variables2Add) {
+        if (state.isEmpty()) {
+            JsonObject wrapper = new JsonObject();
+            wrapper.addProperty("version", VariablesHandler.VERSION);
+            wrapper.add("variables", variables2Add);
+
+            state = wrapper.toString();
+        } else {
+            JsonObject jState = JsonParser.parseString(state).getAsJsonObject();
+            jState.get("variables").getAsJsonArray().addAll(variables2Add);
+            state = jState.toString();
+        }
+        return state;
+    }
+
+    /**
+     * Converts the give model to a key value json object array
+     */
     private JsonArray model2JSON(DefaultTableModel m) {
 
         JsonArray variableArray = new JsonArray();
@@ -225,6 +260,29 @@ public class VariablesHandler {
         for (int i = 0; i < m.getRowCount(); i++) {
             String key = (String) m.getValueAt(i, 0);
             String value = (String) m.getValueAt(i, 1);
+
+            if (key.isEmpty()) {
+                continue;
+            }
+
+            JsonObject jObj = new JsonObject();
+            jObj.addProperty("key", key);
+            jObj.addProperty("value", value);
+
+            variableArray.add(jObj);
+        }
+
+        return variableArray;
+    }
+
+    /**
+     * Converts the give map to a key value json object array
+     */
+    private static JsonArray map2JSON(Map<String, String> map) {
+        JsonArray variableArray = new JsonArray();
+
+        for (String key : map.keySet()) {
+            String value = map.get(key);
 
             if (key.isEmpty()) {
                 continue;

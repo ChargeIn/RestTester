@@ -3,7 +3,7 @@
   <grid id="27dc6" binding="mainPanel" layout-manager="GridLayoutManager" row-count="3" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="10" left="15" bottom="0" right="0"/>
     <constraints>
-      <xy x="20" y="20" width="756" height="446"/>
+      <xy x="20" y="20" width="756" height="466"/>
     </constraints>
     <properties>
       <doubleBuffered value="true"/>
@@ -143,7 +143,7 @@
               </grid>
             </children>
           </grid>
-          <grid id="8a17c" layout-manager="GridLayoutManager" row-count="2" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+          <grid id="8a17c" layout-manager="GridLayoutManager" row-count="3" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
             <margin top="15" left="0" bottom="0" right="0"/>
             <constraints>
               <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
@@ -161,7 +161,7 @@
                   <text value="Experimental"/>
                 </properties>
               </component>
-              <grid id="cd02a" layout-manager="GridLayoutManager" row-count="2" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+              <grid id="cd02a" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                 <margin top="5" left="10" bottom="0" right="0"/>
                 <constraints>
                   <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="5" hsize-policy="5" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
@@ -177,16 +177,24 @@
                       <text value="Import Insomnia Json"/>
                     </properties>
                   </component>
-                  <component id="4f2e6" class="javax.swing.JLabel">
+                  <component id="e41b3" class="javax.swing.JButton" binding="postmanImport">
                     <constraints>
-                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
-                      <text value="* Can only import requests"/>
+                      <text value="Import Postman Json"/>
                     </properties>
                   </component>
                 </children>
               </grid>
+              <component id="4f2e6" class="javax.swing.JLabel">
+                <constraints>
+                  <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="* Can only import requests and folders"/>
+                </properties>
+              </component>
             </children>
           </grid>
         </children>

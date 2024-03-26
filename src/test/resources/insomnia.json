@@ -1,0 +1,363 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "resources": [
+    {
+      "_id": "request_1",
+      "parentId": "folder_1",
+      "modified": 1711571039031,
+      "created": 1711570956531,
+      "url": "https://gorest.co.in/public/v2/users",
+      "name": "POST Users",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "text/plain",
+        "text": "Hello World!"
+      },
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1711570956531,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "folder_1",
+      "parentId": "workspace_1",
+      "modified": 1711570902771,
+      "created": 1674080268270,
+      "name": "folder1",
+      "description": "",
+      "environment": {},
+      "environmentPropertyOrder": null,
+      "metaSortKey": -1674080268270,
+      "_type": "request_group"
+    },
+    {
+      "_id": "workspace_1",
+      "parentId": null,
+      "modified": 1670446116268,
+      "created": 1670446116268,
+      "name": "New Document",
+      "description": "",
+      "scope": "design",
+      "_type": "workspace"
+    },
+    {
+      "_id": "request_2",
+      "parentId": "folder_1",
+      "modified": 1711570986556,
+      "created": 1711570982950,
+      "url": "https://gorest.co.in/public/v2/users",
+      "name": "PATCH Users",
+      "description": "",
+      "method": "PATCH",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"Hello\": \"World!\"\n}"
+      },
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1711570931749,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "request_3",
+      "parentId": "folder_1",
+      "modified": 1711570999378,
+      "created": 1711570996381,
+      "url": "https://gorest.co.in/public/v2/users",
+      "name": "PUT Users",
+      "description": "",
+      "method": "PUT",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1711570919358,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "request_4",
+      "parentId": "folder_1",
+      "modified": 1711613029064,
+      "created": 1711571009777,
+      "url": "https://gorest.co.in/public/v2/usersstenestGU",
+      "name": "DELETE Users",
+      "description": "",
+      "method": "DELETE",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1711570913162.5,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "request_5",
+      "parentId": "folder_1",
+      "modified": 1711571031488,
+      "created": 1711570906967,
+      "url": "https://gorest.co.in/public/v2/users",
+      "name": "GET Users",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1711570906967,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "request_6",
+      "parentId": "workspace_1",
+      "modified": 1711571104265,
+      "created": 1674413727869,
+      "url": "https://gorest.co.in/public/v2/users",
+      "name": "Example Header",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [
+        {
+          "id": "pair_dfff9d01c0ac4a6bb941fc834eb6378f",
+          "name": "Content-Type",
+          "value": "application/json",
+          "description": ""
+        },
+        {
+          "id": "pair_99bc8b4858334f6ca42e155726f3ddea",
+          "name": "Authorization",
+          "value": "Bearer-Test",
+          "description": ""
+        },
+        {
+          "id": "pair_402a4906bbfe4953bf353e4b508a4994",
+          "name": "",
+          "value": "",
+          "description": ""
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "adsfasdfasd"
+      },
+      "metaSortKey": -1670446116214,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "request_7",
+      "parentId": "workspace_1",
+      "modified": 1711571284604,
+      "created": 1711571267574,
+      "url": "https://gorest.co.in/public/v2/users",
+      "name": "Example Params",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "id": "pair_ac7d7a0ea16f4ab9a0d97998d3e5c8f1",
+          "name": "param1",
+          "value": "value1",
+          "description": ""
+        }
+      ],
+      "headers": [
+        {
+          "id": "pair_402a4906bbfe4953bf353e4b508a4994",
+          "name": "",
+          "value": "",
+          "description": ""
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "adsfasdfasd"
+      },
+      "metaSortKey": -1670446116164,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "request_8",
+      "parentId": "workspace_1",
+      "modified": 1711613151338,
+      "created": 1711571295703,
+      "url": "https://gorest.co.in/public/v2/{{ _.baseEnvUser }}",
+      "name": "Example Env User",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "id": "pair_ac7d7a0ea16f4ab9a0d97998d3e5c8f1",
+          "name": "{{ _.nested.user }}",
+          "value": "value1",
+          "description": ""
+        }
+      ],
+      "headers": [
+        {
+          "id": "pair_f3b5bde045e1470fb6bda41ef220cfed",
+          "name": "{{ _.user }}",
+          "value": "{{ _.password }}",
+          "description": ""
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "adsfasdfasd"
+      },
+      "metaSortKey": -1670446116114,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "env_9c0a9bb9e59cee954624e5a8fef7e3fbe76b7041",
+      "parentId": "workspace_1",
+      "modified": 1711571315798,
+      "created": 1670446116298,
+      "name": "Base Environment",
+      "data": {
+        "baseEnvUser": "Base Env User Value"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "baseEnvUser"
+        ]
+      },
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1670446116298,
+      "_type": "environment"
+    },
+    {
+      "_id": "jar_9c0a9bb9e59cee954624e5a8fef7e3fbe76b7041",
+      "parentId": "workspace_1",
+      "modified": 1711571344805,
+      "created": 1670446116303,
+      "name": "Default Jar",
+      "cookies": [
+        {
+          "key": "_gorest_session",
+          "value": "fT5loF3jvB7HCwyHRIrBV9cANe2nU7znhbvihVMLkpcv2FaV8jNlLrYcgBReorDjaLWXtkaH52RO4mjhCiYE%2FCDAvvVIGtGreb0sc6jyJmRtvSxnwnqkVFq%2BcGSDbEEq5Krnfp75adS4hywd4Ub1sQCU%2F%2BAL8V6B3KQa9%2BgxXseiJJ4UNDXwyS2qQ6DQQAoD3wNkq9VCuTbarRTt3IUFqhxYQ3PqC%2FR%2BabXo9mYjKgEkIvZHyxVxajQVSVj1lAcR2Puuy4wG%2BQRCr0F%2B2s6urvLt9CFMsZg%3D--EbxFZM8G9lluI5gX--ZBUFHjzC0Jc0YBX2O4a%2F%2FA%3D%3D",
+          "domain": "gorest.co.in",
+          "path": "/",
+          "httpOnly": true,
+          "extensions": [
+            "SameSite=Lax"
+          ],
+          "hostOnly": true,
+          "creation": "2023-01-22T19:02:47.554Z",
+          "lastAccessed": "2024-03-27T20:29:04.805Z",
+          "id": "4305008254130769"
+        }
+      ],
+      "_type": "cookie_jar"
+    },
+    {
+      "_id": "spc_b1654e9dd4364e7aba0d29f509bc3aac",
+      "parentId": "workspace_1",
+      "modified": 1711612975265,
+      "created": 1670446116294,
+      "fileName": "New Document",
+      "contents": "",
+      "contentType": "yaml",
+      "_type": "api_spec"
+    },
+    {
+      "_id": "uts_71b8aee4c8e841a9bdfa06eeab0b8c1d",
+      "parentId": "workspace_1",
+      "modified": 1670446116317,
+      "created": 1670446116317,
+      "name": "Example Test Suite",
+      "_type": "unit_test_suite"
+    },
+    {
+      "_id": "env_872f221508314760b03d2c0c526baf44",
+      "parentId": "env_9c0a9bb9e59cee954624e5a8fef7e3fbe76b7041",
+      "modified": 1711613151050,
+      "created": 1711571136712,
+      "name": "Go Rest Environment",
+      "data": {
+        "user": "Go Rest User Env Value",
+        "password": "Env User PW",
+        "nested": {
+          "user": "Inner User Value"
+        }
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "user",
+          "password",
+          "nested"
+        ],
+        "&~|nested": [
+          "user"
+        ]
+      },
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1711571136712,
+      "_type": "environment"
+    }
+  ]
+}

@@ -12,6 +12,7 @@ import com.flop.resttester.request.RequestBodyType;
 import com.flop.resttester.request.RequestType;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -125,7 +126,7 @@ public class RequestTreeNode extends DefaultMutableTreeNode implements Cloneable
         return new RequestTreeNode(data);
     }
 
-    public JsonObject getAsJson(JTree tree) {
+    public JsonObject getAsJson(@Nullable JTree tree) {
         RequestTreeNodeData data = this.getRequestData();
 
         JsonObject jNode = new JsonObject();
@@ -133,7 +134,12 @@ public class RequestTreeNode extends DefaultMutableTreeNode implements Cloneable
 
         if (data.isFolder()) {
             if (this.getChildCount() > 0) {
-                jNode.addProperty("expanded", tree.isExpanded(new TreePath(this.getPath())));
+                if (tree != null) {
+                    jNode.addProperty("expanded", tree.isExpanded(new TreePath(this.getPath())));
+                } else {
+                    jNode.addProperty("expanded", false);
+                }
+
                 JsonArray childArray = new JsonArray();
 
                 for (int i = 0; i < this.getChildCount(); i++) {

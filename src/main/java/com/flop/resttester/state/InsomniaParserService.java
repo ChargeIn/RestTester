@@ -8,27 +8,35 @@
 package com.flop.resttester.state;
 
 import com.flop.resttester.RestTesterNotifier;
+import com.flop.resttester.components.keyvaluelist.KeyValuePair;
 import com.flop.resttester.request.RequestBodyType;
 import com.flop.resttester.request.RequestType;
+import com.flop.resttester.requesttree.RequestTreeNode;
+import com.flop.resttester.requesttree.RequestTreeNodeData;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.intellij.openapi.project.Project;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 
 public class InsomniaParserService {
-    public static JsonArray getRequestState(JsonObject insomniaState, Project project) {
+    public static List<RequestTreeNode> getRequestState(JsonObject insomniaState, Project project) throws Exception {
         JsonElement resource = insomniaState.get("resources");
+
+        List<RequestTreeNode> nodes = new ArrayList<>();
 
         if (resource == null) {
             RestTesterNotifier.notifyError(project, "Request import failed: Could not find resource array.");
-            return new JsonArray();
+            return nodes;
         }
 
         JsonArray resources = resource.getAsJsonArray();
-        HashMap<String, JsonObject> objs = new HashMap<>();
+        HashMap<String, RequestTreeNodeData> nodeIdMap = new HashMap<>();
+        HashMap<String, List<RequestTreeNodeData>> nodeChildren = new HashMap<>();
 
         for (int i = 0; i < resources.size(); i++) {
             JsonElement el = resources.get(i);
@@ -47,62 +55,60 @@ public class InsomniaParserService {
             String parentId = obj.has("parentId") && !obj.get("parentId").isJsonNull() ?
                     obj.get("parentId").getAsString() : String.valueOf(i);
 
+            RequestTreeNodeData nodeData = null;
             if (Objects.equals(type, "request")) {
-                JsonObject newRequestNode = InsomniaParserService.parseRequest(obj);
+                nodeData = InsomniaParserService.parseRequest(obj);
 
-                if (newRequestNode != null) {
-                    newRequestNode.addProperty("_parentId", parentId);
-                    objs.put(id, newRequestNode);
-                } else {
-                    RestTesterNotifier.notifyError(project, "Could not convert a request obj.");
+                if (nodeData == null) {
+                    RestTesterNotifier.notifyError(project, "Could not convert a request object.");
                 }
             } else if (Objects.equals(type, "request_group") || Objects.equals(type, "workspace")) {
-                JsonObject newFolder = InsomniaParserService.parseGroup(obj);
+                nodeData = InsomniaParserService.parseGroup(obj);
 
-                if (newFolder != null) {
-                    newFolder.addProperty("_parentId", parentId);
-                    objs.put(id, newFolder);
-                } else {
+                if (nodeData == null) {
                     RestTesterNotifier.notifyError(project, "Could not convert a folder.");
                 }
             }
-        }
 
-        JsonArray result = new JsonArray();
-
-        for (JsonObject obj : objs.values()) {
-            String parentId = obj.get("_parentId").getAsString();
-
-            if (objs.containsKey(parentId)) {
-                JsonObject parent = objs.get(parentId);
-
-                if (parent.has("children")) {
-                    parent.get("children").getAsJsonArray().add(obj);
+            if (nodeData != null) {
+                nodeIdMap.put(id, nodeData);
+                if (nodeChildren.containsKey(parentId)) {
+                    nodeChildren.get(parentId).add(nodeData);
                 } else {
-                    result.add(obj);
+                    List<RequestTreeNodeData> children = new ArrayList<>();
+                    children.add(nodeData);
+                    nodeChildren.put(parentId, children);
                 }
-            } else {
-                result.add(obj);
             }
         }
-        return result;
+
+        for (String parentId : nodeIdMap.keySet()) {
+            RequestTreeNodeData data = nodeIdMap.get(parentId);
+            RequestTreeNode node = new RequestTreeNode(data);
+
+            if (nodeChildren.containsKey(parentId)) {
+                List<RequestTreeNodeData> children = nodeChildren.get(parentId);
+
+                for (RequestTreeNodeData childData : children) {
+                    RequestTreeNode child = new RequestTreeNode(childData);
+                    node.add(child);
+                }
+            }
+            nodes.add(node);
+        }
+        return nodes;
     }
 
-    public static JsonObject parseGroup(JsonObject groupObj) {
+    public static RequestTreeNodeData parseGroup(JsonObject groupObj) {
         if (!groupObj.has("name")) {
             return null;
         }
 
-        JsonObject jNode = new JsonObject();
-        jNode.addProperty("name", groupObj.get("name").getAsString());
-        jNode.addProperty("expanded", false);
-        jNode.add("children", new JsonArray());
-
-        return jNode;
+        String name = groupObj.get("name").getAsString();
+        return new RequestTreeNodeData(name);
     }
 
-    public static JsonObject parseRequest(JsonObject requestObj) {
-
+    public static RequestTreeNodeData parseRequest(JsonObject requestObj) {
         if (!(requestObj.has("name")
                 && requestObj.has("method")
                 && requestObj.has("url")
@@ -110,8 +116,7 @@ public class InsomniaParserService {
             return null;
         }
 
-        JsonObject jNode = new JsonObject();
-        jNode.addProperty("name", requestObj.get("name").getAsString());
+        String name = requestObj.get("name").getAsString();
 
         String typeStr = requestObj.get("method").getAsString();
         RequestType type = switch (typeStr) {
@@ -122,10 +127,9 @@ public class InsomniaParserService {
             default -> RequestType.GET;
         };
 
-        jNode.addProperty("type", type.toString());
-        jNode.addProperty("url", requestObj.get("url").getAsString());
+        String url = requestObj.get("url").getAsString();
 
-        JsonArray jParams = new JsonArray();
+        List<KeyValuePair> params = new ArrayList<>();
         if (requestObj.has("parameters")) {
             JsonArray paramArr = requestObj.get("parameters").getAsJsonArray();
 
@@ -133,17 +137,15 @@ public class InsomniaParserService {
                 JsonObject paramObj = paramArr.get(j).getAsJsonObject();
 
                 if (paramObj.has("name") && paramObj.has("value")) {
-                    JsonObject jObj = new JsonObject();
-                    jObj.addProperty("key", paramObj.get("name").getAsString());
-                    jObj.addProperty("value", paramObj.get("value").getAsString());
-                    jParams.add(jObj);
+                    KeyValuePair pair = new KeyValuePair(
+                            paramObj.get("name").getAsString(),
+                            paramObj.get("value").getAsString(),
+                            true
+                    );
+                    params.add(pair);
                 }
             }
         }
-        jNode.add("params", jParams);
-
-        jNode.addProperty("authKey", "");
-
         String body = "";
         RequestBodyType bodyType = RequestBodyType.JSON;
         if (requestObj.has("body")) {
@@ -165,9 +167,15 @@ public class InsomniaParserService {
                 }
             }
         }
-        jNode.addProperty("body", body);
-        jNode.addProperty("bodyType", bodyType.toString());
 
-        return jNode;
+        return new RequestTreeNodeData(url,
+                name,
+                type,
+                "",
+                params,
+                new ArrayList<>(),
+                body,
+                bodyType
+        );
     }
 }

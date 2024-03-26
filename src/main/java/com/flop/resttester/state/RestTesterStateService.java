@@ -7,6 +7,11 @@
 
 package com.flop.resttester.state;
 
+import com.flop.resttester.requesttree.RequestTreeHandler;
+import com.flop.resttester.requesttree.RequestTreeNode;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
@@ -122,6 +127,29 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
 
     public String getRequestState() {
         return this.state.requestState;
+    }
+
+    public void addRequests(List<RequestTreeNode> requests) {
+        String requestState = this.getRequestState();
+
+        JsonArray nodes = new JsonArray();
+
+        for (RequestTreeNode node : requests) {
+            nodes.add(node.getAsJson(null));
+        }
+
+        if (requestState.isEmpty()) {
+            JsonObject wrapper = new JsonObject();
+            wrapper.addProperty("version", RequestTreeHandler.VERSION);
+            wrapper.add("nodes", nodes);
+
+            requestState = wrapper.toString();
+        } else {
+            JsonObject currentState = JsonParser.parseString(requestState).getAsJsonObject();
+            currentState.get("nodes").getAsJsonArray().addAll(nodes);
+            requestState = currentState.toString();
+        }
+        this.setRequestState(-1, requestState);
     }
 
     static class RestTesterState {

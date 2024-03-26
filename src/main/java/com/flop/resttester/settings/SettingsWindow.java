@@ -8,10 +8,10 @@
 package com.flop.resttester.settings;
 
 import com.flop.resttester.RestTesterNotifier;
-import com.flop.resttester.requesttree.RequestTreeHandler;
+import com.flop.resttester.requesttree.RequestTreeNode;
 import com.flop.resttester.state.InsomniaParserService;
+import com.flop.resttester.state.PostmanParserService;
 import com.flop.resttester.state.RestTesterStateService;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -33,6 +33,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 public class SettingsWindow {
 
@@ -51,6 +52,7 @@ public class SettingsWindow {
     private JButton resetButton;
     private JButton insomniaImport;
     private JLabel experimentalLabel;
+    private JButton postmanImport;
 
     private ChangeListener sslChangeListener = this::onSSLValidationChange;
 
@@ -65,6 +67,7 @@ public class SettingsWindow {
         this.exportButton.addActionListener(this::onExport);
         this.resetButton.addActionListener(this::onReset);
         this.insomniaImport.addActionListener(this::onInsomniaImport);
+        this.postmanImport.addActionListener(this::onPostmanImport);
 
         this.setupStyles();
     }
@@ -170,11 +173,43 @@ public class SettingsWindow {
     }
 
     public void onInsomniaImport(ActionEvent event) {
+        JsonElement jsonElement = this.openJsonFilePicker();
+
+        if (jsonElement == null) {
+            return;
+        }
+
+        try {
+            List<RequestTreeNode> requests = InsomniaParserService.getRequestState(jsonElement.getAsJsonObject(), this.project);
+            this.stateService.addRequests(requests);
+            RestTesterNotifier.notifyInfo(this.project, "Rest Tester: Import successful.");
+        } catch (Exception ignore) {
+            RestTesterNotifier.notifyError(this.project, "Rest Tester: Import failed.");
+        }
+    }
+
+    public void onPostmanImport(ActionEvent event) {
+        JsonElement jsonElement = this.openJsonFilePicker();
+
+        if (jsonElement == null) {
+            return;
+        }
+
+        try {
+            List<RequestTreeNode> requests = PostmanParserService.getRequestState(jsonElement.getAsJsonObject(), this.project);
+            this.stateService.addRequests(requests);
+            RestTesterNotifier.notifyInfo(this.project, "Rest Tester: Import successful.");
+        } catch (Exception ignore) {
+            RestTesterNotifier.notifyError(this.project, "Rest Tester: Import failed.");
+        }
+    }
+
+    private JsonElement openJsonFilePicker() {
         FileChooserDescriptor jsonChooser = FileChooserDescriptorFactory.createSingleFileDescriptor(JsonFileType.INSTANCE);
         VirtualFile[] files = FileChooser.chooseFiles(jsonChooser, null, null);
 
         if (files.length == 0) {
-            return;
+            return null;
         }
 
         VirtualFile file = files[0];
@@ -183,35 +218,17 @@ public class SettingsWindow {
 
         if (!insomniaFile.exists()) {
             RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not find file " + insomniaFile.getName());
-            return;
+            return null;
         }
 
         JsonElement jsonElement;
 
         try {
-            jsonElement = JsonParser.parseReader(new InputStreamReader(new FileInputStream(insomniaFile)));
-
-            JsonArray requests = InsomniaParserService.getRequestState(jsonElement.getAsJsonObject(), this.project);
-
-            String requestState = this.stateService.getRequestState();
-
-            if (requestState.isEmpty()) {
-                JsonObject wrapper = new JsonObject();
-                wrapper.addProperty("version", RequestTreeHandler.VERSION);
-                wrapper.add("nodes", requests);
-
-                requestState = wrapper.toString();
-            } else {
-                JsonObject currentState = JsonParser.parseString(requestState).getAsJsonObject();
-                currentState.get("nodes").getAsJsonArray().addAll(requests);
-                requestState = currentState.toString();
-            }
-            this.stateService.setRequestState(-1, requestState);
-
-            RestTesterNotifier.notifyInfo(this.project, "Rest Tester: Import successful.");
+            return JsonParser.parseReader(new InputStreamReader(new FileInputStream(insomniaFile)));
         } catch (Exception ex) {
-            RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not parse insomnia file. " + ex.getMessage());
+            RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not parse json file. " + ex.getMessage());
         }
+        return null;
     }
 
     public void setupStyles() {

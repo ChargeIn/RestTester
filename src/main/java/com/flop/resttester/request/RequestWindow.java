@@ -420,7 +420,7 @@ public class RequestWindow {
         AuthenticationData authData = (AuthenticationData) this.authComboBox.getSelectedItem();
         String tag = this.nameInputField.getText();
         List<KeyValuePair> params = this.paramHandler.getParams();
-        List<KeyValuePair> headers = this.headerList.getValues();
+        List<KeyValuePair> headers = this.headerList.getValues().stream().filter(header -> header.enabled).toList();
         String body = this.jsonBodyInput.getText();
         RequestBodyType bodyType = (RequestBodyType) this.bodyTypePicker.getSelectedItem();
 

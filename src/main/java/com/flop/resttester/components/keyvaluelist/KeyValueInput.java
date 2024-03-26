@@ -27,15 +27,17 @@ public class KeyValueInput extends JPanel implements FocusListener {
 
     private final JTextField keyInput = new CustomTextField("Header");
     private final JTextField valueInput = new CustomTextField("Value");
+    private final JCheckBox enabledCheckbox = new JCheckBox();
     private final ActionButton deleteButton = new ActionButton("", AllIcons.Actions.Cancel);
 
     private int lastWidth = 0;
 
     public List<KeyValueInputChangeListener> listeners = new ArrayList<>();
 
-    public KeyValueInput(String key, String value) {
+    public KeyValueInput(String key, String value, boolean enabled) {
         this.keyInput.setText(key);
         this.valueInput.setText(value);
+        this.enabledCheckbox.setSelected(enabled);
 
         this.initListeners();
         this.initView();
@@ -65,14 +67,17 @@ public class KeyValueInput extends JPanel implements FocusListener {
         this.valueInput.getDocument().addDocumentListener(valueChangeListener);
         this.valueInput.addFocusListener(this);
 
+        this.enabledCheckbox.addActionListener((e) -> this.onChange(KeyValueChangeEventType.VALUE));
+
         this.deleteButton.addActionListener((e) -> this.onChange(KeyValueChangeEventType.DELETE));
     }
 
     private void initView() {
         this.keyInput.setToolTipText("Header Field");
         this.valueInput.setToolTipText("Header Value");
+        this.enabledCheckbox.setToolTipText("Enabled");
 
-        GridLayoutManager layoutManager = new GridLayoutManager(1, 3);
+        GridLayoutManager layoutManager = new GridLayoutManager(1, 4);
         layoutManager.setMargin(JBUI.insets(4, 12, 4, 8));
         this.setLayout(layoutManager);
 
@@ -84,12 +89,17 @@ public class KeyValueInput extends JPanel implements FocusListener {
                 GridConstraints.SIZEPOLICY_WANT_GROW,
                 GridConstraints.SIZEPOLICY_FIXED, null, null, null);
 
-        GridConstraints buttonConstraint = new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+        GridConstraints checkboxConstraint = new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+                GridConstraints.SIZEPOLICY_FIXED,
+                GridConstraints.SIZEPOLICY_FIXED, new Dimension(26, 26), new Dimension(26, 26), new Dimension(26, 26));
+
+        GridConstraints buttonConstraint = new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
                 GridConstraints.SIZEPOLICY_FIXED,
                 GridConstraints.SIZEPOLICY_FIXED, new Dimension(26, 26), new Dimension(26, 26), new Dimension(26, 26));
 
         this.add(this.keyInput, keyConstraint);
         this.add(this.valueInput, valueConstraint);
+        this.add(this.enabledCheckbox, checkboxConstraint);
         this.add(this.deleteButton, buttonConstraint);
     }
 
@@ -103,8 +113,9 @@ public class KeyValueInput extends JPanel implements FocusListener {
 
         this.lastWidth = preferredSize.width;
 
-        // padding 20, delete button 26, padding between 24
-        int inputWidth = (int) Math.floor((preferredSize.width - 70) / 2.0);
+        // padding 20, enabled checkbox 26, padding between 20, delete button 26, padding after 24
+        int trailingWidth = 20 + 26 + 20 + 26 + 24;
+        int inputWidth = (int) Math.floor((preferredSize.width - trailingWidth) / 2.0);
         Dimension inputSize = new Dimension(inputWidth, 28);
 
         this.keyInput.setPreferredSize(inputSize);
@@ -113,6 +124,9 @@ public class KeyValueInput extends JPanel implements FocusListener {
         this.valueInput.setPreferredSize(inputSize);
         this.valueInput.setMinimumSize(inputSize);
         this.valueInput.setMaximumSize(inputSize);
+        this.enabledCheckbox.setPreferredSize(inputSize);
+        this.enabledCheckbox.setMinimumSize(inputSize);
+        this.enabledCheckbox.setMaximumSize(inputSize);
 
         this.updateUI();
     }
@@ -145,6 +159,10 @@ public class KeyValueInput extends JPanel implements FocusListener {
 
     public String getKey() {
         return this.keyInput.getText();
+    }
+
+    public boolean getEnabled() {
+        return this.enabledCheckbox.isSelected();
     }
 
     private void notifyChange() {

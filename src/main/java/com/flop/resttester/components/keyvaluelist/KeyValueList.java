@@ -53,7 +53,7 @@ public class KeyValueList extends JPanel {
 
         this.add(scrollPane, constraint);
 
-        KeyValueInput input = new KeyValueInput("", "");
+        KeyValueInput input = new KeyValueInput("", "", true);
         input.addChangeEventListener(this::onInputChange);
         this.panel.add(input);
     }
@@ -63,7 +63,7 @@ public class KeyValueList extends JPanel {
         int width = this.getParent().getWidth();
 
         for (KeyValuePair item : items) {
-            KeyValueInput input = new KeyValueInput(item.key, item.value);
+            KeyValueInput input = new KeyValueInput(item.key, item.value, item.enabled);
             input.addChangeEventListener(this::onInputChange);
             input.setPreferredSize(new Dimension(width, this.childHeight));
             this.panel.add(input);
@@ -143,18 +143,19 @@ public class KeyValueList extends JPanel {
 
             String key = input.getKey();
             String value = input.getValue();
+            boolean enabled = input.getEnabled();
 
             if (key.isBlank()) {
                 continue;
             }
 
-            values.add(new KeyValuePair(key, value));
+            values.add(new KeyValuePair(key, value, enabled));
         }
         return values;
     }
 
     private void addEmptyInput() {
-        KeyValueInput newInput = new KeyValueInput("", "");
+        KeyValueInput newInput = new KeyValueInput("", "", true);
         newInput.addChangeEventListener(this::onInputChange);
 
         int width = this.getParent().getWidth();

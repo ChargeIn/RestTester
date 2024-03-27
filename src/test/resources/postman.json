@@ -1,0 +1,63 @@
+{
+  "info": {
+    "_postman_id": "a0276950-342e-4a80-bc99-0a59df46950c",
+    "name": "New Collection 1",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Go Rest Users",
+      "id": "d7193c02-ca3e-4714-bf45-4625ea50e231",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "basic",
+          "basic": [
+            {
+              "key": "password",
+              "value": "password1",
+              "type": "string"
+            },
+            {
+              "key": "username",
+              "value": "username1",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Header.-1",
+            "value": "Header-Value-2",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "https://gorest.co.in/public/v2/users?Params 1=Params Value 1",
+          "protocol": "https",
+          "host": [
+            "gorest",
+            "co",
+            "in"
+          ],
+          "path": [
+            "public",
+            "v2",
+            "users"
+          ],
+          "query": [
+            {
+              "key": "Params 1",
+              "value": "Params Value 1",
+              "type": "text"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

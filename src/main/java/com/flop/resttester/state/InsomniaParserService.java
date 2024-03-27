@@ -18,10 +18,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.intellij.openapi.project.Project;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class InsomniaParserService {
     public static List<RequestTreeNode> getRequestState(JsonObject insomniaState, Project project) throws Exception {
@@ -35,8 +32,9 @@ public class InsomniaParserService {
         }
 
         JsonArray resources = resource.getAsJsonArray();
-        HashMap<String, RequestTreeNodeData> nodeIdMap = new HashMap<>();
-        HashMap<String, List<RequestTreeNodeData>> nodeChildren = new HashMap<>();
+        Map<String, RequestTreeNodeData> nodeMap = new HashMap<>();
+        Map<String, String> nodeParentIdMap = new HashMap<>();
+        Map<String, List<String>> nodeChildrenMap = new HashMap<>();
 
         for (int i = 0; i < resources.size(); i++) {
             JsonElement el = resources.get(i);
@@ -55,6 +53,8 @@ public class InsomniaParserService {
             String parentId = obj.has("parentId") && !obj.get("parentId").isJsonNull() ?
                     obj.get("parentId").getAsString() : String.valueOf(i);
 
+            nodeParentIdMap.put(id, parentId);
+
             RequestTreeNodeData nodeData = null;
             if (Objects.equals(type, "request")) {
                 nodeData = InsomniaParserService.parseRequest(obj);
@@ -71,32 +71,49 @@ public class InsomniaParserService {
             }
 
             if (nodeData != null) {
-                nodeIdMap.put(id, nodeData);
-                if (nodeChildren.containsKey(parentId)) {
-                    nodeChildren.get(parentId).add(nodeData);
-                } else {
-                    List<RequestTreeNodeData> children = new ArrayList<>();
-                    children.add(nodeData);
-                    nodeChildren.put(parentId, children);
+                nodeMap.put(id, nodeData);
+
+                if (parentId != null) {
+                    if (nodeChildrenMap.containsKey(parentId)) {
+                        nodeChildrenMap.get(parentId).add(id);
+                    } else {
+                        List<String> children = new ArrayList<>();
+                        children.add(id);
+                        nodeChildrenMap.put(parentId, children);
+                    }
                 }
             }
         }
 
-        for (String parentId : nodeIdMap.keySet()) {
-            RequestTreeNodeData data = nodeIdMap.get(parentId);
+        // only add element that do not have a parentId or their parent is not found to the base level
+        for (String nodeId : nodeMap.keySet()) {
+            RequestTreeNodeData data = nodeMap.get(nodeId);
             RequestTreeNode node = new RequestTreeNode(data);
 
-            if (nodeChildren.containsKey(parentId)) {
-                List<RequestTreeNodeData> children = nodeChildren.get(parentId);
+            String parentId = nodeParentIdMap.get(nodeId);
 
-                for (RequestTreeNodeData childData : children) {
-                    RequestTreeNode child = new RequestTreeNode(childData);
-                    node.add(child);
-                }
+            if (parentId == null || !nodeMap.containsKey(parentId)) {
+                nodes.add(node);
+                InsomniaParserService.addChildren(nodeId, node, nodeMap, nodeParentIdMap, nodeChildrenMap);
+            } else {
+                // node will be added as child node
             }
-            nodes.add(node);
         }
+
         return nodes;
+    }
+
+    private static void addChildren(String id, RequestTreeNode node, Map<String, RequestTreeNodeData> nodeMap, Map<String, String> nodeParentIdMap, Map<String, List<String>> nodeChildrenMap) {
+        if (nodeChildrenMap.containsKey(id)) {
+            List<String> childIds = nodeChildrenMap.get(id);
+
+            for (String childId : childIds) {
+                RequestTreeNodeData childData = nodeMap.get(childId);
+                RequestTreeNode childNode = new RequestTreeNode(childData);
+                node.add(childNode);
+                InsomniaParserService.addChildren(childId, childNode, nodeMap, nodeParentIdMap, nodeChildrenMap);
+            }
+        }
     }
 
     public static RequestTreeNodeData parseGroup(JsonObject groupObj) {
@@ -146,6 +163,26 @@ public class InsomniaParserService {
                 }
             }
         }
+
+        List<KeyValuePair> headers = new ArrayList<>();
+        if (requestObj.has("headers")) {
+            JsonArray headerArr = requestObj.get("headers").getAsJsonArray();
+
+            for (int j = 0; j < headerArr.size(); j++) {
+                JsonObject paramObj = headerArr.get(j).getAsJsonObject();
+
+                if (paramObj.has("name") && paramObj.has("value")) {
+                    String headerName = paramObj.get("name").getAsString();
+                    String headerValue = paramObj.get("value").getAsString();
+
+                    if (!headerName.isBlank()) {
+                        KeyValuePair pair = new KeyValuePair(headerName, headerValue, true);
+                        headers.add(pair);
+                    }
+                }
+            }
+        }
+
         String body = "";
         RequestBodyType bodyType = RequestBodyType.JSON;
         if (requestObj.has("body")) {
@@ -173,7 +210,7 @@ public class InsomniaParserService {
                 type,
                 "",
                 params,
-                new ArrayList<>(),
+                headers,
                 body,
                 bodyType
         );

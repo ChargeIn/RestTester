@@ -171,7 +171,6 @@ public class SettingsWindow {
         this.stateService.setRequestState(-1, "");
     }
 
-    // TODO fix slow on edt error
     public void onInsomniaImport(ActionEvent event) {
         JsonElement jsonElement = this.openJsonFilePicker();
 
@@ -191,9 +190,9 @@ public class SettingsWindow {
         } catch (Exception ignore) {
             RestTesterNotifier.notifyError(this.project, "Rest Tester: Import failed.");
         }
+
     }
 
-    // TODO fix slow on edt error
     public void onPostmanImport(ActionEvent event) {
         JsonElement jsonElement = this.openJsonFilePicker();
 
@@ -223,19 +222,17 @@ public class SettingsWindow {
             return null;
         }
 
-        VirtualFile file = files[0];
+        VirtualFile virtualFile = files[0];
 
-        File insomniaFile = new File(file.getPath());
+        File file = new File(virtualFile.getPath());
 
-        if (!insomniaFile.exists()) {
-            RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not find file " + insomniaFile.getName());
+        if (!file.exists()) {
+            RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not find file " + file.getName());
             return null;
         }
 
-        JsonElement jsonElement;
-
         try {
-            return JsonParser.parseReader(new InputStreamReader(new FileInputStream(insomniaFile)));
+            return JsonParser.parseReader(new InputStreamReader(new FileInputStream(file)));
         } catch (Exception ex) {
             RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not parse json file. " + ex.getMessage());
         }

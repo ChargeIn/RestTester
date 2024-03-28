@@ -14,17 +14,21 @@ import com.google.gson.JsonObject;
 import com.intellij.openapi.project.Project;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PostmanParserService {
-    public static List<RequestTreeNode> getRequestState(JsonObject insomniaState, Project project) throws Exception {
+    public static StateUpdate getRequestState(JsonObject insomniaState, Project project) throws Exception {
         JsonElement info = insomniaState.get("info");
 
         List<RequestTreeNode> nodes = new ArrayList<>();
+        Map<String, String> envVariables = new HashMap<>();
+
 
         if (info == null || !info.isJsonObject()) {
             RestTesterNotifier.notifyError(project, "Request import failed: Could not find info object.");
-            return nodes;
+            return null;
         }
 
         JsonObject infoObj = info.getAsJsonObject();
@@ -32,6 +36,6 @@ public class PostmanParserService {
         String name = infoObj.get("name").getAsString();
 
 
-        return nodes;
+        return new StateUpdate(nodes, envVariables);
     }
 }

@@ -8,10 +8,10 @@
 package com.flop.resttester.settings;
 
 import com.flop.resttester.RestTesterNotifier;
-import com.flop.resttester.requesttree.RequestTreeNode;
 import com.flop.resttester.state.InsomniaParserService;
 import com.flop.resttester.state.PostmanParserService;
 import com.flop.resttester.state.RestTesterStateService;
+import com.flop.resttester.state.StateUpdate;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -33,7 +33,6 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 public class SettingsWindow {
 
@@ -172,6 +171,7 @@ public class SettingsWindow {
         this.stateService.setRequestState(-1, "");
     }
 
+    // TODO fix slow on edt error
     public void onInsomniaImport(ActionEvent event) {
         JsonElement jsonElement = this.openJsonFilePicker();
 
@@ -180,14 +180,20 @@ public class SettingsWindow {
         }
 
         try {
-            List<RequestTreeNode> requests = InsomniaParserService.getRequestState(jsonElement.getAsJsonObject(), this.project);
-            this.stateService.addRequests(requests);
+            StateUpdate update = InsomniaParserService.getRequestState(jsonElement.getAsJsonObject(), this.project);
+
+            if (update == null) {
+                return;
+            }
+
+            this.stateService.addUpdate(update);
             RestTesterNotifier.notifyInfo(this.project, "Rest Tester: Import successful.");
         } catch (Exception ignore) {
             RestTesterNotifier.notifyError(this.project, "Rest Tester: Import failed.");
         }
     }
 
+    // TODO fix slow on edt error
     public void onPostmanImport(ActionEvent event) {
         JsonElement jsonElement = this.openJsonFilePicker();
 
@@ -196,8 +202,13 @@ public class SettingsWindow {
         }
 
         try {
-            List<RequestTreeNode> requests = PostmanParserService.getRequestState(jsonElement.getAsJsonObject(), this.project);
-            this.stateService.addRequests(requests);
+            StateUpdate update = PostmanParserService.getRequestState(jsonElement.getAsJsonObject(), this.project);
+
+            if (update == null) {
+                return;
+            }
+
+            this.stateService.addUpdate(update);
             RestTesterNotifier.notifyInfo(this.project, "Rest Tester: Import successful.");
         } catch (Exception ignore) {
             RestTesterNotifier.notifyError(this.project, "Rest Tester: Import failed.");

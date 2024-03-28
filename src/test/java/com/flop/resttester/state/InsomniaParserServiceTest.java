@@ -18,6 +18,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileReader;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
@@ -32,11 +33,12 @@ public class InsomniaParserServiceTest {
 
         JsonElement insomniaJson = JsonParser.parseReader(fileReader);
 
-        List<RequestTreeNode> nodes = InsomniaParserService.getRequestState(insomniaJson.getAsJsonObject(), null);
+        StateUpdate update = InsomniaParserService.getRequestState(insomniaJson.getAsJsonObject(), null);
 
-        assertEquals(1, nodes.size());
+        // check request nodes
+        assertEquals(1, update.nodes().size());
 
-        RequestTreeNode newDocumentNode = nodes.get(0);
+        RequestTreeNode newDocumentNode = update.nodes().get(0);
         RequestTreeNodeData docData = newDocumentNode.getRequestData();
 
         assertEquals("New Document", docData.getName());
@@ -116,5 +118,22 @@ public class InsomniaParserServiceTest {
         assertEquals(false, put.isFolder());
         assertEquals("PUT Users", put.getName());
         assertEquals(RequestType.PUT, put.getType());
+
+        // check environment variables
+        Map<String, String> env = update.evnVariables();
+        List<String> environmentKeys = env.keySet().stream().toList();
+
+        assertEquals(4, environmentKeys.size());
+        assertEquals("password", environmentKeys.get(0));
+        assertEquals("Env User PW", env.get(environmentKeys.get(0)));
+
+        assertEquals("baseEnvUser", environmentKeys.get(1));
+        assertEquals("Base Env User Value", env.get(environmentKeys.get(1)));
+
+        assertEquals("user", environmentKeys.get(2));
+        assertEquals("Go Rest User Env Value", env.get(environmentKeys.get(2)));
+
+        assertEquals("nested.user", environmentKeys.get(3));
+        assertEquals("Inner User Value", env.get(environmentKeys.get(3)));
     }
 }

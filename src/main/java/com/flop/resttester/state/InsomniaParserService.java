@@ -16,19 +16,22 @@ import com.flop.resttester.requesttree.RequestTreeNodeData;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.intellij.openapi.project.Project;
 
 import java.util.*;
 
 public class InsomniaParserService {
-    public static List<RequestTreeNode> getRequestState(JsonObject insomniaState, Project project) throws Exception {
+    // TODO replace env variables
+    public static StateUpdate getRequestState(JsonObject insomniaState, Project project) throws Exception {
         JsonElement resource = insomniaState.get("resources");
 
         List<RequestTreeNode> nodes = new ArrayList<>();
+        Map<String, String> envVariables = new HashMap<>();
 
         if (resource == null) {
             RestTesterNotifier.notifyError(project, "Request import failed: Could not find resource array.");
-            return nodes;
+            return null;
         }
 
         JsonArray resources = resource.getAsJsonArray();
@@ -57,31 +60,46 @@ public class InsomniaParserService {
 
             RequestTreeNodeData nodeData = null;
             if (Objects.equals(type, "request")) {
+                // convert to normal request
                 nodeData = InsomniaParserService.parseRequest(obj);
 
                 if (nodeData == null) {
                     RestTesterNotifier.notifyError(project, "Could not convert a request object.");
+                } else {
+                    nodeMap.put(id, nodeData);
+
+                    if (parentId != null) {
+                        if (nodeChildrenMap.containsKey(parentId)) {
+                            nodeChildrenMap.get(parentId).add(id);
+                        } else {
+                            List<String> children = new ArrayList<>();
+                            children.add(id);
+                            nodeChildrenMap.put(parentId, children);
+                        }
+                    }
                 }
             } else if (Objects.equals(type, "request_group") || Objects.equals(type, "workspace")) {
+                // convert to folder
                 nodeData = InsomniaParserService.parseGroup(obj);
 
                 if (nodeData == null) {
                     RestTesterNotifier.notifyError(project, "Could not convert a folder.");
-                }
-            }
+                } else {
+                    nodeMap.put(id, nodeData);
 
-            if (nodeData != null) {
-                nodeMap.put(id, nodeData);
-
-                if (parentId != null) {
-                    if (nodeChildrenMap.containsKey(parentId)) {
-                        nodeChildrenMap.get(parentId).add(id);
-                    } else {
-                        List<String> children = new ArrayList<>();
-                        children.add(id);
-                        nodeChildrenMap.put(parentId, children);
+                    if (parentId != null) {
+                        if (nodeChildrenMap.containsKey(parentId)) {
+                            nodeChildrenMap.get(parentId).add(id);
+                        } else {
+                            List<String> children = new ArrayList<>();
+                            children.add(id);
+                            nodeChildrenMap.put(parentId, children);
+                        }
                     }
                 }
+            } else if (Objects.equals("environment", type)) {
+                // extract variables
+                InsomniaParserService.parseEnvironment(obj, envVariables);
             }
         }
 
@@ -100,7 +118,7 @@ public class InsomniaParserService {
             }
         }
 
-        return nodes;
+        return new StateUpdate(nodes, envVariables);
     }
 
     private static void addChildren(String id, RequestTreeNode node, Map<String, RequestTreeNodeData> nodeMap, Map<String, String> nodeParentIdMap, Map<String, List<String>> nodeChildrenMap) {
@@ -214,5 +232,38 @@ public class InsomniaParserService {
                 body,
                 bodyType
         );
+    }
+
+    private static void parseEnvironment(JsonObject obj, Map<String, String> env) {
+        if (!obj.has("data")) {
+            return;
+        }
+
+        JsonObject data = obj.getAsJsonObject("data");
+
+        InsomniaParserService.parseNestedData(data, env, "");
+    }
+
+    private static void parseNestedData(JsonObject data, Map<String, String> env, String prefix) {
+        for (String key : data.keySet()) {
+            String fullKey = prefix.isBlank() ? key : prefix + '.' + key;
+
+            JsonElement dataValue = data.get(key);
+
+            if (dataValue.isJsonObject()) {
+                InsomniaParserService.parseNestedData(dataValue.getAsJsonObject(), env, fullKey);
+            } else if (dataValue.isJsonPrimitive()) {
+                JsonPrimitive primitive = dataValue.getAsJsonPrimitive();
+
+
+                if (primitive.isString()) {
+                    env.put(fullKey, primitive.getAsString());
+                } else if (primitive.isBoolean()) {
+                    env.put(fullKey, primitive.getAsBoolean() ? "true" : "false");
+                } else if (primitive.isNumber()) {
+                    env.put(fullKey, primitive.getAsNumber().toString());
+                }
+            }
+        }
     }
 }

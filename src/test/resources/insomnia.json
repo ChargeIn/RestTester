@@ -1,7 +1,7 @@
 {
   "_type": "export",
   "__export_format": 4,
-  "__export_date": "2024-03-27T21:29:18.420Z",
+  "__export_date": "2024-03-28T08:13:10.274Z",
   "__export_source": "insomnia.desktop.app:v2022.6.0",
   "resources": [
     {
@@ -98,9 +98,9 @@
     {
       "_id": "req_8de009e296f446e080c664ac2835b041",
       "parentId": "fld_2207ed24961f4406b9313c7ebc048921",
-      "modified": 1711574936420,
+      "modified": 1711613029064,
       "created": 1711571009777,
-      "url": "https://gorest.co.in/public/v2/users",
+      "url": "https://gorest.co.in/public/v2/usersstenestGU",
       "name": "DELETE Users",
       "description": "",
       "method": "DELETE",
@@ -229,7 +229,7 @@
     {
       "_id": "req_7bbfabf3d7cd4dc3a60c21b51a1742eb",
       "parentId": "wrk_d731afd03e784da4bdba711513f420f7",
-      "modified": 1711571361252,
+      "modified": 1711613151338,
       "created": 1711571295703,
       "url": "https://gorest.co.in/public/v2/{{ _.baseEnvUser }}",
       "name": "Example Env User",
@@ -239,7 +239,7 @@
       "parameters": [
         {
           "id": "pair_ac7d7a0ea16f4ab9a0d97998d3e5c8f1",
-          "name": "param1",
+          "name": "{{ _.nested.user }}",
           "value": "value1",
           "description": ""
         }
@@ -312,7 +312,7 @@
     {
       "_id": "spc_b1654e9dd4364e7aba0d29f509bc3aac",
       "parentId": "wrk_d731afd03e784da4bdba711513f420f7",
-      "modified": 1711570874035,
+      "modified": 1711612975265,
       "created": 1670446116294,
       "fileName": "New Document",
       "contents": "",
@@ -330,17 +330,24 @@
     {
       "_id": "env_872f221508314760b03d2c0c526baf44",
       "parentId": "env_9c0a9bb9e59cee954624e5a8fef7e3fbe76b7041",
-      "modified": 1711571311852,
+      "modified": 1711613151050,
       "created": 1711571136712,
       "name": "Go Rest Environment",
       "data": {
         "user": "Go Rest User Env Value",
-        "password": "Env User PW"
+        "password": "Env User PW",
+        "nested": {
+          "user": "Inner User Value"
+        }
       },
       "dataPropertyOrder": {
         "&": [
           "user",
-          "password"
+          "password",
+          "nested"
+        ],
+        "&~|nested": [
+          "user"
         ]
       },
       "color": null,

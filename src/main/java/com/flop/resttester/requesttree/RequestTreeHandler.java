@@ -288,12 +288,49 @@ public class RequestTreeHandler {
             jNodes.add(jChild);
         }
 
-        JsonObject wrapper = new JsonObject();
-        wrapper.addProperty("version", RequestTreeHandler.VERSION);
-        wrapper.add("nodes", jNodes);
+        String state = RequestTreeHandler.generateState(jNodes);
 
-        String jsonString = wrapper.toString();
-        this.stateService.setRequestState(this.id, jsonString);
+        this.stateService.setRequestState(this.id, state);
+    }
+
+    /**
+     * Adds the given request tree nodes to the request state string
+     */
+    public static String updateState(String state, List<RequestTreeNode> nodes2Add) {
+        JsonArray nodes = new JsonArray();
+
+        for (RequestTreeNode node : nodes2Add) {
+            nodes.add(node.getAsJson(null));
+        }
+
+        state = RequestTreeHandler.generateState(state, nodes);
+
+        return state;
+    }
+
+    /**
+     * Generates a new state string based on the given nodes
+     */
+    public static String generateState(JsonArray nodes2Add) {
+        return RequestTreeHandler.generateState("", nodes2Add);
+    }
+
+    /**
+     * Generates a new state string based on the old state and the nodes which should be added to the state
+     */
+    public static String generateState(String currentState, JsonArray nodes2Add) {
+        if (currentState.isEmpty()) {
+            JsonObject wrapper = new JsonObject();
+            wrapper.addProperty("version", RequestTreeHandler.VERSION);
+            wrapper.add("nodes", nodes2Add);
+
+            currentState = wrapper.toString();
+        } else {
+            JsonObject jState = JsonParser.parseString(currentState).getAsJsonObject();
+            jState.get("nodes").getAsJsonArray().addAll(nodes2Add);
+            currentState = jState.toString();
+        }
+        return currentState;
     }
 
     /**

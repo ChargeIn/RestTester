@@ -2,7 +2,8 @@
 
 [![Current Version](https://img.shields.io/badge/version-1.1.1-green.svg)](https://github.com/ChargeIn/RestTester)
 
-A rest api testing tool for Jetbrains IDEAs ([Marketplace](https://plugins.jetbrains.com/plugin/20924-rest-tester))
+A simple open source rest api testing tool for Jetbrains
+IDEAs ([Marketplace](https://plugins.jetbrains.com/plugin/20924-rest-tester))
 
 ![Rest Tester Preview](https://github.com/ChargeIn/RestTester/blob/master/.github/demo.png)
 

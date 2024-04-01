@@ -11,6 +11,7 @@ import com.flop.resttester.auth.AuthenticationData;
 import com.flop.resttester.auth.AuthenticationType;
 import com.flop.resttester.components.keyvaluelist.KeyValuePair;
 import com.flop.resttester.response.ResponseData;
+import com.intellij.util.io.URLUtil;
 import org.apache.commons.codec.binary.Base64;
 
 import javax.net.ssl.*;
@@ -23,6 +24,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,7 +50,8 @@ public class RequestThread extends Thread {
         if (this.data.queryParams != null && !this.data.queryParams.isEmpty()) {
             String params = this.data.queryParams.stream()
                     .filter(param -> !param.key.isEmpty())
-                    .map(param -> param.key + '=' + URLEncoder.encode(param.value, StandardCharsets.UTF_8))
+                    // unsafe characters will be replaced at the end
+                    .map(param -> param.key + '=' + param.value)
                     .collect(Collectors.joining("&"));
 
             if (this.data.url.indexOf('?') == -1) {
@@ -61,7 +64,9 @@ public class RequestThread extends Thread {
 
         URI uri;
         try {
-            URL url = new URL(urlString.toString());
+            // Since the user might have added params to the url directly we need to replace unsafe characters after the url is build
+            String encodedUrl = RequestThread.encodeUrl(urlString.toString());
+            URL url = new URL(encodedUrl);
             uri = url.toURI();
         } catch (MalformedURLException | URISyntaxException e) {
             if (!this.stopped) {
@@ -202,5 +207,64 @@ public class RequestThread extends Thread {
             public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) {
             }
         };
+    }
+
+    /**
+     * Encodes the given url, replacing all unsafe characters
+     * <p>
+     * Note: Why not use Java internal lib? Unsafe characters are only escaped if the url is already split into parts
+     */
+    public static String encodeUrl(String url) throws URISyntaxException {
+        String scheme;
+        String host;
+        String path = "";
+        String query = "";
+
+        // remove scheme
+        if (url.contains("://")) {
+            String[] blocks = url.split("://");
+            scheme = blocks[0] + "://";
+            url = blocks[1];
+        } else {
+            // automatically add missing scheme
+            scheme = "https://";
+        }
+
+        // remove query string
+        if (url.contains("?")) {
+            String[] blocks = url.split("\\?");
+
+            query = "?";
+
+            String[] queryBlocks = blocks[1].split("#");
+
+            query += Arrays.stream(queryBlocks[0].split("&")).map(pair -> {
+                String[] splits = pair.split("=");
+                return splits[0] + '=' + URLUtil.encodeURIComponent(splits[1]);
+            }).collect(Collectors.joining("&"));
+
+            if (queryBlocks.length > 1) {
+                query += "#" + queryBlocks[1];
+            }
+
+            url = blocks[0];
+        }
+
+        // remove path
+        if (url.contains("/")) {
+            String[] blocks = url.split("/");
+
+            host = blocks[0];
+
+            for (int i = 1; i < blocks.length; i++) {
+                path += "/" + blocks[i];
+            }
+            // escape path
+            path = URLUtil.encodePath(path);
+        } else {
+            host = url;
+        }
+
+        return scheme + host + path + query;
     }
 }

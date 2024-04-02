@@ -37,6 +37,14 @@
     </description>
 
     <change-notes><![CDATA[
+        <h3>1.2.0 New Features</h3>
+        <ul>
+          <li>Added support to disable headers individually.</li>
+          <li>Add basic postman import.</li>
+          <li>Improved insomnia import.</li>
+          <li>Improved whitespace handling in paths.</li>
+        </ul>
+
         <h3>1.1.1 Bug Fixes</h3>
         <ul>
           <li>Fixed query params not being appended correctly.</li>

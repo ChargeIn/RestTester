@@ -34,8 +34,8 @@ public class AuthenticationWindow {
     private JScrollPane treeScrollPane;
     private JPanel treeWrapper;
     private JSplitPane splitPane;
-    private ActionButton saveActionButton;
     private ActionButton removeActionButton;
+    private JButton saveButton;
 
     private final Project project;
 
@@ -51,6 +51,8 @@ public class AuthenticationWindow {
         this.authenticationHandler = new AuthenticationHandler(this.authTree, project);
         this.authenticationHandler.setAuthenticationTreeSelectionListener(this::updateInputFields);
         this.authenticationHandler.setAuthenticationListChangeListener(this::updateAuthenticationList);
+
+        this.saveButton.addActionListener((e) -> this.save());
 
         this.setupStyles();
     }
@@ -80,21 +82,6 @@ public class AuthenticationWindow {
         this.removeActionButton = new ActionButton(
                 actionRemove,
                 presentationRemove,
-                ActionPlaces.UNKNOWN,
-                ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
-        );
-
-        // save button
-        Presentation presentationSave = new Presentation("Save Profile");
-        AnAction actionSave = new AnAction(AllIcons.Actions.AddToDictionary) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                AuthenticationWindow.this.save();
-            }
-        };
-        this.saveActionButton = new ActionButton(
-                actionSave,
-                presentationSave,
                 ActionPlaces.UNKNOWN,
                 ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
         );

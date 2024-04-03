@@ -9,7 +9,6 @@ package com.flop.resttester.request;
 
 import com.flop.resttester.RestTesterNotifier;
 import com.flop.resttester.auth.AuthenticationData;
-import com.flop.resttester.components.ActionButton;
 import com.flop.resttester.components.CustomLanguageTextField;
 import com.flop.resttester.components.CustomPanel;
 import com.flop.resttester.components.UrlInputHandler;
@@ -28,6 +27,8 @@ import com.intellij.json.JsonFileType;
 import com.intellij.json.JsonLanguage;
 import com.intellij.lang.Language;
 import com.intellij.lang.xml.XMLLanguage;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
@@ -375,13 +376,20 @@ public class RequestWindow {
     }
 
     private void setupSendButton() {
-        this.sendButton = new ActionButton("", AllIcons.Actions.Execute);
-        this.sendButton.setRolloverEnabled(true);
-        this.sendButton.addActionListener((e) -> {
-            this.sendButton.setIcon(AllIcons.Actions.Suspend);
-            this.windowListener.onSendRequest();
-        });
-
+        Presentation presentationSave = new Presentation("Cancel Request");
+        AnAction actionSave = new AnAction(AllIcons.Actions.Execute) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                RequestWindow.this.sendButton.getPresentation().setIcon(AllIcons.Actions.Suspend);
+                RequestWindow.this.windowListener.onSendRequest();
+            }
+        };
+        this.sendButton = new ActionButton(
+                actionSave,
+                presentationSave,
+                ActionPlaces.UNKNOWN,
+                ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+        );
     }
 
     public void updateAuthBox(List<AuthenticationData> data) {
@@ -484,9 +492,9 @@ public class RequestWindow {
 
     public void setRequestStarted(boolean started) {
         if (started) {
-            this.sendButton.setIcon(AllIcons.Actions.Suspend);
+            this.sendButton.getPresentation().setIcon(AllIcons.Actions.Suspend);
         } else {
-            this.sendButton.setIcon(AllIcons.Actions.Execute);
+            this.sendButton.getPresentation().setIcon(AllIcons.Actions.Execute);
         }
     }
 }

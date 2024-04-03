@@ -7,12 +7,14 @@
 
 package com.flop.resttester.components.keyvaluelist;
 
-import com.flop.resttester.components.ActionButton;
 import com.flop.resttester.components.CustomTextField;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -28,7 +30,7 @@ public class KeyValueInput extends JPanel implements FocusListener {
     private final JTextField keyInput = new CustomTextField("Header");
     private final JTextField valueInput = new CustomTextField("Value");
     private final JCheckBox enabledCheckbox = new JCheckBox();
-    private final ActionButton deleteButton = new ActionButton("", AllIcons.Actions.Cancel);
+    private ActionButton deleteButton = null;
 
     private int lastWidth = 0;
 
@@ -69,7 +71,22 @@ public class KeyValueInput extends JPanel implements FocusListener {
 
         this.enabledCheckbox.addActionListener((e) -> this.onChange(KeyValueChangeEventType.VALUE));
 
-        this.deleteButton.addActionListener((e) -> this.onChange(KeyValueChangeEventType.DELETE));
+    }
+
+    private void setupDeleteButton() {
+        Presentation presentationSave = new Presentation("Cancel Request");
+        AnAction actionSave = new AnAction(AllIcons.Actions.DeleteTag) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                KeyValueInput.this.onChange(KeyValueChangeEventType.DELETE);
+            }
+        };
+        this.deleteButton = new ActionButton(
+                actionSave,
+                presentationSave,
+                ActionPlaces.UNKNOWN,
+                ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+        );
     }
 
     private void initView() {
@@ -78,7 +95,7 @@ public class KeyValueInput extends JPanel implements FocusListener {
         this.enabledCheckbox.setToolTipText("Enabled");
 
         GridLayoutManager layoutManager = new GridLayoutManager(1, 4);
-        layoutManager.setMargin(JBUI.insets(4, 12, 4, 8));
+        layoutManager.setMargin(JBUI.insets(6, 10, 6, 8));
         this.setLayout(layoutManager);
 
         GridConstraints keyConstraint = new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_HORIZONTAL,
@@ -89,17 +106,19 @@ public class KeyValueInput extends JPanel implements FocusListener {
                 GridConstraints.SIZEPOLICY_WANT_GROW,
                 GridConstraints.SIZEPOLICY_FIXED, null, null, null);
 
-        GridConstraints checkboxConstraint = new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+        GridConstraints checkboxConstraint = new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.ANCHOR_CENTER,
                 GridConstraints.SIZEPOLICY_FIXED,
-                GridConstraints.SIZEPOLICY_FIXED, new Dimension(26, 26), new Dimension(26, 26), new Dimension(26, 26));
+                GridConstraints.SIZEPOLICY_FIXED, new Dimension(18, 24), new Dimension(18, 24), new Dimension(18, 24));
 
-        GridConstraints buttonConstraint = new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL,
+        GridConstraints buttonConstraint = new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.ANCHOR_CENTER,
                 GridConstraints.SIZEPOLICY_FIXED,
-                GridConstraints.SIZEPOLICY_FIXED, new Dimension(26, 26), new Dimension(26, 26), new Dimension(26, 26));
+                GridConstraints.SIZEPOLICY_FIXED, new Dimension(24, 24), new Dimension(24, 24), new Dimension(24, 24));
 
         this.add(this.keyInput, keyConstraint);
         this.add(this.valueInput, valueConstraint);
         this.add(this.enabledCheckbox, checkboxConstraint);
+
+        this.setupDeleteButton();
         this.add(this.deleteButton, buttonConstraint);
     }
 

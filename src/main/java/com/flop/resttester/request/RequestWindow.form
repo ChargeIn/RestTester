@@ -233,7 +233,7 @@
               <requestFocusEnabled value="true"/>
             </properties>
           </component>
-          <component id="c8f0f" class="com.flop.resttester.components.ActionButton" binding="sendButton" custom-create="true">
+          <component id="c8f0f" class="com.intellij.openapi.actionSystem.impl.ActionButton" binding="sendButton" custom-create="true">
             <constraints>
               <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false">
                 <minimum-size width="36" height="36"/>

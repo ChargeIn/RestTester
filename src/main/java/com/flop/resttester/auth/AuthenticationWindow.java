@@ -8,10 +8,12 @@
 package com.flop.resttester.auth;
 
 import com.flop.resttester.RestTesterNotifier;
-import com.flop.resttester.components.ActionButton;
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
@@ -66,18 +68,36 @@ public class AuthenticationWindow {
 
     private void createUIComponents() {
         // remove button
-        this.removeActionButton = new ActionButton("", AllIcons.Vcs.Remove);
-        this.removeActionButton.addActionListener((e) -> {
-            if (this.authenticationHandler != null) {
-                this.authenticationHandler.deleteSelection();
+        Presentation presentationRemove = new Presentation("Remove Profile");
+        AnAction actionRemove = new AnAction(AllIcons.Vcs.Remove) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                if (AuthenticationWindow.this.authenticationHandler != null) {
+                    AuthenticationWindow.this.authenticationHandler.deleteSelection();
+                }
             }
-        });
-        this.removeActionButton.setToolTipText("Remove profile");
+        };
+        this.removeActionButton = new ActionButton(
+                actionRemove,
+                presentationRemove,
+                ActionPlaces.UNKNOWN,
+                ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+        );
 
         // save button
-        this.saveActionButton = new ActionButton("", AllIcons.Actions.AddToDictionary);
-        this.saveActionButton.addActionListener((e) -> this.save());
-        this.saveActionButton.setToolTipText("Save profile");
+        Presentation presentationSave = new Presentation("Save Profile");
+        AnAction actionSave = new AnAction(AllIcons.Actions.AddToDictionary) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                AuthenticationWindow.this.save();
+            }
+        };
+        this.saveActionButton = new ActionButton(
+                actionSave,
+                presentationSave,
+                ActionPlaces.UNKNOWN,
+                ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+        );
     }
 
     public void save() {

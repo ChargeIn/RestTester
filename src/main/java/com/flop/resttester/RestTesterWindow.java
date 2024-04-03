@@ -9,7 +9,6 @@ package com.flop.resttester;
 
 import com.flop.resttester.auth.AuthenticationData;
 import com.flop.resttester.auth.AuthenticationWindow;
-import com.flop.resttester.components.ActionButton;
 import com.flop.resttester.request.RequestData;
 import com.flop.resttester.request.RequestThread;
 import com.flop.resttester.request.RequestWindow;
@@ -21,8 +20,11 @@ import com.flop.resttester.state.RestTesterStateService;
 import com.flop.resttester.variables.VariablesWindow;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.dnd.aware.DnDAwareTree;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
@@ -181,27 +183,67 @@ public class RestTesterWindow {
     }
 
     private void setupRemoveButton() {
-        this.removeButton = new ActionButton("", AllIcons.Vcs.Remove);
-        this.removeButton.addActionListener((e) -> this.treeHandler.deleteNode(null));
-        this.removeButton.setToolTipText("Delete selection");
+        Presentation presentation = new Presentation("Delete Selection");
+        AnAction action = new AnAction(AllIcons.Vcs.Remove) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                RestTesterWindow.this.treeHandler.deleteNode(null);
+            }
+        };
+        this.removeButton = new ActionButton(
+                action,
+                presentation,
+                ActionPlaces.UNKNOWN,
+                ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+        );
     }
 
     private void setupCopyButton() {
-        this.copyButton = new ActionButton("", AllIcons.Actions.Copy);
-        this.copyButton.addActionListener((e) -> this.treeHandler.copyNode(null));
-        this.copyButton.setToolTipText("Copy selection");
+        Presentation presentation = new Presentation("Copy Selection");
+        AnAction action = new AnAction(AllIcons.Actions.Copy) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                RestTesterWindow.this.treeHandler.copyNode(null);
+            }
+        };
+        this.copyButton = new ActionButton(
+                action,
+                presentation,
+                ActionPlaces.UNKNOWN,
+                ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+        );
         this.copyButton.setEnabled(false);
     }
 
     private void setupAddRequestButton() {
-        this.addRequestButton = new ActionButton("", AllIcons.ToolbarDecorator.AddLink);
-        this.addRequestButton.addActionListener((e) -> this.treeHandler.addNewRequest(null));
-        this.addRequestButton.setToolTipText("Add new request");
+        Presentation presentation = new Presentation("Add New Request");
+        AnAction action = new AnAction(AllIcons.ToolbarDecorator.AddLink) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                RestTesterWindow.this.treeHandler.addNewRequest(null);
+            }
+        };
+        this.addRequestButton = new ActionButton(
+                action,
+                presentation,
+                ActionPlaces.UNKNOWN,
+                ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+        );
     }
 
     private void setupAddFolderButton() {
-        this.addFolderButton = new ActionButton("", AllIcons.ToolbarDecorator.AddFolder);
-        this.addFolderButton.addActionListener((e) -> this.treeHandler.addNewFolder(null));
-        this.addFolderButton.setToolTipText("Add new folder");
+        Presentation presentation = new Presentation("Add New Folder");
+        AnAction action = new AnAction(AllIcons.ToolbarDecorator.AddFolder) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                RestTesterWindow.this.treeHandler.addNewFolder(null);
+            }
+        };
+        this.addFolderButton = new ActionButton(
+                action,
+                presentation,
+                ActionPlaces.UNKNOWN,
+                ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+        );
     }
 }

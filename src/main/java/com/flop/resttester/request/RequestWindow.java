@@ -9,7 +9,6 @@ package com.flop.resttester.request;
 
 import com.flop.resttester.RestTesterNotifier;
 import com.flop.resttester.auth.AuthenticationData;
-import com.flop.resttester.components.CustomLanguageTextField;
 import com.flop.resttester.components.CustomPanel;
 import com.flop.resttester.components.UrlInputHandler;
 import com.flop.resttester.components.combobox.CustomComboBox;
@@ -24,24 +23,20 @@ import com.flop.resttester.variables.VariablesWindow;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.json.JsonFileType;
-import com.intellij.json.JsonLanguage;
-import com.intellij.lang.Language;
-import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
-import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
+import com.intellij.openapi.fileEditor.impl.text.PsiAwareTextEditorImpl;
+import com.intellij.openapi.fileEditor.impl.text.PsiAwareTextEditorProvider;
 import com.intellij.openapi.fileTypes.PlainTextFileType;
-import com.intellij.openapi.fileTypes.PlainTextLanguage;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.JavaCodeFragmentFactory;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiExpressionCodeFragment;
+import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.LanguageTextField;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
+import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
@@ -62,15 +57,16 @@ public class RequestWindow {
     private JScrollPane paramsScrollPane;
     private JTable paramsTable;
     private JPanel bodyPanel;
-    private LanguageTextField jsonBodyInput;
     private JComboBox<RequestBodyType> bodyTypePicker;
     private JPanel urlInputPanel;
     private JComboBox<RequestType> requestTypeComboBox;
     private ActionButton sendButton;
     private JTextPane urlInputField;
-    private LanguageTextField xmlBodyInput;
-    private LanguageTextField plainBodyInput;
+    private PsiAwareTextEditorImpl jsonBodyEditor;
+    private PsiAwareTextEditorImpl xmlBodyEditor;
+    private PsiAwareTextEditorImpl plainBodyEditor;
     private KeyValueList headerList;
+    private JPanel editorWrapper;
     private Project project;
     private RequestWindowListener windowListener;
     private VariablesHandler variablesHandler;
@@ -82,7 +78,7 @@ public class RequestWindow {
 
     private boolean omitUpdates = false;
 
-    private Debouncer debouncer = new Debouncer(this::changeCallback, 1000);
+    private final Debouncer debouncer = new Debouncer(this::changeCallback, 1000);
 
     public RequestWindow() {
         this.setupStyles();
@@ -97,7 +93,7 @@ public class RequestWindow {
     }
 
     public void setupChangeListener() {
-        this.jsonBodyInput.getDocument().addDocumentListener(this.getJsonBodyChangeListener());
+        this.jsonBodyEditor.getEditor().getDocument().addDocumentListener(this.getJsonBodyChangeListener());
         this.urlInputField.getDocument().addDocumentListener(this.getUrlChangeListener());
         this.nameInputField.getDocument().addDocumentListener(this.getNameChangeListener());
         this.authComboBox.addActionListener(this.getAuthChangeListener());
@@ -159,8 +155,10 @@ public class RequestWindow {
         return new DocumentListener() {
             @Override
             public void documentChanged(@NotNull DocumentEvent event) {
-                if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getBody().equals(RequestWindow.this.jsonBodyInput.getText())) {
-                    RequestWindow.this.selection.setBody(RequestWindow.this.jsonBodyInput.getText());
+                String text = RequestWindow.this.jsonBodyEditor.getEditor().getDocument().getText();
+
+                if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getBody().equals(text)) {
+                    RequestWindow.this.selection.setBody(text);
                     RequestWindow.this.updateSelection();
                 }
             }
@@ -240,16 +238,12 @@ public class RequestWindow {
 
     public void setProject(Project project) {
         this.project = project;
-        this.setupLanguageHighlighting();
+        this.setupEditors();
     }
 
     private void setupStyles() {
         this.settingsScrollPane.setBorder(BorderFactory.createEmptyBorder());
         this.sendButton.setBorder(JBUI.Borders.empty(5));
-
-        this.jsonBodyInput.setVisible(true);
-        this.xmlBodyInput.setVisible(false);
-        this.plainBodyInput.setVisible(false);
     }
 
     private void setupBodyTypeBox() {
@@ -263,58 +257,64 @@ public class RequestWindow {
     }
 
     private void setBodyTextField(ActionEvent event) {
+        ApplicationManager.getApplication().runWriteAction(() -> {
+            String content;
+            if (this.lastSelection == RequestBodyType.XML) {
+                content = this.xmlBodyEditor.getEditor().getDocument().getText();
+            } else if (this.lastSelection == RequestBodyType.Plain) {
+                content = this.plainBodyEditor.getEditor().getDocument().getText();
+            } else {
+                content = this.jsonBodyEditor.getEditor().getDocument().getText();
+            }
 
-        String content;
-        if (this.lastSelection == RequestBodyType.XML) {
-            content = this.xmlBodyInput.getText();
-        } else if (this.lastSelection == RequestBodyType.JSON) {
-            content = this.jsonBodyInput.getText();
-        } else {
-            content = this.plainBodyInput.getText();
-        }
+            this.lastSelection = (RequestBodyType) this.bodyTypePicker.getSelectedItem();
 
-        this.xmlBodyInput.setText(content);
-        this.plainBodyInput.setText(content);
-        this.jsonBodyInput.setText(content);
+            // remove old editor
+            this.editorWrapper.remove(0);
 
-        RequestBodyType type = (RequestBodyType) this.bodyTypePicker.getSelectedItem();
-        this.lastSelection = type;
+            GridConstraints constraints = new GridConstraints(
+                    0, 0, 1, 1,
+                    GridConstraints.ANCHOR_CENTER,
+                    GridConstraints.FILL_BOTH,
+                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                    GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                    null, null, null
+            );
 
-        boolean isXml = type == RequestBodyType.XML;
-        boolean isJson = type == RequestBodyType.JSON;
-
-        this.xmlBodyInput.setVisible(isXml);
-        this.jsonBodyInput.setVisible(isJson);
-        this.plainBodyInput.setVisible(!isXml && !isJson);
+            // add new editor and set content
+            if (this.lastSelection == RequestBodyType.XML) {
+                this.xmlBodyEditor.getEditor().getDocument().setText(content);
+                this.editorWrapper.add(this.xmlBodyEditor.getEditor().getComponent(), constraints);
+            } else if (this.lastSelection == RequestBodyType.Plain) {
+                this.plainBodyEditor.getEditor().getDocument().setText(content);
+                this.editorWrapper.add(this.plainBodyEditor.getEditor().getComponent(), constraints);
+            } else {
+                this.jsonBodyEditor.getEditor().getDocument().setText(content);
+                this.editorWrapper.add(this.jsonBodyEditor.getEditor().getComponent(), constraints);
+            }
+        });
     }
 
-    private void setupLanguageHighlighting() {
-        PsiExpressionCodeFragment jsonCodeFragment =
-                JavaCodeFragmentFactory.getInstance(this.project)
-                        .createExpressionCodeFragment("", null, null, true);
+    private void setupEditors() {
+        LightVirtualFile virtualJsonFile = new LightVirtualFile("_rest-tester-json-body.json", JsonFileType.INSTANCE, "");
+        this.jsonBodyEditor = (PsiAwareTextEditorImpl) PsiAwareTextEditorProvider.getInstance().createEditor(this.project, virtualJsonFile);
 
-        Document jsonDocument =
-                PsiDocumentManager.getInstance(this.project).getDocument(jsonCodeFragment);
-        this.jsonBodyInput.setDocument(jsonDocument);
-        this.jsonBodyInput.setFileType(JsonFileType.INSTANCE);
+        LightVirtualFile virtualXmlFile = new LightVirtualFile("_rest-tester-xml-body.xml", XmlFileType.INSTANCE, "");
+        this.xmlBodyEditor = (PsiAwareTextEditorImpl) PsiAwareTextEditorProvider.getInstance().createEditor(this.project, virtualXmlFile);
 
-        PsiExpressionCodeFragment xmlCodeFragment =
-                JavaCodeFragmentFactory.getInstance(this.project)
-                        .createExpressionCodeFragment("", null, null, true);
+        LightVirtualFile virtualPlainFile = new LightVirtualFile("_rest-tester-plain-body.txt", PlainTextFileType.INSTANCE, "");
+        this.plainBodyEditor = (PsiAwareTextEditorImpl) PsiAwareTextEditorProvider.getInstance().createEditor(this.project, virtualPlainFile);
 
-        Document xmlDocument =
-                PsiDocumentManager.getInstance(this.project).getDocument(xmlCodeFragment);
-        this.xmlBodyInput.setDocument(xmlDocument);
-        this.xmlBodyInput.setFileType(XmlFileType.INSTANCE);
+        GridConstraints constraints = new GridConstraints(
+                0, 0, 1, 1,
+                GridConstraints.ANCHOR_CENTER,
+                GridConstraints.FILL_BOTH,
+                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW,
+                null, null, null
+        );
 
-        PsiExpressionCodeFragment plainCodeFragment =
-                JavaCodeFragmentFactory.getInstance(this.project)
-                        .createExpressionCodeFragment("", null, null, true);
-
-        Document plainDocument =
-                PsiDocumentManager.getInstance(this.project).getDocument(plainCodeFragment);
-        this.plainBodyInput.setDocument(plainDocument);
-        this.plainBodyInput.setFileType(PlainTextFileType.INSTANCE);
+        this.editorWrapper.add(this.jsonBodyEditor.getEditor().getComponent(), constraints);
     }
 
     private void createUIComponents() {
@@ -322,9 +322,6 @@ public class RequestWindow {
         this.setupSendButton();
         this.setupParamsTable();
         this.setupHeaderList();
-        this.jsonBodyInput = this.createLanguageTextField(JsonLanguage.INSTANCE);
-        this.xmlBodyInput = this.createLanguageTextField(XMLLanguage.INSTANCE);
-        this.plainBodyInput = this.createLanguageTextField(PlainTextLanguage.INSTANCE);
         this.setupUpRequestTypeComboBox();
     }
 
@@ -332,14 +329,6 @@ public class RequestWindow {
         this.urlInputPanel = new CustomPanel();
         ((CustomPanel) this.urlInputPanel).setCustomBackground(JBColor.border());
         this.urlInputPanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
-    }
-
-    private CustomLanguageTextField createLanguageTextField(Language language) {
-        CustomLanguageTextField textField = new CustomLanguageTextField(language, this.project, "");
-        textField.setCustomBackground(JBColor.border());
-        textField.setOneLineMode(false);
-        textField.setBorder(JBUI.Borders.empty(5));
-        return textField;
     }
 
     public void setupRequestTypes() {
@@ -429,65 +418,62 @@ public class RequestWindow {
         String tag = this.nameInputField.getText();
         List<KeyValuePair> params = this.paramHandler.getParams();
         List<KeyValuePair> headers = this.headerList.getValues().stream().filter(header -> header.enabled).toList();
-        String body = this.jsonBodyInput.getText();
+        String body = this.jsonBodyEditor.getEditor().getDocument().getText();
         RequestBodyType bodyType = (RequestBodyType) this.bodyTypePicker.getSelectedItem();
 
         return new RequestTreeNodeData(url, tag, type, authData.getName(), params, headers, body, bodyType);
     }
 
-    public String getRawID() {
-        RequestType type = (RequestType) this.requestTypeComboBox.getSelectedItem();
-        String url = this.urlInputField.getText();
-        String tag = this.nameInputField.getText();
-        return type + ": " + url + " - " + tag;
-    }
-
     public void setRequestData(RequestTreeNodeData data) {
-        this.omitUpdates = true;
-        this.selection = data;
+        ApplicationManager.getApplication().runWriteAction(() -> {
+            this.omitUpdates = true;
+            this.selection = data;
 
-        if (!this.urlInputField.getText().equals(data.getUrl())) {
-            // only update url input if text changed
-            // otherwise the coloring might not be updated
-            this.urlInputField.setText(data.getUrl());
-        }
-        this.nameInputField.setText(data.getName());
-        this.paramHandler.loadParams(data.getParams());
-        this.headerList.setItems(data.getHeaders());
-        this.jsonBodyInput.setText(data.getBody());
-        this.xmlBodyInput.setText(data.getBody());
-        this.plainBodyInput.setText(data.getBody());
-        this.lastSelection = data.getBodyType();
-
-        for (int i = 0; i < this.requestTypeComboBox.getItemCount(); i++) {
-            if (data.getType() == this.requestTypeComboBox.getItemAt(i)) {
-                this.requestTypeComboBox.setSelectedIndex(i);
-                break;
+            if (!this.urlInputField.getText().equals(data.getUrl())) {
+                // only update url input if text changed
+                // otherwise the coloring might not be updated
+                this.urlInputField.setText(data.getUrl());
             }
-        }
+            this.nameInputField.setText(data.getName());
+            this.paramHandler.loadParams(data.getParams());
+            this.headerList.setItems(data.getHeaders());
 
-        for (int i = 0; i < this.bodyTypePicker.getItemCount(); i++) {
-            if (data.getBodyType() == this.bodyTypePicker.getItemAt(i)) {
-                this.bodyTypePicker.setSelectedIndex(i);
-                break;
-            }
-        }
+            this.xmlBodyEditor.getEditor().getDocument().setText(data.getBody());
+            this.plainBodyEditor.getEditor().getDocument().setText(data.getBody());
+            this.jsonBodyEditor.getEditor().getDocument().setText(data.getBody());
 
-        if (!data.getAuthenticationDataKey().isEmpty()) {
-            for (int i = 0; i < this.authComboBox.getItemCount(); i++) {
-                if (this.authComboBox.getItemAt(i).getName().equals(data.getAuthenticationDataKey())) {
-                    this.authComboBox.setSelectedIndex(i);
-                    this.omitUpdates = false;
-                    return;
+            this.lastSelection = data.getBodyType();
+
+            for (int i = 0; i < this.requestTypeComboBox.getItemCount(); i++) {
+                if (data.getType() == this.requestTypeComboBox.getItemAt(i)) {
+                    this.requestTypeComboBox.setSelectedIndex(i);
+                    break;
                 }
             }
 
-            if (this.project != null) {
-                RestTesterNotifier.notifyError(this.project, "Could not find authentication data with name " + data.getAuthenticationDataKey());
+            for (int i = 0; i < this.bodyTypePicker.getItemCount(); i++) {
+                if (data.getBodyType() == this.bodyTypePicker.getItemAt(i)) {
+                    this.bodyTypePicker.setSelectedIndex(i);
+                    break;
+                }
             }
-        }
-        this.authComboBox.setSelectedIndex(0);
-        this.omitUpdates = false;
+
+            if (!data.getAuthenticationDataKey().isEmpty()) {
+                for (int i = 0; i < this.authComboBox.getItemCount(); i++) {
+                    if (this.authComboBox.getItemAt(i).getName().equals(data.getAuthenticationDataKey())) {
+                        this.authComboBox.setSelectedIndex(i);
+                        this.omitUpdates = false;
+                        return;
+                    }
+                }
+
+                if (this.project != null) {
+                    RestTesterNotifier.notifyError(this.project, "Could not find authentication data with name " + data.getAuthenticationDataKey());
+                }
+            }
+            this.authComboBox.setSelectedIndex(0);
+            this.omitUpdates = false;
+        });
     }
 
     public void setRequestStarted(boolean started) {

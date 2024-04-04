@@ -23,9 +23,6 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileTypes.PlainTextFileType;
 import com.intellij.openapi.fileTypes.PlainTextLanguage;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.JavaCodeFragmentFactory;
-import com.intellij.psi.PsiDocumentManager;
-import com.intellij.psi.PsiExpressionCodeFragment;
 import com.intellij.ui.JBColor;
 import com.intellij.ui.LanguageTextField;
 import org.apache.commons.io.FileUtils;
@@ -81,31 +78,19 @@ public class ResponseWindow {
     }
 
     private void setupLanguageHighlighting() {
-        PsiExpressionCodeFragment codeFragmentJson =
-                JavaCodeFragmentFactory.getInstance(this.project)
-                        .createExpressionCodeFragment("", null, null, true);
+        LanguageTextField.SimpleDocumentCreator creator = new LanguageTextField.SimpleDocumentCreator();
 
-        Document documentJson =
-                PsiDocumentManager.getInstance(this.project).getDocument(codeFragmentJson);
-        this.resultJsonPane.setDocument(documentJson);
+        Document jsonDocument = LanguageTextField.createDocument("", JsonLanguage.INSTANCE, this.project, creator);
+        this.resultJsonPane.setDocument(jsonDocument);
         this.resultJsonPane.setFileType(JsonFileType.INSTANCE);
 
-        PsiExpressionCodeFragment codeFragmentHtml =
-                JavaCodeFragmentFactory.getInstance(this.project)
-                        .createExpressionCodeFragment("", null, null, true);
 
-        Document documentHtml =
-                PsiDocumentManager.getInstance(this.project).getDocument(codeFragmentHtml);
-        this.resultHtmlPane.setDocument(documentHtml);
+        Document htmlDocument = LanguageTextField.createDocument("", HTMLLanguage.INSTANCE, this.project, creator);
+        this.resultHtmlPane.setDocument(htmlDocument);
         this.resultHtmlPane.setFileType(HtmlFileType.INSTANCE);
 
-        PsiExpressionCodeFragment headersResult =
-                JavaCodeFragmentFactory.getInstance(this.project)
-                        .createExpressionCodeFragment("", null, null, true);
-
-        Document documentHeaders =
-                PsiDocumentManager.getInstance(this.project).getDocument(headersResult);
-        this.headersTextPane.setDocument(documentHeaders);
+        Document plainDocument = LanguageTextField.createDocument("", null, this.project, creator);
+        this.headersTextPane.setDocument(plainDocument);
         this.headersTextPane.setFileType(PlainTextFileType.INSTANCE);
     }
 
@@ -241,7 +226,14 @@ public class ResponseWindow {
         }
 
         this.parseHeadersInfo(responseData);
-        List<String> contentType = responseData.responseHeaders().get("Content-Type");
+        List<String> contentType = null;
+
+        if (responseData.responseHeaders() != null) {
+            try {
+                contentType = responseData.responseHeaders().get("Content-Type");
+            } catch (Exception ignore) {
+            }
+        }
 
         if (contentType == null || contentType.isEmpty()) {
             this.parseAsHtml(responseData);
@@ -273,32 +265,36 @@ public class ResponseWindow {
                 .append(data.method())
                 .append("\n\n\n =========== Response Headers =========== \n");
 
-        for (String key : data.responseHeaders().keySet()) {
-            List<String> headers = data.responseHeaders().get(key);
-            String headerString = String.join(", ", headers);
+        if (data.responseHeaders() != null) {
+            for (String key : data.responseHeaders().keySet()) {
+                List<String> headers = data.responseHeaders().get(key);
+                String headerString = String.join(", ", headers);
 
-            if (key == null) {
-                content.append(headerString);
-            } else {
-                content.append(key).append(": ");
-                content.append(headerString);
+                if (key == null) {
+                    content.append(headerString);
+                } else {
+                    content.append(key).append(": ");
+                    content.append(headerString);
+                }
+                content.append("\n");
             }
-            content.append("\n");
         }
 
         content.append("\n\n =========== Request Headers ============ \n");
 
-        for (String key : data.requestHeaders().keySet()) {
-            List<String> headers = data.requestHeaders().get(key);
-            String headerString = String.join(", ", headers);
+        if (data.requestHeaders() != null) {
+            for (String key : data.requestHeaders().keySet()) {
+                List<String> headers = data.requestHeaders().get(key);
+                String headerString = String.join(", ", headers);
 
-            if (key == null) {
-                content.append(headerString);
-            } else {
-                content.append(key).append(": ");
-                content.append(headerString);
+                if (key == null) {
+                    content.append(headerString);
+                } else {
+                    content.append(key).append(": ");
+                    content.append(headerString);
+                }
+                content.append("\n");
             }
-            content.append("\n");
         }
 
         this.headersTextPane.setText(content.toString());

@@ -7,18 +7,21 @@
 
 package com.flop.resttester.components.keyvaluelist;
 
-import com.flop.resttester.components.CustomTextField;
+import com.flop.resttester.components.textfield.RestTesterLanguageTextField;
+import com.flop.resttester.components.textfield.VariablesAutoCompletionProvider;
+import com.flop.resttester.language.RestTesterLanguageFileType;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionButton;
+import com.intellij.openapi.editor.event.DocumentEvent;
+import com.intellij.openapi.editor.event.DocumentListener;
+import com.intellij.openapi.project.Project;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -27,8 +30,8 @@ import java.util.List;
 
 public class KeyValueInput extends JPanel implements FocusListener {
 
-    private final JTextField keyInput = new CustomTextField("Header");
-    private final JTextField valueInput = new CustomTextField("Value");
+    private final RestTesterLanguageTextField keyInput;
+    private final RestTesterLanguageTextField valueInput;
     private final JCheckBox enabledCheckbox = new JCheckBox();
     private ActionButton deleteButton = null;
 
@@ -36,9 +39,25 @@ public class KeyValueInput extends JPanel implements FocusListener {
 
     public List<KeyValueInputChangeListener> listeners = new ArrayList<>();
 
-    public KeyValueInput(String key, String value, boolean enabled) {
+    public KeyValueInput(
+            String key,
+            String value,
+            boolean enabled,
+            String keyPlaceholder,
+            String valuePlaceholder,
+            VariablesAutoCompletionProvider keyProvider,
+            VariablesAutoCompletionProvider valueProvider,
+            Project project
+    ) {
+        this.keyInput = new RestTesterLanguageTextField(project, keyProvider, "");
+        this.valueInput = new RestTesterLanguageTextField(project, valueProvider, "");
+
+        this.keyInput.setFileType(RestTesterLanguageFileType.INSTANCE);
         this.keyInput.setText(key);
+        this.keyInput.setPlaceholder(keyPlaceholder);
+        this.valueInput.setFileType(RestTesterLanguageFileType.INSTANCE);
         this.valueInput.setText(value);
+        this.valueInput.setPlaceholder(valuePlaceholder);
         this.enabledCheckbox.setSelected(enabled);
 
         this.initListeners();
@@ -48,17 +67,7 @@ public class KeyValueInput extends JPanel implements FocusListener {
     private void initListeners() {
         DocumentListener valueChangeListener = new DocumentListener() {
             @Override
-            public void insertUpdate(DocumentEvent e) {
-                KeyValueInput.this.notifyChange();
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                KeyValueInput.this.notifyChange();
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent e) {
+            public void documentChanged(@NotNull DocumentEvent event) {
                 KeyValueInput.this.notifyChange();
             }
         };

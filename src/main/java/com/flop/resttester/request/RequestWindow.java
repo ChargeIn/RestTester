@@ -13,6 +13,7 @@ import com.flop.resttester.components.CustomPanel;
 import com.flop.resttester.components.UrlInputHandler;
 import com.flop.resttester.components.combobox.CustomComboBox;
 import com.flop.resttester.components.combobox.CustomComboBoxUI;
+import com.flop.resttester.components.keyvaluelist.HeaderKeyValueList;
 import com.flop.resttester.components.keyvaluelist.KeyValueList;
 import com.flop.resttester.components.keyvaluelist.KeyValueListChangeListener;
 import com.flop.resttester.components.keyvaluelist.KeyValuePair;
@@ -361,7 +362,7 @@ public class RequestWindow {
     }
 
     private void setupHeaderList() {
-        this.headerList = new KeyValueList();
+        this.headerList = new HeaderKeyValueList();
     }
 
     private void setupSendButton() {
@@ -394,30 +395,35 @@ public class RequestWindow {
     public void setVariablesWindow(VariablesWindow varWindow) {
         this.variablesHandler = varWindow.getVariablesHandler();
         this.urlInputHandler = new UrlInputHandler(this.urlInputField, variablesHandler);
+        this.headerList.setProject(this.project, this.variablesHandler);
         this.setupChangeListener();
     }
 
-    public AuthenticationData getAuthData(boolean rawData) {
+    public AuthenticationData getAuthData() {
         AuthenticationData authData = (AuthenticationData) this.authComboBox.getSelectedItem();
-
-        if (rawData) {
-            return authData;
-        }
         return authData.createReplacedClone(this.variablesHandler);
     }
 
-    public RequestTreeNodeData getRequestData(boolean rawData) {
+    public RequestTreeNodeData getRequestData() {
         String url = this.urlInputField.getText();
-
-        if (!rawData) {
-            url = this.variablesHandler.replaceVariables(url);
-        }
+        url = this.variablesHandler.replaceVariables(url);
 
         RequestType type = (RequestType) this.requestTypeComboBox.getSelectedItem();
         AuthenticationData authData = (AuthenticationData) this.authComboBox.getSelectedItem();
         String tag = this.nameInputField.getText();
-        List<KeyValuePair> params = this.paramHandler.getParams();
-        List<KeyValuePair> headers = this.headerList.getValues().stream().filter(header -> header.enabled).toList();
+
+        List<KeyValuePair> params = this.paramHandler.getParams().stream().map(pair -> {
+            String key = this.variablesHandler.replaceVariables(pair.key);
+            String value = this.variablesHandler.replaceVariables(pair.value);
+            return new KeyValuePair(key, value, pair.enabled);
+        }).toList();
+
+        List<KeyValuePair> headers = this.headerList.getValues().stream().map(pair -> {
+            String key = this.variablesHandler.replaceVariables(pair.key);
+            String value = this.variablesHandler.replaceVariables(pair.value);
+            return new KeyValuePair(key, value, pair.enabled);
+        }).filter(header -> header.enabled).toList();
+
         String body = this.jsonBodyEditor.getEditor().getDocument().getText();
         RequestBodyType bodyType = (RequestBodyType) this.bodyTypePicker.getSelectedItem();
 

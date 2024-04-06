@@ -7,10 +7,12 @@
 
 package com.flop.resttester.request;
 
+import com.flop.resttester.RestTesterNotifier;
 import com.flop.resttester.auth.AuthenticationData;
 import com.flop.resttester.auth.AuthenticationType;
 import com.flop.resttester.components.keyvaluelist.KeyValuePair;
 import com.flop.resttester.response.ResponseData;
+import com.intellij.openapi.project.Project;
 import com.intellij.util.io.URLUtil;
 import org.apache.commons.codec.binary.Base64;
 
@@ -31,12 +33,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class RequestThread extends Thread {
+    private final Project project;
     private final RequestData data;
     private final RequestFinishedListener finishedListener;
     private boolean stopped = false;
     private long startTime = 0;
 
-    public RequestThread(RequestData data, RequestFinishedListener finishedListener) {
+    public RequestThread(Project project, RequestData data, RequestFinishedListener finishedListener) {
+        this.project = project;
         this.data = data;
         this.finishedListener = finishedListener;
     }
@@ -101,7 +105,11 @@ public class RequestThread extends Thread {
 
             if (!headers.isEmpty()) {
                 for (KeyValuePair header : headers) {
-                    builder = builder.header(header.key, header.value);
+                    try {
+                        builder = builder.header(header.key, header.value);
+                    } catch (IllegalArgumentException ignored) {
+                        RestTesterNotifier.notifyInfo(this.project, "Rest Tester: Request contained invalid header '" + header.key + "' with value '" + header.value + "'.");
+                    }
                     headersMap.put(header.key.toLowerCase(), header.value);
                 }
             }
@@ -152,7 +160,13 @@ public class RequestThread extends Thread {
                     return;
                 }
 
-                ResponseData data = new ResponseData(urlString.toString(), request.method(), request.headers().map(), request.headers().map(), -1, e.getMessage().getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
+                byte[] messageBytes = new byte[0];
+
+                if (e.getMessage() != null) {
+                    messageBytes = e.getMessage().getBytes(StandardCharsets.UTF_8);
+                }
+
+                ResponseData data = new ResponseData(urlString.toString(), request.method(), request.headers().map(), request.headers().map(), -1, messageBytes, this.getElapsedTime());
                 this.finishedListener.onRequestFinished(data);
             }
         }

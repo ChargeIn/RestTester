@@ -4,9 +4,13 @@
  *
  * This file is licensed under LGPLv3
  */
+
 package com.flop.resttester.components.keyvaluelist;
 
+import com.flop.resttester.components.textfield.VariablesAutoCompletionProvider;
 import com.flop.resttester.utils.Debouncer;
+import com.flop.resttester.variables.VariablesHandler;
+import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
@@ -19,10 +23,41 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class KeyValueList extends JPanel {
+public abstract class KeyValueList extends JPanel {
+
+    Project project;
+    VariablesHandler variablesHandler;
+    VariablesAutoCompletionProvider keyCompletionProvider;
+    VariablesAutoCompletionProvider valueCompletionProvider;
 
     public KeyValueList() {
-        this.initView();
+        this.initBaseViewView();
+    }
+
+    /**
+     * Returns the proposals for the auto completions (keys)
+     */
+    abstract List<String> getKeyProposals();
+
+    /**
+     * Returns the proposals for the auto completions (values)
+     */
+    abstract List<String> getValueProposals();
+
+    /**
+     * Returns the placeholder used by the key input
+     */
+    abstract String getKeyPlaceholder();
+
+    /**
+     * Returns the placeholder used by the value input
+     */
+    abstract String getValuePlaceholder();
+
+    public void setProject(Project project, VariablesHandler variablesHandler) {
+        this.project = project;
+        this.variablesHandler = variablesHandler;
+        this.initKeyValueList();
     }
 
     private JPanel panel;
@@ -35,8 +70,7 @@ public class KeyValueList extends JPanel {
 
     private final Debouncer debouncer = new Debouncer(this::notifyChange);
 
-    public void initView() {
-
+    public void initBaseViewView() {
         this.panel = new JPanel();
 
         JBScrollPane scrollPane = new JBScrollPane(this.panel, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
@@ -52,8 +86,21 @@ public class KeyValueList extends JPanel {
                 null, null, null);
 
         this.add(scrollPane, constraint);
+    }
 
-        KeyValueInput input = new KeyValueInput("", "", true);
+    private void initKeyValueList() {
+
+        this.keyCompletionProvider = new VariablesAutoCompletionProvider(this.variablesHandler, this.getKeyProposals());
+        this.valueCompletionProvider = new VariablesAutoCompletionProvider(this.variablesHandler, this.getValueProposals());
+
+        KeyValueInput input = new KeyValueInput(
+                "", "", true,
+                this.getKeyPlaceholder(),
+                this.getValuePlaceholder(),
+                this.keyCompletionProvider,
+                this.valueCompletionProvider,
+                this.project
+        );
         input.addChangeEventListener(this::onInputChange);
         this.panel.add(input);
     }
@@ -63,7 +110,14 @@ public class KeyValueList extends JPanel {
         int width = this.getParent().getWidth();
 
         for (KeyValuePair item : items) {
-            KeyValueInput input = new KeyValueInput(item.key, item.value, item.enabled);
+            KeyValueInput input = new KeyValueInput(
+                    item.key, item.value, item.enabled,
+                    this.getKeyPlaceholder(),
+                    this.getValuePlaceholder(),
+                    this.keyCompletionProvider,
+                    this.valueCompletionProvider,
+                    this.project
+            );
             input.addChangeEventListener(this::onInputChange);
             input.setPreferredSize(new Dimension(width, this.childHeight));
             this.panel.add(input);
@@ -155,7 +209,14 @@ public class KeyValueList extends JPanel {
     }
 
     private void addEmptyInput() {
-        KeyValueInput newInput = new KeyValueInput("", "", true);
+        KeyValueInput newInput = new KeyValueInput(
+                "", "", true,
+                this.getKeyPlaceholder(),
+                this.getValuePlaceholder(),
+                this.keyCompletionProvider,
+                this.valueCompletionProvider,
+                this.project
+        );
         newInput.addChangeEventListener(this::onInputChange);
 
         int width = this.getParent().getWidth();

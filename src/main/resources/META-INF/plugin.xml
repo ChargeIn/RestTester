@@ -84,5 +84,25 @@
 
         <applicationService
                 serviceImplementation="com.flop.resttester.state.RestTesterStateService"/>
+
+        <fileType
+                name="Rest Tester File"
+                implementationClass="com.flop.resttester.language.RestTesterLanguageFileType"
+                fieldName="INSTANCE"
+                language="RestTesterLanguage"
+                extensions="rest_tester"/>
+
+        <lang.parserDefinition
+                language="RestTesterLanguage"
+                implementationClass="com.flop.resttester.language.RestTesterLanguageParserDefinition"/>
+
+        <lang.syntaxHighlighterFactory
+                language="RestTesterLanguage"
+                implementationClass="com.flop.resttester.language.RestTesterLanguageSyntaxHighlighterFactory"/>
+
+        <completion.contributor
+                language="RestTesterLanguage"
+                implementationClass="com.flop.resttester.components.textfield.RestTesterLanguageTextCompletionContributor"
+                order="first, before commitCompletion"/>
     </extensions>
 </idea-plugin>

@@ -1,0 +1,20 @@
+{
+  parserClass="com.flop.resttester.language.parser.RestTesterParser"
+
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="RestTesterLanguage"
+  psiImplClassSuffix="Impl"
+  psiPackage="com.flop.resttester.language.psi"
+  psiImplPackage="com.flop.resttester.language.psi.impl"
+
+  elementTypeHolderClass="com.flop.resttester.language.psi.RestTesterLanguageTypes"
+  elementTypeClass="com.flop.resttester.language.psi.RestTesterLanguageElementType"
+  tokenTypeClass="com.flop.resttester.language.psi.RestTesterLanguageTokenType"
+}
+
+restTesterFile ::= item_*
+
+private item_ ::= (VALUE|var_exp)
+
+var_exp ::= OPEN_VAR_EXP + KEY + CLOSE_VAR_EXP

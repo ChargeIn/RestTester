@@ -10,6 +10,16 @@ repositories {
     mavenCentral()
 }
 
+// Used by the custom rest tester language used for highlighting
+// Include the generated files in the source sets
+sourceSets {
+    main {
+        java {
+            srcDirs("src/main/gen")
+        }
+    }
+}
+
 // Configure Gradle IntelliJ Plugin
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {

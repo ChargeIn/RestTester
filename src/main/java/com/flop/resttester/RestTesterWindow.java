@@ -49,10 +49,12 @@ public class RestTesterWindow {
     private ActionButton copyButton;
     private RequestThread requestThread;
     private Timer loadingTimer = new Timer();
+    private final Project project;
 
     private RequestTreeNodeData selection = null;
 
     public RestTesterWindow(Project project, AuthenticationWindow authWindow, VariablesWindow varWindow) {
+        this.project = project;
         this.treeHandler = new RequestTreeHandler(this.requestTree, project);
         this.treeHandler.addSelectionListener(this::updateInputs);
 
@@ -135,8 +137,8 @@ public class RestTesterWindow {
             }
         }, 0, 100);
 
-        RequestTreeNodeData nodeData = this.requestWindow.getRequestData(false);
-        AuthenticationData authData = this.requestWindow.getAuthData(false);
+        RequestTreeNodeData nodeData = this.requestWindow.getRequestData();
+        AuthenticationData authData = this.requestWindow.getAuthData();
 
         RequestData data = new RequestData(
                 nodeData.getUrl(),
@@ -149,7 +151,9 @@ public class RestTesterWindow {
                 this.state.getValidateSSL()
         );
 
-        this.requestThread = new RequestThread(data, (response) ->
+        this.requestThread = new RequestThread(
+                this.project,
+                data, (response) ->
                 SwingUtilities.invokeLater(() -> {
                             this.requestThread = null;
                             this.loadingTimer.cancel();

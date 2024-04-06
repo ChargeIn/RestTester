@@ -29,7 +29,7 @@ public class KeyValueList extends JPanel {
 
     private int lastWidth = 0;
 
-    private final int childHeight = 34;
+    private final int childHeight = 28;
 
     private final List<KeyValueListChangeListener> listeners = new ArrayList<>();
 

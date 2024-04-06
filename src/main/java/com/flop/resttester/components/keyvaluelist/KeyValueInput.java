@@ -95,7 +95,7 @@ public class KeyValueInput extends JPanel implements FocusListener {
         this.enabledCheckbox.setToolTipText("Enabled");
 
         GridLayoutManager layoutManager = new GridLayoutManager(1, 4);
-        layoutManager.setMargin(JBUI.insets(6, 10, 6, 8));
+        layoutManager.setMargin(JBUI.insets(0, 10, 6, 8));
         this.setLayout(layoutManager);
 
         GridConstraints keyConstraint = new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_HORIZONTAL,
@@ -108,7 +108,7 @@ public class KeyValueInput extends JPanel implements FocusListener {
 
         GridConstraints checkboxConstraint = new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.ANCHOR_CENTER,
                 GridConstraints.SIZEPOLICY_FIXED,
-                GridConstraints.SIZEPOLICY_FIXED, new Dimension(18, 24), new Dimension(18, 24), new Dimension(18, 24));
+                GridConstraints.SIZEPOLICY_FIXED, new Dimension(19, 24), new Dimension(19, 24), new Dimension(19, 24));
 
         GridConstraints buttonConstraint = new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.ANCHOR_CENTER,
                 GridConstraints.SIZEPOLICY_FIXED,

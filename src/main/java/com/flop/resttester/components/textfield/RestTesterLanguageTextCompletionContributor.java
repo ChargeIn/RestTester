@@ -51,10 +51,10 @@ public class RestTesterLanguageTextCompletionContributor extends CompletionContr
         int max = Math.max(Math.max(i, j), l);
 
         // test for "{{ " prefix
-        if (max > 1 && text.charAt(max - 1) == ' ' && text.charAt(max - 2) == '{') {
-            if (max > 2 && text.charAt(max - 3) == '{') {
+        if (max > 2) {
+            if (text.startsWith("{{ ", max - 3)) {
                 max -= 3;
-            } else {
+            } else if (text.startsWith("{{", max - 2)) {
                 max -= 2;
             }
         }

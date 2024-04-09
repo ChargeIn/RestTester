@@ -45,10 +45,16 @@ public class RestTesterLanguageTextCompletionContributor extends CompletionContr
     }
 
     private String getPrefix(String text, int offset) {
-        int i = text.lastIndexOf(' ', offset - 1) + 1;
-        int j = text.lastIndexOf('\n', offset - 1) + 1;
-        int l = text.lastIndexOf("{{");
-        int max = Math.max(Math.max(i, j), l);
+        int whiteSpace = text.lastIndexOf(' ', offset - 1) + 1;
+        int lineBreak = text.lastIndexOf('\n', offset - 1) + 1;
+        int openingBrackets = text.lastIndexOf("{{", offset - 1);
+
+        int closingBrackets = text.lastIndexOf("}}", offset - 1);
+        if (closingBrackets != -1) {
+            closingBrackets += 2;
+        }
+
+        int max = Math.max(Math.max(Math.max(whiteSpace, lineBreak), openingBrackets), closingBrackets);
 
         // test for "{{ " prefix
         if (max > 2) {

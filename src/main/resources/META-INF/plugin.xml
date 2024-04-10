@@ -73,7 +73,7 @@
         </ul>
     ]]></change-notes>
 
-    <idea-version since-build="231.9414.13"/>
+    <idea-version since-build="232.10300.40"/>
 
     <!-- Product and plugin compatibility requirements.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->

@@ -18,7 +18,7 @@ IDEAs ([Marketplace](https://plugins.jetbrains.com/plugin/20924-rest-tester))
 ## Testing
 
 &#9989; Intellij Community 2023.3.1\
-&#9989; Intellij Ultimate 2023.1
+&#9989; Intellij Ultimate 2023.2
 
 ---
 

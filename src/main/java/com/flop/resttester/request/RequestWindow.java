@@ -10,13 +10,14 @@ package com.flop.resttester.request;
 import com.flop.resttester.RestTesterNotifier;
 import com.flop.resttester.auth.AuthenticationData;
 import com.flop.resttester.components.CustomPanel;
-import com.flop.resttester.components.UrlInputHandler;
 import com.flop.resttester.components.combobox.CustomComboBox;
 import com.flop.resttester.components.combobox.CustomComboBoxUI;
 import com.flop.resttester.components.keyvaluelist.HeaderKeyValueList;
 import com.flop.resttester.components.keyvaluelist.KeyValueList;
 import com.flop.resttester.components.keyvaluelist.KeyValueListChangeListener;
 import com.flop.resttester.components.keyvaluelist.KeyValuePair;
+import com.flop.resttester.components.textfields.MainUrlInputTextField;
+import com.flop.resttester.components.textfields.VariablesAutoCompletionProvider;
 import com.flop.resttester.requesttree.RequestTreeNodeData;
 import com.flop.resttester.utils.Debouncer;
 import com.flop.resttester.variables.VariablesHandler;
@@ -38,12 +39,14 @@ import com.intellij.ui.JBColor;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
+import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
@@ -62,16 +65,16 @@ public class RequestWindow {
     private JPanel urlInputPanel;
     private JComboBox<RequestType> requestTypeComboBox;
     private ActionButton sendButton;
-    private JTextPane urlInputField;
+    private MainUrlInputTextField urlInputField;
     private PsiAwareTextEditorImpl jsonBodyEditor;
     private PsiAwareTextEditorImpl xmlBodyEditor;
     private PsiAwareTextEditorImpl plainBodyEditor;
     private KeyValueList headerList;
     private JPanel editorWrapper;
+    private JPanel urlInputWrapper;
     private Project project;
     private RequestWindowListener windowListener;
     private VariablesHandler variablesHandler;
-    private UrlInputHandler urlInputHandler;
 
     private RequestBodyType lastSelection;
 
@@ -166,26 +169,10 @@ public class RequestWindow {
         };
     }
 
-    private javax.swing.event.DocumentListener getUrlChangeListener() {
-        return new javax.swing.event.DocumentListener() {
+    private @NotNull DocumentListener getUrlChangeListener() {
+        return new DocumentListener() {
             @Override
-            public void insertUpdate(javax.swing.event.DocumentEvent e) {
-                if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getUrl().equals(RequestWindow.this.urlInputField.getText())) {
-                    RequestWindow.this.selection.setUrl(RequestWindow.this.urlInputField.getText());
-                    RequestWindow.this.updateSelection();
-                }
-            }
-
-            @Override
-            public void removeUpdate(javax.swing.event.DocumentEvent e) {
-                if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getUrl().equals(RequestWindow.this.urlInputField.getText())) {
-                    RequestWindow.this.selection.setUrl(RequestWindow.this.urlInputField.getText());
-                    RequestWindow.this.updateSelection();
-                }
-            }
-
-            @Override
-            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+            public void documentChanged(@NotNull DocumentEvent event) {
                 if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getUrl().equals(RequestWindow.this.urlInputField.getText())) {
                     RequestWindow.this.selection.setUrl(RequestWindow.this.urlInputField.getText());
                     RequestWindow.this.updateSelection();
@@ -327,9 +314,15 @@ public class RequestWindow {
     }
 
     public void setupInputField() {
-        this.urlInputPanel = new CustomPanel();
-        ((CustomPanel) this.urlInputPanel).setCustomBackground(JBColor.border());
-        this.urlInputPanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
+        CustomPanel urlInputPanel = new CustomPanel();
+        urlInputPanel.setCustomBackground(JBColor.border());
+        urlInputPanel.setBorder(BorderFactory.createLineBorder(JBColor.border()));
+        this.urlInputPanel = urlInputPanel;
+
+        CustomPanel urlInputWrapper = new CustomPanel();
+        urlInputWrapper.setCustomBackground(JBColor.border());
+        urlInputWrapper.setLayout(new GridLayoutManager(1, 1));
+        this.urlInputWrapper = urlInputWrapper;
     }
 
     public void setupRequestTypes() {
@@ -394,9 +387,23 @@ public class RequestWindow {
 
     public void setVariablesWindow(VariablesWindow varWindow) {
         this.variablesHandler = varWindow.getVariablesHandler();
-        this.urlInputHandler = new UrlInputHandler(this.urlInputField, variablesHandler);
+        this.setupUrlInput();
         this.headerList.setProject(this.project, this.variablesHandler);
         this.setupChangeListener();
+    }
+
+    public void setupUrlInput() {
+        List<String> urlCompletions = List.of("https://", "www", "https://www.", ".com");
+        VariablesAutoCompletionProvider variableCompletionProvider = new VariablesAutoCompletionProvider(this.variablesHandler, urlCompletions);
+        this.urlInputField = new MainUrlInputTextField(this.project, variableCompletionProvider, "");
+
+        GridConstraints urlInputFieldConstraint = new GridConstraints(0, 0, 1, 1,
+                GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
+                GridConstraints.SIZEPOLICY_WANT_GROW | GridConstraints.SIZEPOLICY_CAN_SHRINK,
+                GridConstraints.SIZEPOLICY_FIXED,
+                new Dimension(-1, 20), new Dimension(-1, 20), new Dimension(-1, 20));
+
+        this.urlInputWrapper.add(this.urlInputField, urlInputFieldConstraint);
     }
 
     public AuthenticationData getAuthData() {

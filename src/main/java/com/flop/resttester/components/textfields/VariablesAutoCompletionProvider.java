@@ -4,7 +4,7 @@
  *
  * This file is licensed under LGPLv3
  */
-package com.flop.resttester.components.textfield;
+package com.flop.resttester.components.textfields;
 
 import com.flop.resttester.variables.VariablesHandler;
 import com.intellij.codeInsight.completion.CompletionParameters;

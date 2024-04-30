@@ -7,8 +7,8 @@
 
 package com.flop.resttester.components.keyvaluelist;
 
-import com.flop.resttester.components.textfield.RestTesterLanguageTextField;
-import com.flop.resttester.components.textfield.VariablesAutoCompletionProvider;
+import com.flop.resttester.components.textfields.RestTesterLanguageTextField;
+import com.flop.resttester.components.textfields.VariablesAutoCompletionProvider;
 import com.flop.resttester.language.RestTesterLanguageFileType;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;

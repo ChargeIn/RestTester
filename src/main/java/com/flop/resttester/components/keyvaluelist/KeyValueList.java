@@ -7,7 +7,7 @@
 
 package com.flop.resttester.components.keyvaluelist;
 
-import com.flop.resttester.components.textfield.VariablesAutoCompletionProvider;
+import com.flop.resttester.components.textfields.VariablesAutoCompletionProvider;
 import com.flop.resttester.utils.Debouncer;
 import com.flop.resttester.variables.VariablesHandler;
 import com.intellij.openapi.project.Project;

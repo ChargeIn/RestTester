@@ -109,7 +109,7 @@
 
         <completion.contributor
                 language="RestTesterLanguage"
-                implementationClass="com.flop.resttester.components.textfield.RestTesterLanguageTextCompletionContributor"
+                implementationClass="com.flop.resttester.components.textfields.RestTesterLanguageTextCompletionContributor"
                 order="first, before commitCompletion"/>
     </extensions>
 </idea-plugin>

@@ -37,6 +37,12 @@
     </description>
 
     <change-notes><![CDATA[
+        <h3>1.4.0 New Features</h3>
+        <ul>
+          <li>Added auto completions and syntax highlighting for the main input and the parameters tab.</li>
+          <li>Improved autocompletion logic and add variable completion preview.</li>
+        </ul>
+
         <h3>1.3.0 New Features</h3>
         <ul>
           <li>Added support for non java ideas, e.g. WebStorm, RustRover.</li>

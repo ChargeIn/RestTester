@@ -254,6 +254,11 @@ public class RequestThread extends Thread {
 
             query += Arrays.stream(queryBlocks[0].split("&")).map(pair -> {
                 String[] splits = pair.split("=");
+
+                if (splits.length < 2) {
+                    return splits[0];
+                }
+
                 return splits[0] + '=' + URLUtil.encodeURIComponent(splits[1]);
             }).collect(Collectors.joining("&"));
 

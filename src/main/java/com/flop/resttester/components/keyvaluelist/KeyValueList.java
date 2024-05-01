@@ -54,6 +54,10 @@ public abstract class KeyValueList extends JPanel {
      */
     abstract String getValuePlaceholder();
 
+    /**
+     * The actual initialization of the key value list.
+     * Requires the project to be loaded, so we cannot do this in the constructor
+     */
     public void setProject(Project project, VariablesHandler variablesHandler) {
         this.project = project;
         this.variablesHandler = variablesHandler;
@@ -64,12 +68,15 @@ public abstract class KeyValueList extends JPanel {
 
     private int lastWidth = 0;
 
-    private final int childHeight = 28;
+    private final int childHeight = 29;
 
     private final List<KeyValueListChangeListener> listeners = new ArrayList<>();
 
     private final Debouncer debouncer = new Debouncer(this::notifyChange);
 
+    /**
+     * Initializes the wrapper and scroll pane which holds the key value input items.
+     */
     public void initBaseViewView() {
         this.panel = new JPanel();
 
@@ -88,6 +95,9 @@ public abstract class KeyValueList extends JPanel {
         this.add(scrollPane, constraint);
     }
 
+    /**
+     * Adds an initial empty key value pari and setups the change listeners
+     */
     private void initKeyValueList() {
 
         this.keyCompletionProvider = new VariablesAutoCompletionProvider(this.variablesHandler, this.getKeyProposals());
@@ -105,6 +115,9 @@ public abstract class KeyValueList extends JPanel {
         this.panel.add(input);
     }
 
+    /**
+     * Fills the view with key value pairs based on the given list.
+     */
     public void fillView(List<KeyValuePair> items) {
         this.panel.removeAll();
         int width = this.getParent().getWidth();

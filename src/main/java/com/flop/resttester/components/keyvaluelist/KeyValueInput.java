@@ -109,11 +109,11 @@ public class KeyValueInput extends JPanel implements FocusListener {
 
         GridConstraints keyConstraint = new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_HORIZONTAL,
                 GridConstraints.SIZEPOLICY_WANT_GROW,
-                GridConstraints.SIZEPOLICY_FIXED, null, null, null);
+                GridConstraints.SIZEPOLICY_FIXED, new Dimension(-1, 29), new Dimension(-1, 29), new Dimension(-1, 29));
 
         GridConstraints valueConstraint = new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_NORTH, GridConstraints.FILL_HORIZONTAL,
                 GridConstraints.SIZEPOLICY_WANT_GROW,
-                GridConstraints.SIZEPOLICY_FIXED, null, null, null);
+                GridConstraints.SIZEPOLICY_FIXED, new Dimension(-1, 29), new Dimension(-1, 29), new Dimension(-1, 29));
 
         GridConstraints checkboxConstraint = new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.ANCHOR_CENTER,
                 GridConstraints.SIZEPOLICY_FIXED,

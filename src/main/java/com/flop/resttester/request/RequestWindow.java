@@ -12,10 +12,7 @@ import com.flop.resttester.auth.AuthenticationData;
 import com.flop.resttester.components.CustomPanel;
 import com.flop.resttester.components.combobox.CustomComboBox;
 import com.flop.resttester.components.combobox.CustomComboBoxUI;
-import com.flop.resttester.components.keyvaluelist.HeaderKeyValueList;
-import com.flop.resttester.components.keyvaluelist.KeyValueList;
-import com.flop.resttester.components.keyvaluelist.KeyValueListChangeListener;
-import com.flop.resttester.components.keyvaluelist.KeyValuePair;
+import com.flop.resttester.components.keyvaluelist.*;
 import com.flop.resttester.components.textfields.MainUrlInputTextField;
 import com.flop.resttester.components.textfields.VariablesAutoCompletionProvider;
 import com.flop.resttester.requesttree.RequestTreeNodeData;
@@ -36,30 +33,23 @@ import com.intellij.openapi.fileTypes.PlainTextFileType;
 import com.intellij.openapi.project.Project;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.ui.JBColor;
-import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.table.JBTable;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
 public class RequestWindow {
-    private final QueryParameterHandler paramHandler;
     private JPanel mainPanel;
     private JTabbedPane topTabbedPane;
     private JScrollPane settingsScrollPane;
     private JTextField nameInputField;
     private JComboBox<AuthenticationData> authComboBox;
-    private JScrollPane paramsScrollPane;
-    private JTable paramsTable;
     private JPanel bodyPanel;
     private JComboBox<RequestBodyType> bodyTypePicker;
     private JPanel urlInputPanel;
@@ -72,6 +62,7 @@ public class RequestWindow {
     private KeyValueList headerList;
     private JPanel editorWrapper;
     private JPanel urlInputWrapper;
+    private ParameterKeyValueList paramsList;
     private Project project;
     private RequestWindowListener windowListener;
     private VariablesHandler variablesHandler;
@@ -88,8 +79,6 @@ public class RequestWindow {
         this.setupStyles();
         this.setupBodyTypeBox();
         this.setupRequestTypes();
-
-        this.paramHandler = new QueryParameterHandler(this.paramsTable);
     }
 
     public JPanel getContent() {
@@ -103,14 +92,14 @@ public class RequestWindow {
         this.authComboBox.addActionListener(this.getAuthChangeListener());
         this.bodyTypePicker.addActionListener(this.getBodyTypeChangeListener());
         this.requestTypeComboBox.addActionListener(this.getRequestTypeChangeListener());
-        this.paramsTable.getModel().addTableModelListener(this.getParamsChangeListener());
+        this.paramsList.addChangeListener(this.getParamsChangeListener());
         this.headerList.addChangeListener(this.getHeadersChangeListener());
     }
 
-    private TableModelListener getParamsChangeListener() {
-        return (l) -> {
+    private KeyValueListChangeListener getParamsChangeListener() {
+        return () -> {
             if (this.selection != null) {
-                this.selection.setParams(this.paramHandler.getParams());
+                this.selection.setParams(this.paramsList.getValues());
                 this.updateSelection();
             }
         };
@@ -226,7 +215,7 @@ public class RequestWindow {
 
     public void setProject(Project project) {
         this.project = project;
-        this.setupEditors();
+        this.setupBodyEditors();
     }
 
     private void setupStyles() {
@@ -244,6 +233,10 @@ public class RequestWindow {
         this.bodyTypePicker.addActionListener(this::setBodyTextField);
     }
 
+    /**
+     * Callback when a different body type is selected.
+     * Switches the editor and synchronizes the text content of the editors.
+     */
     private void setBodyTextField(ActionEvent event) {
         ApplicationManager.getApplication().runWriteAction(() -> {
             String content;
@@ -283,7 +276,11 @@ public class RequestWindow {
         });
     }
 
-    private void setupEditors() {
+    /**
+     * Setups the text editors used by the request body tab.
+     * Since only once editor is visible at once start we start with the job default editor.
+     */
+    private void setupBodyEditors() {
         LightVirtualFile virtualJsonFile = new LightVirtualFile("_rest-tester-json-body.json", JsonFileType.INSTANCE, "");
         this.jsonBodyEditor = (PsiAwareTextEditorImpl) PsiAwareTextEditorProvider.getInstance().createEditor(this.project, virtualJsonFile);
 
@@ -308,7 +305,7 @@ public class RequestWindow {
     private void createUIComponents() {
         this.setupInputField();
         this.setupSendButton();
-        this.setupParamsTable();
+        this.setupParamsList();
         this.setupHeaderList();
         this.setupUpRequestTypeComboBox();
     }
@@ -342,16 +339,8 @@ public class RequestWindow {
         this.requestTypeComboBox.setBorder(BorderFactory.createEmptyBorder());
     }
 
-    private void setupParamsTable() {
-        this.paramsScrollPane = new JBScrollPane();
-        DefaultTableModel model = new DefaultTableModel();
-        this.paramsTable = new JBTable(model);
-        this.paramsTable.setBorder(BorderFactory.createEmptyBorder());
-        this.paramsScrollPane.setBorder(BorderFactory.createEmptyBorder());
-        this.paramsScrollPane.add(this.paramsTable);
-
-        model.addColumn("Key");
-        model.addColumn("Value");
+    private void setupParamsList() {
+        this.paramsList = new ParameterKeyValueList();
     }
 
     private void setupHeaderList() {
@@ -389,9 +378,13 @@ public class RequestWindow {
         this.variablesHandler = varWindow.getVariablesHandler();
         this.setupUrlInput();
         this.headerList.setProject(this.project, this.variablesHandler);
+        this.paramsList.setProject(this.project, this.variablesHandler);
         this.setupChangeListener();
     }
 
+    /**
+     * Initializes the autocomplete and the text field for the main input.
+     */
     public void setupUrlInput() {
         List<String> urlCompletions = List.of("https://", "www", "https://www.", ".com");
         VariablesAutoCompletionProvider variableCompletionProvider = new VariablesAutoCompletionProvider(this.variablesHandler, urlCompletions);
@@ -411,6 +404,9 @@ public class RequestWindow {
         return authData.createReplacedClone(this.variablesHandler);
     }
 
+    /**
+     * Generates a snapshot of all inputs to generate a request node.
+     */
     public RequestTreeNodeData getRequestData() {
         String url = this.urlInputField.getText();
         url = this.variablesHandler.replaceVariables(url);
@@ -419,11 +415,11 @@ public class RequestWindow {
         AuthenticationData authData = (AuthenticationData) this.authComboBox.getSelectedItem();
         String tag = this.nameInputField.getText();
 
-        List<KeyValuePair> params = this.paramHandler.getParams().stream().map(pair -> {
+        List<KeyValuePair> params = this.paramsList.getValues().stream().map(pair -> {
             String key = this.variablesHandler.replaceVariables(pair.key);
             String value = this.variablesHandler.replaceVariables(pair.value);
             return new KeyValuePair(key, value, pair.enabled);
-        }).toList();
+        }).filter(param -> param.enabled).toList();
 
         List<KeyValuePair> headers = this.headerList.getValues().stream().map(pair -> {
             String key = this.variablesHandler.replaceVariables(pair.key);
@@ -437,6 +433,9 @@ public class RequestWindow {
         return new RequestTreeNodeData(url, tag, type, authData.getName(), params, headers, body, bodyType);
     }
 
+    /**
+     * Fills all inputs based on the given request node
+     */
     public void setRequestData(RequestTreeNodeData data) {
         ApplicationManager.getApplication().runWriteAction(() -> {
             this.omitUpdates = true;
@@ -448,7 +447,7 @@ public class RequestWindow {
                 this.urlInputField.setText(data.getUrl());
             }
             this.nameInputField.setText(data.getName());
-            this.paramHandler.loadParams(data.getParams());
+            this.paramsList.setItems(data.getParams());
             this.headerList.setItems(data.getHeaders());
 
             this.xmlBodyEditor.getEditor().getDocument().setText(data.getBody());

@@ -18,6 +18,7 @@ public class RequestThreadTest {
     public void shouldEncodeUrlsCorrectly() throws URISyntaxException {
         // should not change normal url
         // should convert whitespaces in path
+        assertEquals("https://www.test.com", RequestThread.encodeUrl("https://www.test.com"));
         assertEquals("https://www.test.com#fragment1", RequestThread.encodeUrl("https://www.test.com#fragment1"));
 
 
@@ -29,5 +30,9 @@ public class RequestThreadTest {
 
         // should convert whitespaces in query params
         assertEquals("https://www.test.com?filter=%22some%20value%22", RequestThread.encodeUrl("https://www.test.com?filter=\"some value\""));
+
+        // should not trim dangling slashes
+        assertEquals("https://www.test.com/", RequestThread.encodeUrl("https://www.test.com/"));
+        assertEquals("https://www.test.com/?filter=%22some%20value%22", RequestThread.encodeUrl("https://www.test.com/?filter=\"some value\""));
     }
 }

@@ -37,6 +37,11 @@
     </description>
 
     <change-notes><![CDATA[
+        <h3>1.4.1 Fixes</h3>
+        <ul>
+          <li>Dangling slashes are no longer removed from the url.</li>
+        </ul>
+
         <h3>1.4.0 New Features</h3>
         <ul>
           <li>Added auto completions and syntax highlighting for the main input and the parameters tab.</li>

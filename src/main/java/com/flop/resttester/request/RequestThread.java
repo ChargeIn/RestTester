@@ -271,7 +271,7 @@ public class RequestThread extends Thread {
 
         // remove path
         if (url.contains("/")) {
-            String[] blocks = url.split("/");
+            String[] blocks = url.split("/", -1);
 
             host = blocks[0];
 

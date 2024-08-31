@@ -138,36 +138,35 @@ public class RequestThread extends Thread {
             }
         }
 
-        try(HttpClient client = clientBuilder.build()) {
-            HttpRequest request = builder.build();
+        HttpClient client = clientBuilder.build();
+        HttpRequest request = builder.build();
 
-            try {
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-                int responseCode = response.statusCode();
-                byte[] bytes = response.body().getBytes();
+        try {
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            int responseCode = response.statusCode();
+            byte[] bytes = response.body().getBytes();
 
-                if (!this.stopped) {
-                    ResponseData data = new ResponseData(request.uri().toString(), request.method(), request.headers().map(), response.headers().map(), responseCode, bytes, this.getElapsedTime());
+            if (!this.stopped) {
+                ResponseData data = new ResponseData(request.uri().toString(), request.method(), request.headers().map(), response.headers().map(), responseCode, bytes, this.getElapsedTime());
+                this.finishedListener.onRequestFinished(data);
+            }
+        } catch (Exception e) {
+            if (!this.stopped) {
+                if (e instanceof SSLHandshakeException) {
+                    String error = e.getMessage() + "\n\nTry changing the rest tester setting to allow requests without ssl validation.";
+                    ResponseData data = new ResponseData(urlString.toString(), null, null, null, -1, error.getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
                     this.finishedListener.onRequestFinished(data);
+                    return;
                 }
-            } catch (Exception e) {
-                if (!this.stopped) {
-                    if (e instanceof SSLHandshakeException) {
-                        String error = e.getMessage() + "\n\nTry changing the rest tester setting to allow requests without ssl validation.";
-                        ResponseData data = new ResponseData(urlString.toString(), null, null, null, -1, error.getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
-                        this.finishedListener.onRequestFinished(data);
-                        return;
-                    }
 
-                    byte[] messageBytes = new byte[0];
+                byte[] messageBytes = new byte[0];
 
-                    if (e.getMessage() != null) {
-                        messageBytes = e.getMessage().getBytes(StandardCharsets.UTF_8);
-                    }
-
-                    ResponseData data = new ResponseData(urlString.toString(), request.method(), request.headers().map(), request.headers().map(), -1, messageBytes, this.getElapsedTime());
-                    this.finishedListener.onRequestFinished(data);
+                if (e.getMessage() != null) {
+                    messageBytes = e.getMessage().getBytes(StandardCharsets.UTF_8);
                 }
+
+                ResponseData data = new ResponseData(urlString.toString(), request.method(), request.headers().map(), request.headers().map(), -1, messageBytes, this.getElapsedTime());
+                this.finishedListener.onRequestFinished(data);
             }
         }
     }

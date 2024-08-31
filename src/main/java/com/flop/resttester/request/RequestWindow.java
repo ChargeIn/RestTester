@@ -348,11 +348,12 @@ public class RequestWindow {
     }
 
     private void setupSendButton() {
-        Presentation presentationSave = new Presentation("Cancel Request");
+        Presentation presentationSave = new Presentation("Start Request");
         AnAction actionSave = new AnAction(AllIcons.Actions.Execute) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 RequestWindow.this.sendButton.getPresentation().setIcon(AllIcons.Actions.Suspend);
+                RequestWindow.this.sendButton.setToolTipText("Cancel request");
                 RequestWindow.this.windowListener.onSendRequest();
             }
         };
@@ -390,6 +391,7 @@ public class RequestWindow {
         VariablesAutoCompletionProvider variableCompletionProvider = new VariablesAutoCompletionProvider(this.variablesHandler, urlCompletions);
         this.urlInputField = new MainUrlInputTextField(this.project, variableCompletionProvider, "");
         this.urlInputField.setCustomBackground(JBColor.border());
+        this.urlInputField.setPlaceholder("Type an URL and start your request…");
 
         GridConstraints urlInputFieldConstraint = new GridConstraints(0, 0, 1, 1,
                 GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,
@@ -492,8 +494,10 @@ public class RequestWindow {
     public void setRequestStarted(boolean started) {
         if (started) {
             this.sendButton.getPresentation().setIcon(AllIcons.Actions.Suspend);
+            this.sendButton.setToolTipText("Cancel request");
         } else {
             this.sendButton.getPresentation().setIcon(AllIcons.Actions.Execute);
+            this.sendButton.setToolTipText("Start request");
         }
     }
 }

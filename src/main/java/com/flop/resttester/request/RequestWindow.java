@@ -389,6 +389,7 @@ public class RequestWindow {
         List<String> urlCompletions = List.of("https://", "www", "https://www.", ".com");
         VariablesAutoCompletionProvider variableCompletionProvider = new VariablesAutoCompletionProvider(this.variablesHandler, urlCompletions);
         this.urlInputField = new MainUrlInputTextField(this.project, variableCompletionProvider, "");
+        this.urlInputField.setCustomBackground(JBColor.border());
 
         GridConstraints urlInputFieldConstraint = new GridConstraints(0, 0, 1, 1,
                 GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH,

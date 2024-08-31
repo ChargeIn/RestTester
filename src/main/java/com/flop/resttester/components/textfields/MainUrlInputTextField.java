@@ -23,11 +23,14 @@ public class MainUrlInputTextField extends RestTesterLanguageTextField {
     @Override
     public void setBackground(Color bg) {
         // prevent Intellij form changing the bg color
-        super.setBackground(JBColor.border());
     }
 
     @Override
     protected void setupBorder(@NotNull EditorEx editor) {
         // prevent border setup
+    }
+
+    public void setCustomBackground(Color bg) {
+        super.setBackground(JBColor.border());
     }
 }

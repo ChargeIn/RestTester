@@ -1,6 +1,6 @@
 # Rest Tester Plugin
 
-[![Current Version](https://img.shields.io/badge/version-1.4.1-green.svg)](https://github.com/ChargeIn/RestTester)
+[![Current Version](https://img.shields.io/badge/version-1.4.2-green.svg)](https://github.com/ChargeIn/RestTester)
 
 <!-- Plugin description -->
 A simple open source rest api testing tool for Jetbrains
@@ -19,8 +19,8 @@ IDEAs ([Marketplace](https://plugins.jetbrains.com/plugin/20924-rest-tester))
 
 ## Testing
 
-&#9989; Intellij Community 2023.3.1\
-&#9989; Intellij Ultimate 2023.2
+&#9989; Intellij Community 2024.2
+&#9989; Intellij Ultimate 2024.2
 
 ---
 

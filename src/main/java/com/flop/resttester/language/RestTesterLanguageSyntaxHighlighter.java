@@ -41,8 +41,9 @@ public class RestTesterLanguageSyntaxHighlighter extends SyntaxHighlighterBase {
         return new RestTesterLanguageLexerAdapter();
     }
 
+    @NotNull
     @Override
-    public TextAttributesKey @NotNull [] getTokenHighlights(IElementType tokenType) {
+    public TextAttributesKey[] getTokenHighlights(IElementType tokenType) {
         if (tokenType.equals(RestTesterLanguageTypes.VALUE)) {
             return VALUE_KEYS;
         }

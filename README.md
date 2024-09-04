@@ -1,6 +1,6 @@
 # Rest Tester Plugin
 
-[![Current Version](https://img.shields.io/badge/version-1.4.2-green.svg)](https://github.com/ChargeIn/RestTester)
+[![Current Version](https://img.shields.io/badge/version-1.4.3-green.svg)](https://github.com/ChargeIn/RestTester)
 
 <!-- Plugin description -->
 A simple open source rest api testing tool for Jetbrains

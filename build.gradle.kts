@@ -31,6 +31,7 @@ dependencies {
         plugins(providers.gradleProperty("platformPlugins").map { it.split(',') })
 
         instrumentationTools()
+        pluginVerifier()
     }
 }
 

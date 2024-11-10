@@ -12,17 +12,7 @@ import com.flop.resttester.components.keyvaluelist.KeyValuePair;
 
 import java.util.List;
 
-public class RequestData {
-    public String url;
-    public RequestType type;
-    public String body;
-    public RequestBodyType bodyType;
-    public AuthenticationData authData;
-    public List<KeyValuePair> queryParams;
-    public List<KeyValuePair> headers;
-    public boolean validateSSL;
-
-    public RequestData(
+public record RequestData(
             String url,
             RequestType type,
             AuthenticationData authData,
@@ -30,15 +20,6 @@ public class RequestData {
             RequestBodyType bodyType,
             List<KeyValuePair> queryParams,
             List<KeyValuePair> headers,
-            boolean validateSSL
-    ) {
-        this.url = url;
-        this.type = type;
-        this.authData = authData;
-        this.body = body;
-        this.bodyType = bodyType;
-        this.queryParams = queryParams;
-        this.headers = headers;
-        this.validateSSL = validateSSL;
-    }
-}
+            boolean validateSSL,
+            boolean allowRedirect
+){}

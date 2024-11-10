@@ -42,6 +42,7 @@ public class SettingsWindow {
     private final int id;
     private final Project project;
     private JCheckBox sslValidation;
+    private JCheckBox allowRedirects;
     private JPanel mainPanel;
     private JLabel settingsLabel;
     private JButton importButton;
@@ -53,14 +54,14 @@ public class SettingsWindow {
     private JLabel experimentalLabel;
     private JButton postmanImport;
 
-    private ChangeListener sslChangeListener = this::onSSLValidationChange;
+    private ChangeListener settingsChangeListener = this::onSettingsChange;
 
     public SettingsWindow(Project project) {
         this.project = project;
 
         this.stateService = RestTesterStateService.getInstance();
         this.id = this.stateService.addSettingsStateChangeListener(this::onSettingsStateChange);
-        this.sslValidation.addChangeListener(this.sslChangeListener);
+        this.sslValidation.addChangeListener(this.settingsChangeListener);
 
         this.importButton.addActionListener(this::onImport);
         this.exportButton.addActionListener(this::onExport);
@@ -102,6 +103,7 @@ public class SettingsWindow {
         JsonObject wrapper = new JsonObject();
         wrapper.addProperty("version", this.SAVE_FILE_VERSION);
         wrapper.addProperty("validateSSL", this.stateService.getValidateSSL());
+        wrapper.addProperty("allowRedirects", this.stateService.getAllowRedirects());
         wrapper.addProperty("authState", this.stateService.getAuthState());
         wrapper.addProperty("variablesState", this.stateService.getVariableState());
         wrapper.addProperty("requestState", this.stateService.getRequestState());
@@ -148,12 +150,19 @@ public class SettingsWindow {
                 return;
             }
 
+
             boolean validateSSL = obj.get("validateSSL").getAsBoolean();
             String authState = obj.get("authState").getAsString();
             String variableState = obj.get("variablesState").getAsString();
             String requestState = obj.get("requestState").getAsString();
 
-            this.stateService.setValidateSSL(-1, validateSSL);
+            boolean allowRedirects = true;
+
+            if (obj.has("allowRedirects")) {
+                allowRedirects = obj.get("allowRedirects").getAsBoolean();
+            }
+
+            this.stateService.setSettingsState(-1, validateSSL, allowRedirects);
             this.stateService.setAuthState(-1, authState);
             this.stateService.setVariablesState(-1, variableState);
             this.stateService.setRequestState(-1, requestState);
@@ -165,7 +174,7 @@ public class SettingsWindow {
     }
 
     public void onReset(ActionEvent event) {
-        this.stateService.setValidateSSL(-1, false);
+        this.stateService.setSettingsState(-1, false, true);
         this.stateService.setAuthState(-1, "");
         this.stateService.setVariablesState(-1, "");
         this.stateService.setRequestState(-1, "");
@@ -246,18 +255,22 @@ public class SettingsWindow {
         this.experimentalLabel.setFont(new Font(this.experimentalLabel.getFont().getFontName(), Font.BOLD, 14));
     }
 
-    private void onSettingsStateChange(boolean validateSSL) {
-        this.sslValidation.removeChangeListener(this.sslChangeListener);
+    private void onSettingsStateChange(boolean validateSSL, boolean allowRedirects) {
+        this.sslValidation.removeChangeListener(this.settingsChangeListener);
         this.sslValidation.setSelected(validateSSL);
-        this.sslValidation.addChangeListener(this.sslChangeListener);
+        this.sslValidation.addChangeListener(this.settingsChangeListener);
+
+        this.allowRedirects.removeChangeListener(this.settingsChangeListener);
+        this.allowRedirects.setSelected(allowRedirects);
+        this.allowRedirects.addChangeListener(this.settingsChangeListener);
     }
 
     public JPanel getContent() {
         return this.mainPanel;
     }
 
-    public void onSSLValidationChange(ChangeEvent changeEvent) {
+    public void onSettingsChange(ChangeEvent changeEvent) {
         RestTesterStateService state = RestTesterStateService.getInstance();
-        state.setValidateSSL(this.id, this.sslValidation.isSelected());
+        state.setSettingsState(this.id, this.sslValidation.isSelected(), this.allowRedirects.isSelected());
     }
 }

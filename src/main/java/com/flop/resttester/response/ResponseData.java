@@ -9,14 +9,13 @@ package com.flop.resttester.response;
 
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.Map;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 public record ResponseData(
         String url,
-        @Nullable String method,
-        @Nullable Map<String, List<String>> requestHeaders,
-        @Nullable Map<String, List<String>> responseHeaders,
+        @Nullable HttpRequest request,
+        @Nullable HttpResponse<String> response,
         int code,
         byte[] content,
         String elapsedTime

@@ -30,8 +30,11 @@ import org.jsoup.Jsoup;
 
 import javax.swing.*;
 import java.awt.*;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class ResponseWindow {
     private JPanel mainPanel;
@@ -212,7 +215,7 @@ public class ResponseWindow {
         if (data != null) {
             this.handleResponse(data);
         } else {
-            this.handleResponse(new ResponseData("", null, null, null, -2, "".getBytes(StandardCharsets.UTF_8), ""));
+            this.handleResponse(new ResponseData("", null, null, -2, "".getBytes(StandardCharsets.UTF_8), ""));
         }
     }
 
@@ -228,9 +231,9 @@ public class ResponseWindow {
         this.parseHeadersInfo(responseData);
         List<String> contentType = null;
 
-        if (responseData.responseHeaders() != null) {
+        if (responseData.response() != null) {
             try {
-                contentType = responseData.responseHeaders().get("Content-Type");
+                contentType = responseData.response().headers().map().get("Content-Type");
             } catch (Exception ignore) {
             }
         }
@@ -259,45 +262,59 @@ public class ResponseWindow {
 
         content
                 .append(" ============= General Info ============= \n")
-                .append("URL: ")
-                .append(data.url())
-                .append("\nRequest Method: ")
-                .append(data.method())
-                .append("\n\n\n =========== Response Headers =========== \n");
+                .append("  URL: ")
+                .append(data.url());
 
-        if (data.responseHeaders() != null) {
-            for (String key : data.responseHeaders().keySet()) {
-                List<String> headers = data.responseHeaders().get(key);
-                String headerString = String.join(", ", headers);
-
-                if (key == null) {
-                    content.append(headerString);
-                } else {
-                    content.append(key).append(": ");
-                    content.append(headerString);
-                }
-                content.append("\n");
-            }
+        if (data.request() != null) {
+            content
+                    .append("\n  Request Method: ")
+                    .append(data.request().method());
         }
 
-        content.append("\n\n =========== Request Headers ============ \n");
+        if (data.request() != null ) {
+            content.append("\n\n =========== Request Headers ============ \n");
+            Map<String, List<String>> requestHeaders = data.request().headers().map();
+            this.appendHeaderInfo(content, requestHeaders);
+        }
 
-        if (data.requestHeaders() != null) {
-            for (String key : data.requestHeaders().keySet()) {
-                List<String> headers = data.requestHeaders().get(key);
-                String headerString = String.join(", ", headers);
+        if (data.response() != null) {
+            content.append("\n\n =========== Response Headers =========== \n");
+            Map<String, List<String>> responseHeaders = data.response().headers().map();
+            this.appendHeaderInfo(content, responseHeaders);
 
-                if (key == null) {
-                    content.append(headerString);
-                } else {
-                    content.append(key).append(": ");
-                    content.append(headerString);
-                }
-                content.append("\n");
-            }
+            this.appendRedirectInto(content, data.response().previousResponse(), 0);
         }
 
         this.headersTextPane.setText(content.toString());
+    }
+
+    private int appendRedirectInto(StringBuilder content, Optional<HttpResponse<String>> responseOpt, int redirectCount ) {
+        if (responseOpt.isEmpty()) {
+            return redirectCount;
+        }
+
+        HttpResponse<String> response = responseOpt.get();
+        redirectCount = this.appendRedirectInto(content, response.previousResponse(), redirectCount) + 1;
+
+        content.append("\n\n =========== Redirect ").append(redirectCount).append(" (Response Headers) =========== \n");
+        this.appendHeaderInfo(content, response.headers().map());
+
+        return redirectCount;
+    }
+
+    private void appendHeaderInfo(StringBuilder content, Map<String, List<String>> headersMap) {
+        for (String key : headersMap.keySet()) {
+            List<String> headers = headersMap.get(key);
+            String headerString = String.join(", ", headers);
+
+            if (key == null) {
+                content.append(headerString);
+            } else {
+                content.append("  ").append(key).append(": ");
+                content.append(headerString);
+            }
+            content.append("\n");
+        }
     }
 
     private void parseAsJson(ResponseData data) {

@@ -49,16 +49,16 @@ public class RequestThread extends Thread {
     public void run() {
         this.startTime = System.currentTimeMillis();
 
-        StringBuilder urlString = new StringBuilder(this.data.url);
+        StringBuilder urlString = new StringBuilder(this.data.url());
 
-        if (this.data.queryParams != null && !this.data.queryParams.isEmpty()) {
-            String params = this.data.queryParams.stream()
+        if (this.data.queryParams() != null && !this.data.queryParams().isEmpty()) {
+            String params = this.data.queryParams().stream()
                     .filter(param -> !param.key.isEmpty())
                     // unsafe characters will be replaced at the end
                     .map(param -> param.key + '=' + param.value)
                     .collect(Collectors.joining("&"));
 
-            if (this.data.url.indexOf('?') == -1) {
+            if (this.data.url().indexOf('?') == -1) {
                 urlString.append('?');
             } else {
                 urlString.append('&');
@@ -73,7 +73,7 @@ public class RequestThread extends Thread {
             uri = new URI(encodedUrl);
         } catch (URISyntaxException e) {
             if (!this.stopped) {
-                ResponseData data = new ResponseData(urlString.toString(), null, null, null, -1, e.getMessage().getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
+                ResponseData data = new ResponseData(urlString.toString(), null, null, -1, e.getMessage().getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
                 this.finishedListener.onRequestFinished(data);
             }
             return;
@@ -82,10 +82,10 @@ public class RequestThread extends Thread {
         HttpClient.Builder clientBuilder = HttpClient.newBuilder();
 
         // create a request
-        HttpRequest.Builder builder = HttpRequest.newBuilder(uri).method(this.data.type.toString(), HttpRequest.BodyPublishers.ofString(this.data.body));
+        HttpRequest.Builder builder = HttpRequest.newBuilder(uri).method(this.data.type().toString(), HttpRequest.BodyPublishers.ofString(this.data.body()));
 
-        if (this.data.authData != null) {
-            AuthenticationData authData = this.data.authData;
+        if (this.data.authData() != null) {
+            AuthenticationData authData = this.data.authData();
 
             if (authData.getType() == AuthenticationType.Basic) {
                 String auth = authData.getUsername() + ":" + authData.getPassword();
@@ -93,14 +93,14 @@ public class RequestThread extends Thread {
                 String authHeaderValue = "Basic " + new String(encodedAuth);
                 builder = builder.header("Authorization", authHeaderValue);
             } else if (authData.getType() == AuthenticationType.BearerToken) {
-                String authHeaderValue = "Bearer " + this.data.authData.getToken();
+                String authHeaderValue = "Bearer " + this.data.authData().getToken();
                 builder = builder.header("Authorization", authHeaderValue);
             }
         }
 
         Map<String, String> headersMap = new HashMap<>();
-        if (this.data.headers != null) {
-            List<KeyValuePair> headers = this.data.headers.stream().filter(param -> !param.key.isEmpty()).toList();
+        if (this.data.headers() != null) {
+            List<KeyValuePair> headers = this.data.headers().stream().filter(param -> !param.key.isEmpty()).toList();
 
             if (!headers.isEmpty()) {
                 for (KeyValuePair header : headers) {
@@ -115,10 +115,10 @@ public class RequestThread extends Thread {
         }
 
         if (!headersMap.containsKey("content-type")) {
-            if (this.data.type == RequestType.PATCH || this.data.type == RequestType.POST || this.data.type == RequestType.PUT) {
-                if (this.data.bodyType == RequestBodyType.JSON) {
+            if (this.data.type() == RequestType.PATCH || this.data.type() == RequestType.POST || this.data.type() == RequestType.PUT) {
+                if (this.data.bodyType() == RequestBodyType.JSON) {
                     builder = builder.header("Content-Type", "application/json");
-                } else if (this.data.bodyType == RequestBodyType.XML) {
+                } else if (this.data.bodyType() == RequestBodyType.XML) {
                     builder = builder.header("Content-Type", "application/xml");
                 } else {
                     builder = builder.header("Content-Type", "text/plain");
@@ -126,7 +126,7 @@ public class RequestThread extends Thread {
             }
         }
 
-        if (!this.data.validateSSL) {
+        if (!this.data.validateSSL()) {
             TrustManager DUMMY_TRUST_MANAGER = this.getFakeTrustManager();
             SSLContext sslContext;
             try {
@@ -138,6 +138,10 @@ public class RequestThread extends Thread {
             }
         }
 
+        if(this.data.allowRedirect()) {
+            clientBuilder = clientBuilder.followRedirects(HttpClient.Redirect.NORMAL);
+        }
+
         HttpClient client = clientBuilder.build();
         HttpRequest request = builder.build();
 
@@ -147,14 +151,14 @@ public class RequestThread extends Thread {
             byte[] bytes = response.body().getBytes();
 
             if (!this.stopped) {
-                ResponseData data = new ResponseData(request.uri().toString(), request.method(), request.headers().map(), response.headers().map(), responseCode, bytes, this.getElapsedTime());
+                ResponseData data = new ResponseData(request.uri().toString(), request, response, responseCode, bytes, this.getElapsedTime());
                 this.finishedListener.onRequestFinished(data);
             }
         } catch (Exception e) {
             if (!this.stopped) {
                 if (e instanceof SSLHandshakeException) {
                     String error = e.getMessage() + "\n\nTry changing the rest tester setting to allow requests without ssl validation.";
-                    ResponseData data = new ResponseData(urlString.toString(), null, null, null, -1, error.getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
+                    ResponseData data = new ResponseData(urlString.toString(), request, null, -1, error.getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
                     this.finishedListener.onRequestFinished(data);
                     return;
                 }
@@ -165,7 +169,7 @@ public class RequestThread extends Thread {
                     messageBytes = e.getMessage().getBytes(StandardCharsets.UTF_8);
                 }
 
-                ResponseData data = new ResponseData(urlString.toString(), request.method(), request.headers().map(), request.headers().map(), -1, messageBytes, this.getElapsedTime());
+                ResponseData data = new ResponseData(urlString.toString(), request, null, -1, messageBytes, this.getElapsedTime());
                 this.finishedListener.onRequestFinished(data);
             }
         }

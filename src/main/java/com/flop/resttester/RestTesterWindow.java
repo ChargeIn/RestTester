@@ -148,7 +148,8 @@ public class RestTesterWindow {
                 nodeData.getBodyType(),
                 nodeData.getParams(),
                 nodeData.getHeaders(),
-                this.state.getValidateSSL()
+                this.state.getValidateSSL(),
+                this.state.getAllowRedirects()
         );
 
         this.requestThread = new RequestThread(

@@ -62,23 +62,28 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
 
     public int addSettingsStateChangeListener(SettingsStateChangeListener listener) {
         this.settingsChangeListener.add(listener);
-        listener.onStateChange(this.state.validateSSL);
+        listener.onStateChange(this.state.validateSSL, this.state.allowRedirects);
         return this.settingsChangeListener.size() - 1;
     }
 
-    public void setValidateSSL(int source, boolean validateSSL) {
+    public void setSettingsState(int source, boolean validateSSL, boolean allowRedirects) {
         this.state.validateSSL = validateSSL;
+        this.state.allowRedirects = allowRedirects;
 
         for (int i = 0; i < this.settingsChangeListener.size(); i++) {
             if (i == source) {
                 continue;
             }
-            this.settingsChangeListener.get(i).onStateChange(validateSSL);
+            this.settingsChangeListener.get(i).onStateChange(validateSSL, allowRedirects);
         }
     }
 
     public boolean getValidateSSL() {
         return this.state.validateSSL;
+    }
+
+    public boolean getAllowRedirects() {
+        return this.state.allowRedirects;
     }
 
     public void setAuthState(int source, String state) {
@@ -136,11 +141,10 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
 
     static class RestTesterState {
         public boolean validateSSL = false;
+        public boolean allowRedirects = true;
 
         public String authState = "";
-
         public String variablesState = "";
-
         public String requestState = "";
     }
 }

@@ -8,6 +8,7 @@
 package com.flop.resttester.requesttree;
 
 import com.flop.resttester.RestTesterNotifier;
+import com.flop.resttester.RestTesterWindow;
 import com.flop.resttester.components.SimpleInputDialog;
 import com.flop.resttester.state.RestTesterStateService;
 import com.google.gson.JsonArray;
@@ -38,16 +39,18 @@ public class RequestTreeHandler {
     private final int id;
 
     private final DnDAwareTree tree;
-
+    private final RestTesterWindow parent;
     private final Project project;
 
     private RequestTreeNode root;
 
     private List<RequestTreeNode> nodes2Expand;
     private RequestTreeSelectionListener selectionListener;
+    public RequestTreeNode selectedNode;
 
-    public RequestTreeHandler(DnDAwareTree tree, Project project) {
-        this.tree = tree;
+    public RequestTreeHandler(RestTesterWindow parent, Project project) {
+        this.parent = parent;
+        this.tree = parent.requestTree;
         this.project = project;
         this.initTree();
 
@@ -121,7 +124,15 @@ public class RequestTreeHandler {
         SimpleInputDialog dialog = new SimpleInputDialog("New Request", "Name");
         if (dialog.showAndGet()) {
             String name = dialog.getName();
-            RequestTreeNode request = new RequestTreeNode(RequestTreeNodeData.getDefaultRequest(name));
+
+            RequestTreeNode request;
+
+            if(this.selectedNode == null) {
+                request = new RequestTreeNode(this.parent.requestWindow.getRequestData().clone());
+                request.getRequestData().setName(name);
+            } else {
+                request = new RequestTreeNode(RequestTreeNodeData.getDefaultRequest(name));
+            }
             this.addNodeToTree(request, mouseEvent);
         }
     }
@@ -208,6 +219,7 @@ public class RequestTreeHandler {
         this.selectionListener = rtsl;
         this.tree.addTreeSelectionListener((selection) -> {
             RequestTreeNode node = (RequestTreeNode) selection.getPath().getLastPathComponent();
+            this.selectedNode = node;
             rtsl.valueChanged(node.getRequestData());
         });
     }

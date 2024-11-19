@@ -36,7 +36,6 @@ public class RestTesterWindow {
     private final RequestTreeHandler treeHandler;
     private final RestTesterStateService state = RestTesterStateService.getInstance();
     private JPanel myToolWindowContent;
-    private DnDAwareTree requestTree;
     private ActionButton removeButton;
     private ActionButton addRequestButton;
     private JSplitPane splitPaneLeft;
@@ -44,18 +43,20 @@ public class RestTesterWindow {
     private JScrollPane treeScrollPane;
     private JSplitPane splitPaneRight;
     private ResponseWindow responseWindow;
-    private RequestWindow requestWindow;
     private ActionButton addFolderButton;
     private ActionButton copyButton;
     private RequestThread requestThread;
     private Timer loadingTimer = new Timer();
     private final Project project;
 
+    public DnDAwareTree requestTree;
+    public RequestWindow requestWindow;
+
     private RequestTreeNodeData selection = null;
 
     public RestTesterWindow(Project project, AuthenticationWindow authWindow, VariablesWindow varWindow) {
         this.project = project;
-        this.treeHandler = new RequestTreeHandler(this.requestTree, project);
+        this.treeHandler = new RequestTreeHandler(this, project);
         this.treeHandler.addSelectionListener(this::updateInputs);
 
         this.requestWindow.setProject(project);

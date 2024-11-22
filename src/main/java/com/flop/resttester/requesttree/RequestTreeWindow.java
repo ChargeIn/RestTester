@@ -1,10 +1,3 @@
-/*
- * Rest Tester
- * Copyright (C) 2022-2023 Florian Plesker <florian dot plesker at web dot de>
- *
- * This file is licensed under LGPLv3
- */
-
 package com.flop.resttester.requesttree;
 
 import com.flop.resttester.RestTesterNotifier;
@@ -17,50 +10,155 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.dnd.aware.DnDAwareTree;
+import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.JBMenuItem;
 import com.intellij.openapi.ui.JBPopupMenu;
 import com.intellij.ui.RowsDnDSupport;
 import com.intellij.util.ui.EditableModel;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class RequestTreeHandler {
-    public static final String VERSION = "1.0";
-    private final RestTesterStateService stateService;
-    private final int id;
-
-    private final DnDAwareTree tree;
-    private final RestTesterWindow parent;
-    private final Project project;
-
-    private RequestTreeNode root;
-
+public class RequestTreeWindow {
+    // state
+    public static final String STATE_VERSION = "1.0";
+    private final RestTesterStateService state = RestTesterStateService.getInstance();
+    private int id;
     private List<RequestTreeNode> nodes2Expand;
-    private RequestTreeSelectionListener selectionListener;
+
+    // main ui
+    private JPanel mainPanel;
+    private JPanel treeActionBar;
+    private ActionButton addRequestButton;
+    private ActionButton addFolderButton;
+    private ActionButton copyButton;
+    private ActionButton removeButton;
+    private JScrollPane treeScrollPane;
+    private DnDAwareTree tree;
+
+    // other var
+    private RestTesterWindow parent;
+    private Project project;
+    private RequestTreeNode root;
     public RequestTreeNode selectedNode;
+    private RequestTreeSelectionListener selectionListener;
 
-    public RequestTreeHandler(RestTesterWindow parent, Project project) {
-        this.parent = parent;
-        this.tree = parent.requestTree;
-        this.project = project;
+    public RequestTreeWindow() {
+        this.setupStyles();
         this.initTree();
-
-        this.stateService = RestTesterStateService.getInstance();
-        this.id = this.stateService.addRequestStateChangeListener(this::loadTree);
         this.addClickListener();
     }
 
+    public void setProject(Project project, RestTesterWindow parent) {
+        this.project = project;
+        this.parent = parent;
+
+        this.id = this.state.addRequestStateChangeListener(this::loadTree);
+    }
+
+    public void setupStyles() {
+        this.treeScrollPane.setBorder(BorderFactory.createEmptyBorder());
+    }
+
+    public JPanel getContent() {
+        return mainPanel;
+    }
+
+    /**
+     * -----------------------------------------------------------------------------------------------------------------
+     *                                              UI Initialization
+     * -----------------------------------------------------------------------------------------------------------------
+     */
+
+    /**
+     * Automatically on ui creation
+     */
+    private void createUIComponents() {
+        this.setupRemoveButton();
+        this.setupCopyButton();
+        this.setupAddFolderButton();
+        this.setupAddRequestButton();
+    }
+
+    private void setupRemoveButton() {
+        Presentation presentation = new Presentation("Delete Selection");
+        AnAction action = new AnAction(AllIcons.Vcs.Remove) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                RequestTreeWindow.this.deleteNode(null);
+            }
+        };
+        this.removeButton = new ActionButton(
+                action,
+                presentation,
+                ActionPlaces.UNKNOWN,
+                ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+        );
+    }
+
+    private void setupCopyButton() {
+        Presentation presentation = new Presentation("Copy Selection");
+        AnAction action = new AnAction(AllIcons.Actions.Copy) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                RequestTreeWindow.this.copyNode(null);
+            }
+        };
+        this.copyButton = new ActionButton(
+                action,
+                presentation,
+                ActionPlaces.UNKNOWN,
+                ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+        );
+        this.copyButton.setEnabled(false);
+    }
+
+    private void setupAddRequestButton() {
+        Presentation presentation = new Presentation("Add New Request");
+        AnAction action = new AnAction(AllIcons.ToolbarDecorator.AddLink) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                RequestTreeWindow.this.addNewRequest(null);
+            }
+        };
+        this.addRequestButton = new ActionButton(
+                action,
+                presentation,
+                ActionPlaces.UNKNOWN,
+                ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+        );
+    }
+
+    private void setupAddFolderButton() {
+        Presentation presentation = new Presentation("Add New Folder");
+        AnAction action = new AnAction(AllIcons.ToolbarDecorator.AddFolder) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                RequestTreeWindow.this.addNewFolder(null);
+            }
+        };
+        this.addFolderButton = new ActionButton(
+                action,
+                presentation,
+                ActionPlaces.UNKNOWN,
+                ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+        );
+    }
+
+    /**
+     * Sets up callbacks for the context menu and the ui changes on selection.
+     */
     private void addClickListener() {
-        MouseListener mouseListener = new MouseAdapter() {
+        this.tree.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent mouseEvent) {
                 if (mouseEvent.isPopupTrigger()) {
@@ -73,14 +171,22 @@ public class RequestTreeHandler {
                     }
                 }
             }
+        });
 
-            @Override
-            public void mouseReleased(MouseEvent mouseEvent) {
-            }
-        };
-        this.tree.addMouseListener(mouseListener);
+        this.tree.addTreeSelectionListener((selection) -> {
+            this.selectedNode = (RequestTreeNode) selection.getPath().getLastPathComponent();
+
+            this.copyButton.setEnabled(true);
+            this.removeButton.setEnabled(true);
+            this.removeButton.updateUI();
+        });
     }
 
+    /**
+     * -----------------------------------------------------------------------------------------------------------------
+     * Tree Related Logic
+     * -----------------------------------------------------------------------------------------------------------------
+     */
     private void handleContextMenu(MouseEvent mouseEvent) {
         if (mouseEvent.isPopupTrigger()) {
             JBPopupMenu contextMenu = new JBPopupMenu("Request Tree Handler");
@@ -127,7 +233,7 @@ public class RequestTreeHandler {
 
             RequestTreeNode request;
 
-            if(this.selectedNode == null) {
+            if (this.selectedNode == null) {
                 request = new RequestTreeNode(this.parent.requestWindow.getRequestData().clone());
                 request.getRequestData().setName(name);
             } else {
@@ -199,12 +305,12 @@ public class RequestTreeHandler {
 
             @Override
             public void exchangeRows(int oldIndex, int newIndex) {
-                RequestTreeHandler.this.moveNode(oldIndex, newIndex);
+                RequestTreeWindow.this.moveNode(oldIndex, newIndex);
             }
 
             @Override
             public boolean canExchangeRows(int oldIndex, int newIndex) {
-                return RequestTreeHandler.this.checkIfNotParent(oldIndex, newIndex);
+                return RequestTreeWindow.this.checkIfNotParent(oldIndex, newIndex);
             }
 
             @Override
@@ -219,7 +325,6 @@ public class RequestTreeHandler {
         this.selectionListener = rtsl;
         this.tree.addTreeSelectionListener((selection) -> {
             RequestTreeNode node = (RequestTreeNode) selection.getPath().getLastPathComponent();
-            this.selectedNode = node;
             rtsl.valueChanged(node.getRequestData());
         });
     }
@@ -247,7 +352,7 @@ public class RequestTreeHandler {
             JsonObject wrapper = file.getAsJsonObject();
 
             JsonElement jVersion = wrapper.get("version");
-            if (jVersion == null || !Objects.equals(jVersion.getAsString(), RequestTreeHandler.VERSION)) {
+            if (jVersion == null || !Objects.equals(jVersion.getAsString(), RequestTreeWindow.STATE_VERSION)) {
                 return;
             }
 
@@ -288,6 +393,7 @@ public class RequestTreeHandler {
         SwingUtilities.invokeLater(() -> this.tree.updateUI());
     }
 
+
     public void saveTree() {
         if (this.project == null) {
             return;
@@ -300,9 +406,9 @@ public class RequestTreeHandler {
             jNodes.add(jChild);
         }
 
-        String state = RequestTreeHandler.generateState(jNodes);
+        String state = RequestTreeWindow.generateState(jNodes);
 
-        this.stateService.setRequestState(this.id, state);
+        this.state.setRequestState(this.id, state);
     }
 
     /**
@@ -315,7 +421,7 @@ public class RequestTreeHandler {
             nodes.add(node.getAsJson(null));
         }
 
-        state = RequestTreeHandler.generateState(state, nodes);
+        state = RequestTreeWindow.generateState(state, nodes);
 
         return state;
     }
@@ -324,7 +430,7 @@ public class RequestTreeHandler {
      * Generates a new state string based on the given nodes
      */
     public static String generateState(JsonArray nodes2Add) {
-        return RequestTreeHandler.generateState("", nodes2Add);
+        return RequestTreeWindow.generateState("", nodes2Add);
     }
 
     /**
@@ -333,7 +439,7 @@ public class RequestTreeHandler {
     public static String generateState(String currentState, JsonArray nodes2Add) {
         if (currentState.isEmpty()) {
             JsonObject wrapper = new JsonObject();
-            wrapper.addProperty("version", RequestTreeHandler.VERSION);
+            wrapper.addProperty("version", RequestTreeWindow.STATE_VERSION);
             wrapper.add("nodes", nodes2Add);
 
             currentState = wrapper.toString();

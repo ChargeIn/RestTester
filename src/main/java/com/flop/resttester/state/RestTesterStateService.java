@@ -7,7 +7,7 @@
 
 package com.flop.resttester.state;
 
-import com.flop.resttester.requesttree.RequestTreeHandler;
+import com.flop.resttester.requesttree.RequestTreeWindow;
 import com.flop.resttester.variables.VariablesHandler;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.PersistentStateComponent;
@@ -132,7 +132,7 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
     }
 
     public void addUpdate(StateUpdate update) {
-        String requestState = RequestTreeHandler.updateState(this.getRequestState(), update.nodes());
+        String requestState = RequestTreeWindow.updateState(this.getRequestState(), update.nodes());
         this.setRequestState(-1, requestState);
 
         String variableState = VariablesHandler.updateState(this.getVariableState(), update.evnVariables());

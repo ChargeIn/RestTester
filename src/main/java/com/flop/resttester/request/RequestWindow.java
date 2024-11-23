@@ -1,6 +1,6 @@
 /*
  * Rest Tester
- * Copyright (C) 2022-2023 Florian Plesker <florian dot plesker at web dot de>
+ * Copyright (C) Florian Plesker <florian dot plesker at web dot de>
  *
  * This file is licensed under LGPLv3
  */
@@ -87,6 +87,8 @@ public class RequestWindow {
 
     public void setupChangeListener() {
         this.jsonBodyEditor.getEditor().getDocument().addDocumentListener(this.getJsonBodyChangeListener());
+        this.xmlBodyEditor.getEditor().getDocument().addDocumentListener(this.getXmlBodyChangeListener());
+        this.plainBodyEditor.getEditor().getDocument().addDocumentListener(this.getPlainBodyChangeListener());
         this.urlInputField.getDocument().addDocumentListener(this.getUrlChangeListener());
         this.nameInputField.getDocument().addDocumentListener(this.getNameChangeListener());
         this.authComboBox.addActionListener(this.getAuthChangeListener());
@@ -148,7 +150,47 @@ public class RequestWindow {
         return new DocumentListener() {
             @Override
             public void documentChanged(@NotNull DocumentEvent event) {
+                if (!RequestWindow.this.bodyTypePicker.getSelectedItem().equals(RequestBodyType.JSON)) {
+                    return;
+                }
+
                 String text = RequestWindow.this.jsonBodyEditor.getEditor().getDocument().getText();
+
+                if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getBody().equals(text)) {
+                    RequestWindow.this.selection.setBody(text);
+                    RequestWindow.this.updateSelection();
+                }
+            }
+        };
+    }
+
+    private DocumentListener getXmlBodyChangeListener() {
+        return new DocumentListener() {
+            @Override
+            public void documentChanged(@NotNull DocumentEvent event) {
+                if (!RequestWindow.this.bodyTypePicker.getSelectedItem().equals(RequestBodyType.XML)) {
+                    return;
+                }
+
+                String text = RequestWindow.this.xmlBodyEditor.getEditor().getDocument().getText();
+
+                if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getBody().equals(text)) {
+                    RequestWindow.this.selection.setBody(text);
+                    RequestWindow.this.updateSelection();
+                }
+            }
+        };
+    }
+
+    private DocumentListener getPlainBodyChangeListener() {
+        return new DocumentListener() {
+            @Override
+            public void documentChanged(@NotNull DocumentEvent event) {
+                if (!RequestWindow.this.bodyTypePicker.getSelectedItem().equals(RequestBodyType.Plain)) {
+                    return;
+                }
+
+                String text = RequestWindow.this.plainBodyEditor.getEditor().getDocument().getText();
 
                 if (RequestWindow.this.selection != null && !RequestWindow.this.selection.getBody().equals(text)) {
                     RequestWindow.this.selection.setBody(text);

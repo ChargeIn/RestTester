@@ -5,10 +5,10 @@
  * This file is licensed under LGPLv3
  */
 
-package com.flop.resttester.requesttree;
+package com.flop.resttester.enviroment;
 
 import java.util.EventListener;
 
-public interface RequestTreeSelectionListener extends EventListener {
-    void valueChanged(RequestTreeNodeData node);
+public interface EnvChangeListener extends EventListener {
+    void onStateChange();
 }

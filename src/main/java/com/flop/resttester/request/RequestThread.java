@@ -1,6 +1,6 @@
 /*
  * Rest Tester
- * Copyright (C) 2022-2023 Florian Plesker <florian dot plesker at web dot de>
+ * Copyright (C) Florian Plesker <florian dot plesker at web dot de>
  *
  * This file is licensed under LGPLv3
  */
@@ -17,7 +17,9 @@ import com.intellij.util.io.URLUtil;
 import org.apache.commons.codec.binary.Base64;
 
 import javax.net.ssl.*;
-import java.net.*;
+import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -138,7 +140,7 @@ public class RequestThread extends Thread {
             }
         }
 
-        if(this.data.allowRedirect()) {
+        if (this.data.allowRedirect()) {
             clientBuilder = clientBuilder.followRedirects(HttpClient.Redirect.NORMAL);
         }
 

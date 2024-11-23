@@ -1,6 +1,6 @@
 /*
  * Rest Tester
- * Copyright (C) 2022-2023 Florian Plesker <florian dot plesker at web dot de>
+ * Copyright (C) Florian Plesker <florian dot plesker at web dot de>
  *
  * This file is licensed under LGPLv3
  */
@@ -8,15 +8,21 @@
 package com.flop.resttester;
 
 import com.flop.resttester.auth.AuthenticationWindow;
+import com.flop.resttester.enviroment.EnvironmentSelector;
 import com.flop.resttester.settings.SettingsWindow;
 import com.flop.resttester.variables.VariablesWindow;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
+import com.intellij.openapi.wm.impl.content.ToolWindowContentUi;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import com.intellij.ui.content.ContentManager;
+import com.intellij.ui.content.impl.ContentManagerImpl;
+import net.miginfocom.swing.MigLayout;
 import org.jetbrains.annotations.NotNull;
+
+import javax.swing.*;
 
 public class RestTesterFactory implements ToolWindowFactory {
     @Override
@@ -40,5 +46,14 @@ public class RestTesterFactory implements ToolWindowFactory {
         contentManager.addContent(authContent);
         contentManager.addContent(varContent);
         contentManager.addContent(settingsContent);
+
+        // add environment selector by injecting it to the paren
+        JPanel toolbarPanel = (JPanel) ((ToolWindowContentUi) ((ContentManagerImpl) contentManager).getUI()).getTabComponent().getParent();
+
+        MigLayout layoutManager = new MigLayout("inset 0", "[][fill, grow][][]", "[fill, grow]");
+        toolbarPanel.setLayout(layoutManager);
+
+        EnvironmentSelector selector = new EnvironmentSelector();
+        toolbarPanel.add(selector.getButton(), 0);
     }
 }

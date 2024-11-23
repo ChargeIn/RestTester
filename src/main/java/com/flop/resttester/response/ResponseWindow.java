@@ -1,6 +1,6 @@
 /*
  * Rest Tester
- * Copyright (C) 2022-2023 Florian Plesker <florian dot plesker at web dot de>
+ * Copyright (C) Florian Plesker <florian dot plesker at web dot de>
  *
  * This file is licensed under LGPLv3
  */
@@ -271,7 +271,7 @@ public class ResponseWindow {
                     .append(data.request().method());
         }
 
-        if (data.request() != null ) {
+        if (data.request() != null) {
             content.append("\n\n =========== Request Headers ============ \n");
             Map<String, List<String>> requestHeaders = data.request().headers().map();
             this.appendHeaderInfo(content, requestHeaders);
@@ -288,7 +288,7 @@ public class ResponseWindow {
         this.headersTextPane.setText(content.toString());
     }
 
-    private int appendRedirectInto(StringBuilder content, Optional<HttpResponse<String>> responseOpt, int redirectCount ) {
+    private int appendRedirectInto(StringBuilder content, Optional<HttpResponse<String>> responseOpt, int redirectCount) {
         if (responseOpt.isEmpty()) {
             return redirectCount;
         }

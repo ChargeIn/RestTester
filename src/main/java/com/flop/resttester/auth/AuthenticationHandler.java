@@ -7,12 +7,7 @@
 
 package com.flop.resttester.auth;
 
-import com.flop.resttester.RestTesterNotifier;
 import com.flop.resttester.state.RestTesterStateService;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.intellij.openapi.project.Project;
 
 import javax.swing.*;
@@ -25,7 +20,6 @@ import java.util.List;
 import java.util.Objects;
 
 public class AuthenticationHandler {
-    private static final String VERSION = "1.0";
     private final RestTesterStateService stateService;
     private final int id;
 
@@ -97,14 +91,9 @@ public class AuthenticationHandler {
     private void initTree() {
         this.root = new AuthenticationNode(new AuthenticationData("", ""));
 
-        this.tree.removeAll();
-        TreeModel model = new DefaultTreeModel(this.root);
-        this.tree.setModel(model);
-        this.tree.setRootVisible(false);
-        this.tree.expandPath(new TreePath(this.root.getPath()));
         this.tree.setBorder(BorderFactory.createEmptyBorder());
         this.tree.setCellRenderer(new AuthenticationTreeCellRenderer());
-        this.tree.updateUI();
+        this.updateTree();
 
         this.tree.addTreeSelectionListener((e) ->
         {
@@ -116,99 +105,37 @@ public class AuthenticationHandler {
         });
     }
 
-    private void loadAuth(String state) {
+    private void updateTree() {
+        this.tree.clearSelection();
+        this.tree.removeAll();
+        TreeModel model = new DefaultTreeModel(this.root);
+        this.tree.setModel(model);
+        this.tree.setRootVisible(false);
+        this.tree.expandPath(new TreePath(this.root.getPath()));
+        this.tree.updateUI();
+
+        if (this.treeSelectionListener != null) {
+            this.treeSelectionListener.valueChanged(null);
+        }
+    }
+
+    private void loadAuth(AuthenticationNode root) {
         if (this.project == null) {
             return;
         }
 
-        if (state.isBlank()) {
-            // reset state
-            SwingUtilities.invokeLater(() -> {
-                this.root.removeAllChildren();
-                this.tree.updateUI();
-                this.updateListListener();
-            });
-            return;
-        }
-
-        try {
-            JsonElement file = JsonParser.parseString(state);
-
-            JsonObject wrapper = file.getAsJsonObject();
-
-            JsonElement jVersion = wrapper.get("version");
-            if (jVersion == null || !Objects.equals(jVersion.getAsString(), AuthenticationHandler.VERSION)) {
-                return;
-            }
-
-            JsonElement jData = wrapper.get("data");
-
-            if (jData == null) {
-                RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not find data array in authentication save file.");
-                return;
-            }
-
-            JsonArray dataArray = jData.getAsJsonArray();
-
-            List<AuthenticationData> data = this.json2Array(dataArray);
-
-            SwingUtilities.invokeLater(() -> {
-                this.root.removeAllChildren();
-                for (AuthenticationData datum : data) {
-                    this.root.add(new AuthenticationNode(datum));
-                }
-                this.tree.expandPath(new TreePath(this.root.getPath()));
-                this.tree.updateUI();
-                this.updateListListener();
-            });
-        } catch (Exception e) {
-            RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not parse authentication save file. " + e.getMessage());
-        }
+        SwingUtilities.invokeLater(() -> {
+            this.root = root;
+            this.updateTree();
+            this.updateListListener();
+        });
     }
 
     private void saveAuth() {
         if (this.project == null) {
             return;
         }
-        JsonArray jData = this.tree2JSON(this.root);
-
-        JsonObject wrapper = new JsonObject();
-        wrapper.addProperty("version", AuthenticationHandler.VERSION);
-        wrapper.add("data", jData);
-
-        String jsonString = wrapper.toString();
-        this.stateService.setAuthState(this.id, jsonString);
-    }
-
-    private JsonArray tree2JSON(AuthenticationNode node) {
-        JsonArray jResult = new JsonArray();
-
-        for (int i = 0; i < node.getChildCount(); i++) {
-
-            AuthenticationData datum = ((AuthenticationNode) node.getChildAt(i)).getAuthData();
-            JsonObject jObj = datum.getAsJson();
-
-            jResult.add(jObj);
-        }
-        return jResult;
-    }
-
-    private List<AuthenticationData> json2Array(JsonArray array) {
-        List<AuthenticationData> results = new ArrayList<>();
-
-        for (int i = 0; i < array.size(); i++) {
-            JsonElement data = array.get(i);
-
-            if (data == null) {
-                continue;
-            }
-
-            JsonObject jObj = data.getAsJsonObject();
-
-            AuthenticationData authData = AuthenticationData.createFromJson(jObj);
-            results.add(authData);
-        }
-        return results;
+        this.stateService.setAuthState(this.id, this.root);
     }
 
     public void deleteSelection() {

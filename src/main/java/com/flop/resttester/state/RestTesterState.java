@@ -7,10 +7,13 @@
 
 package com.flop.resttester.state;
 
+import com.flop.resttester.auth.AuthenticationData;
+import com.flop.resttester.auth.AuthenticationNode;
+
 public class RestTesterState {
     public String name;
     public Integer id;
-    public String authState = "";
+    public AuthenticationNode authState = new AuthenticationNode(new AuthenticationData("", ""));
     public String variablesState = "";
     public String requestState = "";
 

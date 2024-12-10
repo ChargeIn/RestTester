@@ -7,8 +7,10 @@
 
 package com.flop.resttester.auth;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.EventListener;
 
 public interface AuthenticationTreeSelectionListener extends EventListener {
-    void valueChanged(AuthenticationData node);
+    void valueChanged(@Nullable AuthenticationData node);
 }

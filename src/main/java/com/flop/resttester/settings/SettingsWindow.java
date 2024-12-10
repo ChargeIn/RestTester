@@ -8,10 +8,7 @@
 package com.flop.resttester.settings;
 
 import com.flop.resttester.RestTesterNotifier;
-import com.flop.resttester.state.InsomniaParserService;
-import com.flop.resttester.state.PostmanParserService;
-import com.flop.resttester.state.RestTesterStateService;
-import com.flop.resttester.state.StateUpdate;
+import com.flop.resttester.state.*;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -163,7 +160,7 @@ public class SettingsWindow {
             }
 
             this.stateService.setSettingsState(-1, validateSSL, allowRedirects);
-            this.stateService.setAuthState(-1, authState);
+            this.stateService.setAuthState(-1, AuthStateHelper.parseAuthState(authState));
             this.stateService.setVariablesState(-1, variableState);
             this.stateService.setRequestState(-1, requestState);
 
@@ -175,7 +172,7 @@ public class SettingsWindow {
 
     public void onReset(ActionEvent event) {
         this.stateService.setSettingsState(-1, false, true);
-        this.stateService.setAuthState(-1, "");
+        this.stateService.setAuthState(-1, AuthStateHelper.parseAuthState(""));
         this.stateService.setVariablesState(-1, "");
         this.stateService.setRequestState(-1, "");
     }

@@ -8,6 +8,7 @@
 package com.flop.resttester.state;
 
 import com.flop.resttester.RestTesterNotifier;
+import com.flop.resttester.auth.AuthenticationNode;
 import com.flop.resttester.enviroment.EnvChangeListener;
 import com.flop.resttester.enviroment.EnvironmentsSnapshot;
 import com.flop.resttester.requesttree.RequestTreeWindow;
@@ -33,7 +34,7 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
     public static final Integer DEFAULT_ENVIRONMENT_ID = -1;
 
     public List<StateChangeListener> requestChangeListener = new ArrayList<>();
-    public List<StateChangeListener> authChangeListener = new ArrayList<>();
+    public List<AuthStateChangeListener> authChangeListener = new ArrayList<>();
     public List<StateChangeListener> variablesChangeListener = new ArrayList<>();
     public List<SettingsStateChangeListener> settingsChangeListener = new ArrayList<>();
     public List<EnvChangeListener> envChangeListener = new ArrayList<>();
@@ -117,7 +118,7 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
 
                 if (envObj.has(RestTesterGlobalState.AUTH_STATE_KEY)) {
                     JsonElement authState = envObj.get(RestTesterGlobalState.AUTH_STATE_KEY);
-                    restState.authState = authState.getAsString();
+                    restState.authState = AuthStateHelper.parseAuthState(authState.getAsString());
                 } else {
                     RestTesterNotifier.notifyError(null, "Rest Tester: Missing authorization data in environment state.");
                 }
@@ -154,7 +155,7 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
         this.environments.clear();
 
         RestTesterState defaultState = new RestTesterState(DEFAULT_ENVIRONMENT, DEFAULT_ENVIRONMENT_ID);
-        defaultState.authState = state.authState;
+        defaultState.authState = AuthStateHelper.parseAuthState(state.authState);
         defaultState.requestState = state.requestState;
         defaultState.variablesState = state.variablesState;
 
@@ -181,7 +182,7 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
         return this.variablesChangeListener.size() - 1;
     }
 
-    public int addAuthStateChangeListener(StateChangeListener listener) {
+    public int addAuthStateChangeListener(AuthStateChangeListener listener) {
         this.authChangeListener.add(listener);
         listener.onStateChange(this.state.authState);
         return this.authChangeListener.size() - 1;
@@ -213,19 +214,19 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
         return this.allowRedirects;
     }
 
-    public void setAuthState(int source, String state) {
-        this.state.authState = state;
+    public void setAuthState(int source, AuthenticationNode root) {
+        this.state.authState = root;
 
         for (int i = 0; i < this.authChangeListener.size(); i++) {
             if (i == source) {
                 continue;
             }
-            this.authChangeListener.get(i).onStateChange(state);
+            this.authChangeListener.get(i).onStateChange(root);
         }
     }
 
     public String getAuthState() {
-        return this.state.authState;
+        return AuthStateHelper.writeAuthState(this.state.authState);
     }
 
     public void setVariablesState(int source, String state) {
@@ -301,7 +302,9 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
             RestTesterState entryState = entry.getValue();
 
             entrySaveState.addProperty(RestTesterGlobalState.ENV_NAME_KEY, entryState.name);
-            entrySaveState.addProperty(RestTesterGlobalState.AUTH_STATE_KEY, entryState.authState);
+
+
+            entrySaveState.addProperty(RestTesterGlobalState.AUTH_STATE_KEY, AuthStateHelper.writeAuthState(entryState.authState));
             entrySaveState.addProperty(RestTesterGlobalState.VARIABLE_STATE_KEY, entryState.variablesState);
             entrySaveState.addProperty(RestTesterGlobalState.REQUEST_STATE_KEY, entryState.requestState);
 

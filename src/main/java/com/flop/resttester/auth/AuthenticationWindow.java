@@ -14,6 +14,7 @@ import com.intellij.openapi.actionSystem.impl.ActionButton;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
@@ -150,7 +151,15 @@ public class AuthenticationWindow {
         }
     }
 
-    private void updateInputFields(AuthenticationData data) {
+    private void updateInputFields(@Nullable AuthenticationData data) {
+        if (data == null) {
+            this.nameInput.setText("");
+            this.usernameInput.setText("");
+            this.passwordInput.setText("");
+            this.tokenInput.setText("");
+            return;
+        }
+
         this.nameInput.setText(data.getName());
         this.usernameInput.setText(data.getUsername());
         this.passwordInput.setText(data.getPassword());

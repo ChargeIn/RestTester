@@ -25,7 +25,7 @@ import java.awt.*;
 import java.util.Objects;
 
 public class EnvironmentTree extends JPanel {
-    private Tree tree = new Tree();
+    private final Tree tree = new Tree();
     private EnvironmentTreeNode root;
     private EnvironmentTreeNode selectedNode;
     public final EnvironmentsSnapshot snapshot;
@@ -161,6 +161,13 @@ public class EnvironmentTree extends JPanel {
         var state = new RestTesterState("New Environment", newId);
         this.snapshot.environments.put(newId, state);
         this.snapshot.selectedEnvironment = newId;
+
+        EnvironmentTreeNode cloneNode = new EnvironmentTreeNode(state);
+        this.root.add(cloneNode);
+
+        this.tree.setSelectionPath(new TreePath(cloneNode.getPath()));
+        SwingUtilities.invokeLater(() -> this.tree.updateUI());
+
         this.setupTree();
     }
 

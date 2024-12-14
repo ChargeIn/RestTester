@@ -14,7 +14,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +22,7 @@ import java.util.Objects;
 public class AuthStateHelper {
     private static final String VERSION = "1.0";
 
-    public static @Nullable String writeAuthState(AuthenticationNode root) {
+    public static String state2String(AuthenticationNode root) {
         JsonArray jData = AuthStateHelper.tree2JSON(root);
 
         JsonObject wrapper = new JsonObject();
@@ -33,7 +32,7 @@ public class AuthStateHelper {
         return wrapper.toString();
     }
 
-    public static AuthenticationNode parseAuthState(String state) {
+    public static AuthenticationNode string2State(String state) {
         AuthenticationNode root = new AuthenticationNode(new AuthenticationData("", ""));
 
         try {

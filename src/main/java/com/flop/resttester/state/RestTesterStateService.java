@@ -12,7 +12,6 @@ import com.flop.resttester.auth.AuthenticationNode;
 import com.flop.resttester.enviroment.EnvChangeListener;
 import com.flop.resttester.enviroment.EnvironmentsSnapshot;
 import com.flop.resttester.requesttree.RequestTreeWindow;
-import com.flop.resttester.variables.VariablesHandler;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -22,6 +21,7 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import org.jetbrains.annotations.NotNull;
 
+import javax.swing.table.DefaultTableModel;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -35,7 +35,7 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
 
     public List<StateChangeListener> requestChangeListener = new ArrayList<>();
     public List<AuthStateChangeListener> authChangeListener = new ArrayList<>();
-    public List<StateChangeListener> variablesChangeListener = new ArrayList<>();
+    public List<VariablesStateChangeListener> variablesChangeListener = new ArrayList<>();
     public List<SettingsStateChangeListener> settingsChangeListener = new ArrayList<>();
     public List<EnvChangeListener> envChangeListener = new ArrayList<>();
 
@@ -58,7 +58,7 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
         globalState.validateSSL = this.validateSSL;
         globalState.environmentState = this.generateEnvSaveState();
         globalState.selectedEnvironment = this.selectedEnvironment;
-        globalState.version = SAVE_STATE_VERSION;
+        globalState.version = RestTesterStateService.SAVE_STATE_VERSION;
 
         return globalState;
     }
@@ -69,9 +69,11 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
         this.selectedEnvironment = DEFAULT_ENVIRONMENT_ID;
 
         if (state.version == SAVE_STATE_VERSION) {
-            this.loadEnvironments(state);
+            this.loadEnvFromStateVersion2(state.environmentState, state.selectedEnvironment);
+        } else if (state.version == 1) {
+            this.loadEnvFromStateVersion1(state.authState, state.requestState, state.requestState);
         } else {
-            this.loadEnvFromDeprecatedState(state);
+            RestTesterNotifier.notifyError(null, "Incompatible rest tester state version: Expected version 2 or 1 and got " + state.version);
         }
 
         this.validateSSL = state.validateSSL;
@@ -81,15 +83,15 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
     /**
      * Loads the rest tester states from the environmentState string
      */
-    private void loadEnvironments(RestTesterGlobalState state) {
-        if (state.environmentState.isBlank()) {
+    public void loadEnvFromStateVersion2(String environmentState, Integer selectedEnvironment) {
+        if (environmentState.isBlank()) {
             return;
         }
 
-        this.selectedEnvironment = state.selectedEnvironment;
+        this.selectedEnvironment = selectedEnvironment;
 
         try {
-            JsonElement envState = JsonParser.parseString(state.environmentState);
+            JsonElement envState = JsonParser.parseString(environmentState);
 
             JsonObject globalEnvObj = envState.getAsJsonObject();
 
@@ -118,7 +120,7 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
 
                 if (envObj.has(RestTesterGlobalState.AUTH_STATE_KEY)) {
                     JsonElement authState = envObj.get(RestTesterGlobalState.AUTH_STATE_KEY);
-                    restState.authState = AuthStateHelper.parseAuthState(authState.getAsString());
+                    restState.authState = AuthStateHelper.string2State(authState.getAsString());
                 } else {
                     RestTesterNotifier.notifyError(null, "Rest Tester: Missing authorization data in environment state.");
                 }
@@ -132,7 +134,7 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
 
                 if (envObj.has(RestTesterGlobalState.VARIABLE_STATE_KEY)) {
                     JsonElement variablesState = envObj.get(RestTesterGlobalState.VARIABLE_STATE_KEY);
-                    restState.variablesState = variablesState.getAsString();
+                    restState.variablesState = VariablesStateHelper.string2State(variablesState.getAsString());
                 } else {
                     RestTesterNotifier.notifyError(null, "Rest Tester: Missing variable data in environment state.");
                 }
@@ -151,13 +153,13 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
     /**
      * Loads the state from the deprecated state variables and saves them in the default environment
      */
-    private void loadEnvFromDeprecatedState(RestTesterGlobalState state) {
+    public void loadEnvFromStateVersion1(String authState, String requestState, String variablesState) {
         this.environments.clear();
 
         RestTesterState defaultState = new RestTesterState(DEFAULT_ENVIRONMENT, DEFAULT_ENVIRONMENT_ID);
-        defaultState.authState = AuthStateHelper.parseAuthState(state.authState);
-        defaultState.requestState = state.requestState;
-        defaultState.variablesState = state.variablesState;
+        defaultState.authState = AuthStateHelper.string2State(authState);
+        defaultState.requestState = requestState;
+        defaultState.variablesState = VariablesStateHelper.string2State(variablesState);
 
         this.state = defaultState;
         this.environments.put(DEFAULT_ENVIRONMENT_ID, this.state);
@@ -176,7 +178,7 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
         return this.requestChangeListener.size() - 1;
     }
 
-    public int addVariablesStateChangeListener(StateChangeListener listener) {
+    public int addVariablesStateChangeListener(VariablesStateChangeListener listener) {
         this.variablesChangeListener.add(listener);
         listener.onStateChange(this.state.variablesState);
         return this.variablesChangeListener.size() - 1;
@@ -225,22 +227,22 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
         }
     }
 
-    public String getAuthState() {
-        return AuthStateHelper.writeAuthState(this.state.authState);
+    public AuthenticationNode getAuthState() {
+        return this.state.authState;
     }
 
-    public void setVariablesState(int source, String state) {
-        this.state.variablesState = state;
+    public void setVariablesState(int source, DefaultTableModel model) {
+        this.state.variablesState = model;
 
         for (int i = 0; i < this.variablesChangeListener.size(); i++) {
             if (i == source) {
                 continue;
             }
-            this.variablesChangeListener.get(i).onStateChange(state);
+            this.variablesChangeListener.get(i).onStateChange(model);
         }
     }
 
-    public String getVariableState() {
+    public DefaultTableModel getVariableState() {
         return this.state.variablesState;
     }
 
@@ -290,11 +292,11 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
         String requestState = RequestTreeWindow.updateState(this.getRequestState(), update.nodes());
         this.setRequestState(-1, requestState);
 
-        String variableState = VariablesHandler.updateState(this.getVariableState(), update.evnVariables());
+        DefaultTableModel variableState = VariablesStateHelper.updateState(this.getVariableState(), update.evnVariables());
         this.setVariablesState(-1, variableState);
     }
 
-    private String generateEnvSaveState() {
+    public String generateEnvSaveState() {
         JsonObject saveState = new JsonObject();
 
         for (var entry : this.environments.entrySet()) {
@@ -304,8 +306,8 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
             entrySaveState.addProperty(RestTesterGlobalState.ENV_NAME_KEY, entryState.name);
 
 
-            entrySaveState.addProperty(RestTesterGlobalState.AUTH_STATE_KEY, AuthStateHelper.writeAuthState(entryState.authState));
-            entrySaveState.addProperty(RestTesterGlobalState.VARIABLE_STATE_KEY, entryState.variablesState);
+            entrySaveState.addProperty(RestTesterGlobalState.AUTH_STATE_KEY, AuthStateHelper.state2String(entryState.authState));
+            entrySaveState.addProperty(RestTesterGlobalState.VARIABLE_STATE_KEY, VariablesStateHelper.state2String(entryState.variablesState));
             entrySaveState.addProperty(RestTesterGlobalState.REQUEST_STATE_KEY, entryState.requestState);
 
             saveState.add(entry.getKey().toString(), entrySaveState);

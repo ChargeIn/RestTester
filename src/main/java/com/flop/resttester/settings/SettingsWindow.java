@@ -33,8 +33,8 @@ import java.time.format.DateTimeFormatter;
 
 public class SettingsWindow {
 
-    private final String STATE_FILE = "RestTester";
-    private final int SAVE_FILE_VERSION = 1;
+    private final String STATE_FILE_NAME = "RestTester";
+    private final int SAVE_FILE_VERSION = 2;
     private final RestTesterStateService stateService;
     private final int id;
     private final Project project;
@@ -51,7 +51,7 @@ public class SettingsWindow {
     private JLabel experimentalLabel;
     private JButton postmanImport;
 
-    private ChangeListener settingsChangeListener = this::onSettingsChange;
+    private final ChangeListener settingsChangeListener = this::onSettingsChange;
 
     public SettingsWindow(Project project) {
         this.project = project;
@@ -83,7 +83,7 @@ public class SettingsWindow {
         LocalDateTime now = LocalDateTime.now();
         String date = dtf.format(now);
 
-        String fileName = this.STATE_FILE + "-" + date + ".json";
+        String fileName = this.STATE_FILE_NAME + "-" + date + ".json";
 
         File saveFile = new File(file.getPath(), fileName);
 
@@ -91,19 +91,19 @@ public class SettingsWindow {
             int i = 1;
 
             while (saveFile.exists()) {
-                fileName = this.STATE_FILE + "-" + date + " (" + i + ").json";
+                fileName = this.STATE_FILE_NAME + "-" + date + " (" + i + ").json";
                 saveFile = new File(file.getPath(), fileName);
                 i++;
             }
         }
 
         JsonObject wrapper = new JsonObject();
+
         wrapper.addProperty("version", this.SAVE_FILE_VERSION);
         wrapper.addProperty("validateSSL", this.stateService.getValidateSSL());
         wrapper.addProperty("allowRedirects", this.stateService.getAllowRedirects());
-        wrapper.addProperty("authState", this.stateService.getAuthState());
-        wrapper.addProperty("variablesState", this.stateService.getVariableState());
-        wrapper.addProperty("requestState", this.stateService.getRequestState());
+        wrapper.addProperty("environmentState", this.stateService.generateEnvSaveState());
+        wrapper.addProperty("selectedEnvironment", this.stateService.selectedEnvironment);
 
         String jsonString = wrapper.toString();
 
@@ -142,38 +142,52 @@ public class SettingsWindow {
 
             int version = obj.get("version").getAsInt();
 
-            if (version != this.SAVE_FILE_VERSION) {
-                RestTesterNotifier.notifyError(this.project, "Rest Tester: Incompatible save file version " + version + " . (Supported versions: " + this.SAVE_FILE_VERSION + ")");
+            if (version == this.SAVE_FILE_VERSION) {
+                this.importFromVersion2(obj);
+            } else if (version == 1) {
+                this.importFromVersion1(obj);
+            } else {
+                RestTesterNotifier.notifyError(this.project, "Rest Tester: Incompatible save file version " + version + " . (Supported versions: " + this.SAVE_FILE_VERSION + " & 1)");
                 return;
             }
-
-
-            boolean validateSSL = obj.get("validateSSL").getAsBoolean();
-            String authState = obj.get("authState").getAsString();
-            String variableState = obj.get("variablesState").getAsString();
-            String requestState = obj.get("requestState").getAsString();
-
-            boolean allowRedirects = true;
-
-            if (obj.has("allowRedirects")) {
-                allowRedirects = obj.get("allowRedirects").getAsBoolean();
-            }
-
-            this.stateService.setSettingsState(-1, validateSSL, allowRedirects);
-            this.stateService.setAuthState(-1, AuthStateHelper.parseAuthState(authState));
-            this.stateService.setVariablesState(-1, variableState);
-            this.stateService.setRequestState(-1, requestState);
-
             RestTesterNotifier.notifyInfo(this.project, "Rest Tester: Import successful.");
         } catch (Exception ex) {
             RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not parse save file. " + ex.getMessage());
         }
     }
 
+    private void importFromVersion2(JsonObject obj) {
+        boolean validateSSL = obj.get("validateSSL").getAsBoolean();
+        boolean allowRedirects = obj.get("allowRedirects").getAsBoolean();
+        Integer selectedEnvironment = obj.get("selectedEnvironment").getAsInt();
+        String environmentState = obj.get("environmentState").getAsString();
+
+        this.stateService.loadEnvFromStateVersion2(environmentState, selectedEnvironment);
+        this.stateService.setSettingsState(-1, validateSSL, allowRedirects);
+        this.stateService.selectEnvironment(this.stateService.selectedEnvironment);
+    }
+
+    private void importFromVersion1(JsonObject obj) {
+        boolean validateSSL = obj.get("validateSSL").getAsBoolean();
+        String authState = obj.get("authState").getAsString();
+        String variableState = obj.get("variablesState").getAsString();
+        String requestState = obj.get("requestState").getAsString();
+
+        boolean allowRedirects = true;
+
+        if (obj.has("allowRedirects")) {
+            allowRedirects = obj.get("allowRedirects").getAsBoolean();
+        }
+
+        this.stateService.loadEnvFromStateVersion1(authState, requestState, variableState);
+        this.stateService.setSettingsState(-1, validateSSL, allowRedirects);
+        this.stateService.selectEnvironment(this.stateService.selectedEnvironment);
+    }
+
     public void onReset(ActionEvent event) {
         this.stateService.setSettingsState(-1, false, true);
-        this.stateService.setAuthState(-1, AuthStateHelper.parseAuthState(""));
-        this.stateService.setVariablesState(-1, "");
+        this.stateService.setAuthState(-1, AuthStateHelper.string2State(""));
+        this.stateService.setVariablesState(-1, VariablesStateHelper.string2State(""));
         this.stateService.setRequestState(-1, "");
     }
 

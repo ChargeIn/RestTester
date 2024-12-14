@@ -10,11 +10,13 @@ package com.flop.resttester.state;
 import com.flop.resttester.auth.AuthenticationData;
 import com.flop.resttester.auth.AuthenticationNode;
 
+import javax.swing.table.DefaultTableModel;
+
 public class RestTesterState {
     public String name;
     public Integer id;
     public AuthenticationNode authState = new AuthenticationNode(new AuthenticationData("", ""));
-    public String variablesState = "";
+    public DefaultTableModel variablesState = new DefaultTableModel();
     public String requestState = "";
 
     public RestTesterState(String name, Integer id) {

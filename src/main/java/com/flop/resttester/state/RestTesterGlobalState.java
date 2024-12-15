@@ -12,6 +12,7 @@ public class RestTesterGlobalState {
     static final String VARIABLE_STATE_KEY = "variableState";
     static final String REQUEST_STATE_KEY = "requestState";
     static final String ENV_NAME_KEY = "envName";
+    static final String ENV_BASE_URL_KEY = "envBaseUrl";
 
     public int version = -1;
     public boolean validateSSL = false;

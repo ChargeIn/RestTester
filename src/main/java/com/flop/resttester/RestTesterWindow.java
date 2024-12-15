@@ -16,6 +16,7 @@ import com.flop.resttester.request.RequestWindowListener;
 import com.flop.resttester.requesttree.RequestTreeNodeData;
 import com.flop.resttester.requesttree.RequestTreeWindow;
 import com.flop.resttester.response.ResponseWindow;
+import com.flop.resttester.state.RestTesterState;
 import com.flop.resttester.state.RestTesterStateService;
 import com.flop.resttester.variables.VariablesWindow;
 import com.intellij.openapi.project.Project;
@@ -137,8 +138,11 @@ public class RestTesterWindow {
         RequestTreeNodeData nodeData = this.requestWindow.getRequestData();
         AuthenticationData authData = this.requestWindow.getAuthData();
 
+        RestTesterState environment = this.state.getEnvironment();
+
         RequestData data = new RequestData(
                 nodeData.getUrl(),
+                environment.baseUrl,
                 nodeData.getType(),
                 authData,
                 nodeData.getBody(),

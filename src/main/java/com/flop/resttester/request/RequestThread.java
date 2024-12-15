@@ -51,7 +51,14 @@ public class RequestThread extends Thread {
     public void run() {
         this.startTime = System.currentTimeMillis();
 
-        StringBuilder urlString = new StringBuilder(this.data.url());
+        StringBuilder urlString = new StringBuilder();
+
+        String url = this.data.url();
+
+        if (url.startsWith("/")) {
+            urlString.append(this.data.baseUrl());
+        }
+        urlString.append(url);
 
         if (this.data.queryParams() != null && !this.data.queryParams().isEmpty()) {
             String params = this.data.queryParams().stream()

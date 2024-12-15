@@ -26,6 +26,7 @@ public class EnvironmentSettingsPanel extends JPanel {
     private CustomTextField name;
     private CustomTextField url;
     private final EnvironmentNameChangeListener nameChangeListener;
+    private RestTesterState restTesterState;
 
     public EnvironmentSettingsPanel(Disposable parentDisposable, EnvironmentNameChangeListener nameChangeListener) {
         this.nameChangeListener = nameChangeListener;
@@ -59,20 +60,26 @@ public class EnvironmentSettingsPanel extends JPanel {
         });
         this.add(this.name, "cell 1 0, pushx, growx 75, wrap");
 
-        var urlLabel = new JLabel("Base Url (Optional):");
+        var urlLabel = new JLabel("Base Url:");
         this.add(urlLabel);
 
-        // TODO Add support for base urls
         this.url = new CustomTextField("Type an URL…");
-        this.url.setEditable(false);
+        this.url.getDocument().addDocumentListener(new DocumentAdapter() {
+            @Override
+            protected void textChanged(@NotNull DocumentEvent e) {
+                restTesterState.baseUrl = url.getText();
+            }
+        });
         this.add(this.url, "pushx, growx, wrap");
 
-        var info = new JBLabel("* Used as basis to complete relative request URLs. ", UIUtil.ComponentStyle.SMALL, UIUtil.FontColor.BRIGHTER);
+        var info = new JBLabel("* Used as basis to complete relative request URLs. (Optional)", UIUtil.ComponentStyle.SMALL, UIUtil.FontColor.BRIGHTER);
         this.add(info, "cell 1 2");
     }
 
     public void setEnvironment(RestTesterState state) {
+        this.restTesterState = state;
         this.name.setText(state.name);
+        this.url.setText(state.baseUrl);
     }
 
     public boolean inputValid() {

@@ -64,6 +64,10 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
         return globalState;
     }
 
+    public RestTesterState getEnvironment() {
+        return this.environments.get(this.selectedEnvironment);
+    }
+
     public void loadState(@NotNull RestTesterGlobalState state) {
         this.state = new RestTesterState(DEFAULT_ENVIRONMENT, DEFAULT_ENVIRONMENT_ID);
         this.environments.put(DEFAULT_ENVIRONMENT_ID, this.state);
@@ -117,6 +121,13 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
                 } else {
                     restState = new RestTesterState("Unknown (" + (unknownCount++) + ")", id);
                     RestTesterNotifier.notifyError(null, "Rest Tester: Missing environment name.");
+                }
+
+                if (envObj.has(RestTesterGlobalState.ENV_BASE_URL_KEY)) {
+                    String baseUrl = envObj.get(RestTesterGlobalState.ENV_BASE_URL_KEY).getAsString();
+                    restState.baseUrl = baseUrl;
+                } else {
+                    RestTesterNotifier.notifyError(null, "Rest Tester: Missing missing base URL data in environment state.");
                 }
 
                 if (envObj.has(RestTesterGlobalState.AUTH_STATE_KEY)) {
@@ -263,9 +274,11 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
 
         for (Map.Entry<Integer, RestTesterState> entry : this.environments.entrySet()) {
             var state = new RestTesterState(entry.getValue().name, entry.getKey());
-            state.authState = entry.getValue().authState;
-            state.requestState = entry.getValue().requestState;
-            state.variablesState = entry.getValue().variablesState;
+            var value = entry.getValue();
+            state.authState = value.authState;
+            state.requestState = value.requestState;
+            state.variablesState = value.variablesState;
+            state.baseUrl = value.baseUrl;
 
             deepEnvCopy.put(entry.getKey(), state);
         }
@@ -305,7 +318,7 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
             RestTesterState entryState = entry.getValue();
 
             entrySaveState.addProperty(RestTesterGlobalState.ENV_NAME_KEY, entryState.name);
-
+            entrySaveState.addProperty(RestTesterGlobalState.ENV_BASE_URL_KEY, entryState.baseUrl);
 
             entrySaveState.addProperty(RestTesterGlobalState.AUTH_STATE_KEY, AuthStateHelper.state2String(entryState.authState));
             entrySaveState.addProperty(RestTesterGlobalState.VARIABLE_STATE_KEY, VariablesStateHelper.state2String(entryState.variablesState));

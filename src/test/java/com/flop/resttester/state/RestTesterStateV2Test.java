@@ -287,7 +287,7 @@ public class RestTesterStateV2Test {
         var rootData = requestTreeNode.getRequestData();
         assertEquals("", rootData.getName());
         assertTrue(rootData.isFolder());
-        assertEquals(1, requestTreeNode.getChildCount());
+        assertEquals(2, requestTreeNode.getChildCount());
 
         var requestChild1 = (RequestTreeNode) requestTreeNode.getChildAt(0);
         var requestChild1Data = requestChild1.getRequestData();
@@ -301,5 +301,18 @@ public class RestTesterStateV2Test {
         assertEquals("", requestChild1Data.getBody());
         assertEquals(0, requestChild1Data.getHeaders().size());
         assertEquals(0, requestChild1Data.getParams().size());
+
+        var requestChild2 = (RequestTreeNode) requestTreeNode.getChildAt(1);
+        var requestChild2Data = requestChild2.getRequestData();
+
+        assertEquals("relative path test", requestChild2Data.getName());
+        assertFalse(requestChild2Data.isFolder());
+        assertEquals("/objects", requestChild2Data.getUrl());
+        assertEquals(RequestType.GET, requestChild2Data.getType());
+        assertEquals("None", requestChild2Data.getAuthenticationDataKey());
+        assertEquals(RequestBodyType.JSON, requestChild2Data.getBodyType());
+        assertEquals("", requestChild2Data.getBody());
+        assertEquals(0, requestChild2Data.getHeaders().size());
+        assertEquals(0, requestChild2Data.getParams().size());
     }
 }

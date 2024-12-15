@@ -14,6 +14,7 @@ import java.util.List;
 
 public record RequestData(
         String url,
+        String baseUrl,
         RequestType type,
         AuthenticationData authData,
         String body,

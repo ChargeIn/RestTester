@@ -27,6 +27,7 @@ public class RequestTreeNodeData implements Cloneable {
     private RequestBodyType bodyType;
 
     private ResponseData responseCache = null;
+    public boolean expanded = false;
 
     public static RequestTreeNodeData getDefaultRequest(String name) {
         return new RequestTreeNodeData(

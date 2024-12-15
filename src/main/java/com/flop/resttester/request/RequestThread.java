@@ -83,8 +83,18 @@ public class RequestThread extends Thread {
 
         HttpClient.Builder clientBuilder = HttpClient.newBuilder();
 
+        HttpRequest.Builder builder;
+
         // create a request
-        HttpRequest.Builder builder = HttpRequest.newBuilder(uri).method(this.data.type().toString(), HttpRequest.BodyPublishers.ofString(this.data.body()));
+        try {
+            builder = HttpRequest.newBuilder(uri).method(this.data.type().toString(), HttpRequest.BodyPublishers.ofString(this.data.body()));
+        } catch (Exception e) {
+            if (!this.stopped) {
+                ResponseData data = new ResponseData(urlString.toString(), null, null, -1, e.getMessage().getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
+                this.finishedListener.onRequestFinished(data);
+            }
+            return;
+        }
 
         if (this.data.authData() != null) {
             AuthenticationData authData = this.data.authData();

@@ -9,7 +9,7 @@ package com.flop.resttester.components.keyvaluelist;
 
 import com.flop.resttester.components.textfields.VariablesAutoCompletionProvider;
 import com.flop.resttester.utils.Debouncer;
-import com.flop.resttester.variables.VariablesHandler;
+import com.flop.resttester.variables.VariablesWindow;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.uiDesigner.core.GridConstraints;
@@ -26,7 +26,7 @@ import java.util.List;
 public abstract class KeyValueList extends JPanel {
 
     Project project;
-    VariablesHandler variablesHandler;
+    VariablesWindow variablesWindow;
     VariablesAutoCompletionProvider keyCompletionProvider;
     VariablesAutoCompletionProvider valueCompletionProvider;
 
@@ -58,9 +58,9 @@ public abstract class KeyValueList extends JPanel {
      * The actual initialization of the key value list.
      * Requires the project to be loaded, so we cannot do this in the constructor
      */
-    public void setProject(Project project, VariablesHandler variablesHandler) {
+    public void setProject(Project project, VariablesWindow variablesHandler) {
         this.project = project;
-        this.variablesHandler = variablesHandler;
+        this.variablesWindow = variablesHandler;
         this.initKeyValueList();
     }
 
@@ -86,11 +86,7 @@ public abstract class KeyValueList extends JPanel {
         GridLayoutManager layoutManager = new GridLayoutManager(1, 1);
         this.setLayout(layoutManager);
 
-        GridConstraints constraint = new GridConstraints(0, 0, 1, 1,
-                GridConstraints.ANCHOR_WEST, GridConstraints.FILL_BOTH,
-                GridConstraints.SIZEPOLICY_WANT_GROW | GridConstraints.SIZEPOLICY_CAN_SHRINK,
-                GridConstraints.SIZEPOLICY_WANT_GROW | GridConstraints.SIZEPOLICY_CAN_SHRINK,
-                null, null, null);
+        GridConstraints constraint = new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_WANT_GROW | GridConstraints.SIZEPOLICY_CAN_SHRINK, GridConstraints.SIZEPOLICY_WANT_GROW | GridConstraints.SIZEPOLICY_CAN_SHRINK, null, null, null);
 
         this.add(scrollPane, constraint);
     }
@@ -100,17 +96,10 @@ public abstract class KeyValueList extends JPanel {
      */
     private void initKeyValueList() {
 
-        this.keyCompletionProvider = new VariablesAutoCompletionProvider(this.variablesHandler, this.getKeyProposals());
-        this.valueCompletionProvider = new VariablesAutoCompletionProvider(this.variablesHandler, this.getValueProposals());
+        this.keyCompletionProvider = new VariablesAutoCompletionProvider(this.variablesWindow, this.getKeyProposals());
+        this.valueCompletionProvider = new VariablesAutoCompletionProvider(this.variablesWindow, this.getValueProposals());
 
-        KeyValueInput input = new KeyValueInput(
-                "", "", true,
-                this.getKeyPlaceholder(),
-                this.getValuePlaceholder(),
-                this.keyCompletionProvider,
-                this.valueCompletionProvider,
-                this.project
-        );
+        KeyValueInput input = new KeyValueInput("", "", true, this.getKeyPlaceholder(), this.getValuePlaceholder(), this.keyCompletionProvider, this.valueCompletionProvider, this.project);
         input.addChangeEventListener(this::onInputChange);
         this.panel.add(input);
     }
@@ -119,18 +108,12 @@ public abstract class KeyValueList extends JPanel {
      * Fills the view with key value pairs based on the given list.
      */
     public void fillView(List<KeyValuePair> items) {
-        this.panel.removeAll();
         int width = this.getParent().getWidth();
 
+        this.panel.removeAll();
+
         for (KeyValuePair item : items) {
-            KeyValueInput input = new KeyValueInput(
-                    item.key, item.value, item.enabled,
-                    this.getKeyPlaceholder(),
-                    this.getValuePlaceholder(),
-                    this.keyCompletionProvider,
-                    this.valueCompletionProvider,
-                    this.project
-            );
+            KeyValueInput input = new KeyValueInput(item.key, item.value, item.enabled, this.getKeyPlaceholder(), this.getValuePlaceholder(), this.keyCompletionProvider, this.valueCompletionProvider, this.project);
             input.addChangeEventListener(this::onInputChange);
             input.setPreferredSize(new Dimension(width, this.childHeight));
             this.panel.add(input);
@@ -169,8 +152,7 @@ public abstract class KeyValueList extends JPanel {
 
                 Component[] components = KeyValueList.this.panel.getComponents();
 
-                Arrays.stream(components).forEach(component ->
-                        component.setPreferredSize(new Dimension(width, KeyValueList.this.childHeight)));
+                Arrays.stream(components).forEach(component -> component.setPreferredSize(new Dimension(width, KeyValueList.this.childHeight)));
 
                 KeyValueList.this.updatePanelSize();
                 KeyValueList.this.updateUI();
@@ -222,14 +204,7 @@ public abstract class KeyValueList extends JPanel {
     }
 
     private void addEmptyInput() {
-        KeyValueInput newInput = new KeyValueInput(
-                "", "", true,
-                this.getKeyPlaceholder(),
-                this.getValuePlaceholder(),
-                this.keyCompletionProvider,
-                this.valueCompletionProvider,
-                this.project
-        );
+        KeyValueInput newInput = new KeyValueInput("", "", true, this.getKeyPlaceholder(), this.getValuePlaceholder(), this.keyCompletionProvider, this.valueCompletionProvider, this.project);
         newInput.addChangeEventListener(this::onInputChange);
 
         int width = this.getParent().getWidth();

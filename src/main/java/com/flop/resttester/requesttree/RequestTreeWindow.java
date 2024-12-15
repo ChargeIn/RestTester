@@ -7,14 +7,9 @@
 
 package com.flop.resttester.requesttree;
 
-import com.flop.resttester.RestTesterNotifier;
 import com.flop.resttester.RestTesterWindow;
 import com.flop.resttester.components.SimpleInputDialog;
 import com.flop.resttester.state.RestTesterStateService;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.dnd.aware.DnDAwareTree;
 import com.intellij.openapi.actionSystem.*;
@@ -28,16 +23,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import javax.swing.event.TreeExpansionEvent;
+import javax.swing.event.TreeExpansionListener;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 
 public class RequestTreeWindow {
     // state
-    public static final String STATE_VERSION = "1.0";
     private final RestTesterStateService state = RestTesterStateService.getInstance();
     private int id;
     private List<RequestTreeNode> nodes2Expand;
@@ -58,6 +56,46 @@ public class RequestTreeWindow {
     private RequestTreeNode root;
     public RequestTreeNode selectedNode;
     private RequestTreeSelectionListener selectionListener;
+
+    private final TreeSelectionListener treeSelectionListener = (selection) -> {
+        this.selectedNode = (RequestTreeNode) selection.getPath().getLastPathComponent();
+
+        this.copyButton.setEnabled(true);
+        this.removeButton.setEnabled(true);
+        this.removeButton.updateUI();
+    };
+
+    private final TreeExpansionListener treeExpansionListener = new TreeExpansionListener() {
+
+        @Override
+        public void treeExpanded(TreeExpansionEvent event) {
+            RequestTreeNode node = (RequestTreeNode) event.getPath().getLastPathComponent();
+            node.getRequestData().expanded = true;
+            RequestTreeWindow.this.saveTree();
+        }
+
+        @Override
+        public void treeCollapsed(TreeExpansionEvent event) {
+            RequestTreeNode node = (RequestTreeNode) event.getPath().getLastPathComponent();
+            node.getRequestData().expanded = false;
+            RequestTreeWindow.this.saveTree();
+        }
+    };
+
+    private final MouseListener treeMouseListener = new MouseAdapter() {
+        @Override
+        public void mousePressed(MouseEvent mouseEvent) {
+            if (mouseEvent.isPopupTrigger()) {
+                handleContextMenu(mouseEvent);
+            } else {
+                int clickCount = mouseEvent.getClickCount();
+
+                if (clickCount == 2) {
+                    handleRename(mouseEvent);
+                }
+            }
+        }
+    };
 
     public RequestTreeWindow() {
         this.setupStyles();
@@ -165,28 +203,18 @@ public class RequestTreeWindow {
      * Sets up callbacks for the context menu and the ui changes on selection.
      */
     private void addClickListener() {
-        this.tree.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent mouseEvent) {
-                if (mouseEvent.isPopupTrigger()) {
-                    handleContextMenu(mouseEvent);
-                } else {
-                    int clickCount = mouseEvent.getClickCount();
+        this.tree.addMouseListener(this.treeMouseListener);
+        this.tree.addTreeSelectionListener(this.treeSelectionListener);
+        this.tree.addTreeExpansionListener(this.treeExpansionListener);
+    }
 
-                    if (clickCount == 2) {
-                        handleRename(mouseEvent);
-                    }
-                }
-            }
-        });
-
-        this.tree.addTreeSelectionListener((selection) -> {
-            this.selectedNode = (RequestTreeNode) selection.getPath().getLastPathComponent();
-
-            this.copyButton.setEnabled(true);
-            this.removeButton.setEnabled(true);
-            this.removeButton.updateUI();
-        });
+    /**
+     * Removes callbacks for the context menu and the ui changes on selection.
+     */
+    private void removeClickListener() {
+        this.tree.removeMouseListener(this.treeMouseListener);
+        this.tree.removeTreeSelectionListener(this.treeSelectionListener);
+        this.tree.removeTreeExpansionListener(this.treeExpansionListener);
     }
 
     /**
@@ -336,63 +364,49 @@ public class RequestTreeWindow {
         });
     }
 
-    private void loadTree(String state) {
+    private void loadTree(RequestTreeNode state) {
         if (this.project == null) {
             return;
         }
 
-        if (state.isBlank()) {
-            // reset state
-            SwingUtilities.invokeLater(() -> {
-                this.root.removeAllChildren();
-                // root must always be expanded
-                this.tree.expandPath(new TreePath(this.root.getPath()));
-                this.tree.updateUI();
-            });
-            return;
+        this.nodes2Expand = new ArrayList<>();
+        this.findExpandedNodes(state);
+        this.root = state;
+
+        this.selectedNode = null;
+        this.copyButton.setEnabled(false);
+        this.removeButton.setEnabled(false);
+        this.removeButton.updateUI();
+
+        SwingUtilities.invokeLater(() -> {
+            this.removeClickListener();
+
+            this.tree.removeAll();
+            TreeModel model = new DefaultTreeModel(this.root);
+            this.tree.setModel(model);
+
+            for (RequestTreeNode node : this.nodes2Expand) {
+                this.tree.expandPath(new TreePath(node.getPath()));
+            }
+            // root must always be expanded
+            this.tree.expandPath(new TreePath(this.root.getPath()));
+            this.tree.updateUI();
+
+            if (this.selectionListener != null) {
+                this.selectionListener.valueChanged(null);
+            }
+
+            this.addClickListener();
+        });
+    }
+
+    private void findExpandedNodes(RequestTreeNode node) {
+        if (node.getRequestData().expanded) {
+            this.nodes2Expand.add(node);
         }
 
-        this.nodes2Expand = new ArrayList<>();
-        try {
-            JsonElement file = JsonParser.parseString(state);
-
-            JsonObject wrapper = file.getAsJsonObject();
-
-            JsonElement jVersion = wrapper.get("version");
-            if (jVersion == null || !Objects.equals(jVersion.getAsString(), RequestTreeWindow.STATE_VERSION)) {
-                return;
-            }
-
-            JsonElement jNodes = wrapper.get("nodes");
-
-            if (jNodes == null) {
-                RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not find node array in tree save file.");
-                return;
-            }
-
-            JsonArray nodesArray = jNodes.getAsJsonArray();
-
-            SwingUtilities.invokeLater(() -> {
-                this.root.removeAllChildren();
-                for (int i = 0; i < nodesArray.size(); i++) {
-                    JsonObject obj = nodesArray.get(i).getAsJsonObject();
-                    RequestTreeNode newNode = RequestTreeNode.createFromJson(obj);
-                    this.root.add(newNode);
-
-                    if (obj.has("expanded")) {
-                        this.nodes2Expand.add(newNode);
-                    }
-                }
-
-                for (RequestTreeNode node : this.nodes2Expand) {
-                    this.tree.expandPath(new TreePath(node.getPath()));
-                }
-                // root must always be expanded
-                this.tree.expandPath(new TreePath(this.root.getPath()));
-                this.tree.updateUI();
-            });
-        } catch (Exception e) {
-            RestTesterNotifier.notifyError(this.project, "Rest Tester: Could not parse tree save file. " + e.getMessage());
+        for (int i = 0; i < node.getChildCount(); i++) {
+            this.findExpandedNodes((RequestTreeNode) node.getChildAt(i));
         }
     }
 
@@ -406,56 +420,38 @@ public class RequestTreeWindow {
             return;
         }
 
-        JsonArray jNodes = new JsonArray();
-
-        for (int i = 0; i < this.root.getChildCount(); i++) {
-            JsonObject jChild = ((RequestTreeNode) this.root.getChildAt(i)).getAsJson(this.tree);
-            jNodes.add(jChild);
-        }
-
-        String state = RequestTreeWindow.generateState(jNodes);
-
-        this.state.setRequestState(this.id, state);
+        this.state.setRequestState(this.id, this.root);
     }
 
     /**
      * Adds the given request tree nodes to the request state string
      */
-    public static String updateState(String state, List<RequestTreeNode> nodes2Add) {
-        JsonArray nodes = new JsonArray();
+    public static RequestTreeNode updateState(RequestTreeNode state, List<RequestTreeNode> nodes2Add) {
+        HashMap<String, RequestTreeNode> folders = new HashMap<>();
+
+        for (int i = 0; i < state.getChildCount(); i++) {
+            var node = (RequestTreeNode) state.getChildAt(i);
+
+            if (node.isFolder()) {
+                folders.put(node.getRequestData().getName(), node);
+            }
+        }
 
         for (RequestTreeNode node : nodes2Add) {
-            nodes.add(node.getAsJson(null));
-        }
+            if (node.isFolder() && folders.containsKey(node.getRequestData().getName())) {
+                var folder = folders.get(node.getRequestData().getName());
 
-        state = RequestTreeWindow.generateState(state, nodes);
+                for (int j = 0; j < node.getChildCount(); j++) {
+                    var child = (RequestTreeNode) node.getChildAt(j);
+                    folder.add(child);
+                }
+                continue;
+            }
+
+            state.add(node);
+        }
 
         return state;
-    }
-
-    /**
-     * Generates a new state string based on the given nodes
-     */
-    public static String generateState(JsonArray nodes2Add) {
-        return RequestTreeWindow.generateState("", nodes2Add);
-    }
-
-    /**
-     * Generates a new state string based on the old state and the nodes which should be added to the state
-     */
-    public static String generateState(String currentState, JsonArray nodes2Add) {
-        if (currentState.isEmpty()) {
-            JsonObject wrapper = new JsonObject();
-            wrapper.addProperty("version", RequestTreeWindow.STATE_VERSION);
-            wrapper.add("nodes", nodes2Add);
-
-            currentState = wrapper.toString();
-        } else {
-            JsonObject jState = JsonParser.parseString(currentState).getAsJsonObject();
-            jState.get("nodes").getAsJsonArray().addAll(nodes2Add);
-            currentState = jState.toString();
-        }
-        return currentState;
     }
 
     /**

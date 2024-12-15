@@ -12,13 +12,10 @@ import com.flop.resttester.request.RequestBodyType;
 import com.flop.resttester.request.RequestType;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -126,7 +123,7 @@ public class RequestTreeNode extends DefaultMutableTreeNode implements Cloneable
         return new RequestTreeNode(data);
     }
 
-    public JsonObject getAsJson(@Nullable JTree tree) {
+    public JsonObject getAsJson() {
         RequestTreeNodeData data = this.getRequestData();
 
         JsonObject jNode = new JsonObject();
@@ -134,16 +131,12 @@ public class RequestTreeNode extends DefaultMutableTreeNode implements Cloneable
 
         if (data.isFolder()) {
             if (this.getChildCount() > 0) {
-                if (tree != null) {
-                    jNode.addProperty("expanded", tree.isExpanded(new TreePath(this.getPath())));
-                } else {
-                    jNode.addProperty("expanded", false);
-                }
+                jNode.addProperty("expanded", data.expanded);
 
                 JsonArray childArray = new JsonArray();
 
                 for (int i = 0; i < this.getChildCount(); i++) {
-                    childArray.add(((RequestTreeNode) this.getChildAt(i)).getAsJson(tree));
+                    childArray.add(((RequestTreeNode) this.getChildAt(i)).getAsJson());
                 }
                 jNode.add("children", childArray);
             }

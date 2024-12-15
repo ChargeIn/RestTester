@@ -7,7 +7,7 @@
 
 package com.flop.resttester.auth;
 
-import com.flop.resttester.variables.VariablesHandler;
+import com.flop.resttester.variables.VariablesWindow;
 import com.google.gson.JsonObject;
 
 public class AuthenticationData {
@@ -104,7 +104,7 @@ public class AuthenticationData {
         return jAuthData;
     }
 
-    public AuthenticationData createReplacedClone(VariablesHandler variablesHandler) {
+    public AuthenticationData createReplacedClone(VariablesWindow variablesHandler) {
         AuthenticationData data = new AuthenticationData(this.name, "");
         data.username = variablesHandler.replaceVariables(this.username);
         data.password = variablesHandler.replaceVariables(this.password);

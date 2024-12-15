@@ -17,7 +17,6 @@ import com.flop.resttester.components.textfields.MainUrlInputTextField;
 import com.flop.resttester.components.textfields.VariablesAutoCompletionProvider;
 import com.flop.resttester.requesttree.RequestTreeNodeData;
 import com.flop.resttester.utils.Debouncer;
-import com.flop.resttester.variables.VariablesHandler;
 import com.flop.resttester.variables.VariablesWindow;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.highlighter.XmlFileType;
@@ -37,12 +36,14 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+import java.util.Objects;
 
 public class RequestWindow {
     private JPanel mainPanel;
@@ -65,7 +66,7 @@ public class RequestWindow {
     private ParameterKeyValueList paramsList;
     private Project project;
     private RequestWindowListener windowListener;
-    private VariablesHandler variablesHandler;
+    private VariablesWindow variablesWindow;
 
     private RequestBodyType lastSelection;
 
@@ -293,7 +294,9 @@ public class RequestWindow {
             this.lastSelection = (RequestBodyType) this.bodyTypePicker.getSelectedItem();
 
             // remove old editor
-            this.editorWrapper.remove(0);
+            if (this.editorWrapper.getComponentCount() > 0) {
+                this.editorWrapper.remove(0);
+            }
 
             GridConstraints constraints = new GridConstraints(
                     0, 0, 1, 1,
@@ -418,10 +421,10 @@ public class RequestWindow {
     }
 
     public void setVariablesWindow(VariablesWindow varWindow) {
-        this.variablesHandler = varWindow.getVariablesHandler();
+        this.variablesWindow = varWindow;
         this.setupUrlInput();
-        this.headerList.setProject(this.project, this.variablesHandler);
-        this.paramsList.setProject(this.project, this.variablesHandler);
+        this.headerList.setProject(this.project, this.variablesWindow);
+        this.paramsList.setProject(this.project, this.variablesWindow);
         this.setupChangeListener();
     }
 
@@ -430,7 +433,7 @@ public class RequestWindow {
      */
     public void setupUrlInput() {
         List<String> urlCompletions = List.of("https://", "www", "https://www.", ".com");
-        VariablesAutoCompletionProvider variableCompletionProvider = new VariablesAutoCompletionProvider(this.variablesHandler, urlCompletions);
+        VariablesAutoCompletionProvider variableCompletionProvider = new VariablesAutoCompletionProvider(this.variablesWindow, urlCompletions);
         this.urlInputField = new MainUrlInputTextField(this.project, variableCompletionProvider, "");
         this.urlInputField.setCustomBackground(JBColor.border());
         this.urlInputField.setPlaceholder("Type an URL and start your request…");
@@ -446,7 +449,7 @@ public class RequestWindow {
 
     public AuthenticationData getAuthData() {
         AuthenticationData authData = (AuthenticationData) this.authComboBox.getSelectedItem();
-        return authData.createReplacedClone(this.variablesHandler);
+        return authData.createReplacedClone(this.variablesWindow);
     }
 
     /**
@@ -454,21 +457,21 @@ public class RequestWindow {
      */
     public RequestTreeNodeData getRequestData() {
         String url = this.urlInputField.getText();
-        url = this.variablesHandler.replaceVariables(url);
+        url = this.variablesWindow.replaceVariables(url);
 
         RequestType type = (RequestType) this.requestTypeComboBox.getSelectedItem();
         AuthenticationData authData = (AuthenticationData) this.authComboBox.getSelectedItem();
         String tag = this.nameInputField.getText();
 
         List<KeyValuePair> params = this.paramsList.getValues().stream().map(pair -> {
-            String key = this.variablesHandler.replaceVariables(pair.key);
-            String value = this.variablesHandler.replaceVariables(pair.value);
+            String key = this.variablesWindow.replaceVariables(pair.key);
+            String value = this.variablesWindow.replaceVariables(pair.value);
             return new KeyValuePair(key, value, pair.enabled);
         }).filter(param -> param.enabled).toList();
 
         List<KeyValuePair> headers = this.headerList.getValues().stream().map(pair -> {
-            String key = this.variablesHandler.replaceVariables(pair.key);
-            String value = this.variablesHandler.replaceVariables(pair.value);
+            String key = this.variablesWindow.replaceVariables(pair.key);
+            String value = this.variablesWindow.replaceVariables(pair.value);
             return new KeyValuePair(key, value, pair.enabled);
         }).filter(header -> header.enabled).toList();
 
@@ -481,43 +484,48 @@ public class RequestWindow {
     /**
      * Fills all inputs based on the given request node
      */
-    public void setRequestData(RequestTreeNodeData data) {
+    public void setRequestData(@Nullable RequestTreeNodeData data) {
         ApplicationManager.getApplication().runWriteAction(() -> {
             this.omitUpdates = true;
             this.selection = data;
 
-            if (!this.urlInputField.getText().equals(data.getUrl())) {
+            RequestTreeNodeData fillData;
+
+            fillData = Objects.requireNonNullElseGet(data, () -> RequestTreeNodeData.getDefaultRequest(""));
+
+
+            if (!this.urlInputField.getText().equals(fillData.getUrl())) {
                 // only update url input if text changed
                 // otherwise the coloring might not be updated
-                this.urlInputField.setText(data.getUrl());
+                this.urlInputField.setText(fillData.getUrl());
             }
-            this.nameInputField.setText(data.getName());
-            this.paramsList.setItems(data.getParams());
-            this.headerList.setItems(data.getHeaders());
+            this.nameInputField.setText(fillData.getName());
+            this.paramsList.setItems(fillData.getParams());
+            this.headerList.setItems(fillData.getHeaders());
 
-            this.xmlBodyEditor.getEditor().getDocument().setText(data.getBody());
-            this.plainBodyEditor.getEditor().getDocument().setText(data.getBody());
-            this.jsonBodyEditor.getEditor().getDocument().setText(data.getBody());
+            this.xmlBodyEditor.getEditor().getDocument().setText(fillData.getBody());
+            this.plainBodyEditor.getEditor().getDocument().setText(fillData.getBody());
+            this.jsonBodyEditor.getEditor().getDocument().setText(fillData.getBody());
 
-            this.lastSelection = data.getBodyType();
+            this.lastSelection = fillData.getBodyType();
 
             for (int i = 0; i < this.requestTypeComboBox.getItemCount(); i++) {
-                if (data.getType() == this.requestTypeComboBox.getItemAt(i)) {
+                if (fillData.getType() == this.requestTypeComboBox.getItemAt(i)) {
                     this.requestTypeComboBox.setSelectedIndex(i);
                     break;
                 }
             }
 
             for (int i = 0; i < this.bodyTypePicker.getItemCount(); i++) {
-                if (data.getBodyType() == this.bodyTypePicker.getItemAt(i)) {
+                if (fillData.getBodyType() == this.bodyTypePicker.getItemAt(i)) {
                     this.bodyTypePicker.setSelectedIndex(i);
                     break;
                 }
             }
 
-            if (!data.getAuthenticationDataKey().isEmpty()) {
+            if (!fillData.getAuthenticationDataKey().isEmpty()) {
                 for (int i = 0; i < this.authComboBox.getItemCount(); i++) {
-                    if (this.authComboBox.getItemAt(i).getName().equals(data.getAuthenticationDataKey())) {
+                    if (this.authComboBox.getItemAt(i).getName().equals(fillData.getAuthenticationDataKey())) {
                         this.authComboBox.setSelectedIndex(i);
                         this.omitUpdates = false;
                         return;
@@ -525,7 +533,7 @@ public class RequestWindow {
                 }
 
                 if (this.project != null) {
-                    RestTesterNotifier.notifyError(this.project, "Could not find authentication data with name " + data.getAuthenticationDataKey());
+                    RestTesterNotifier.notifyError(this.project, "Could not find authentication data with name " + fillData.getAuthenticationDataKey());
                 }
             }
             this.authComboBox.setSelectedIndex(0);

@@ -20,6 +20,7 @@ import com.flop.resttester.state.RestTesterStateService;
 import com.flop.resttester.variables.VariablesWindow;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
@@ -87,7 +88,13 @@ public class RestTesterWindow {
         this.mainPanel.setBorder(BorderFactory.createEmptyBorder());
     }
 
-    private void updateInputs(RequestTreeNodeData data) {
+    private void updateInputs(@Nullable RequestTreeNodeData data) {
+        if (data == null) {
+            this.selection = null;
+            this.requestWindow.setRequestData(null);
+            return;
+        }
+
         if (data.isFolder()) {
             return;
         }

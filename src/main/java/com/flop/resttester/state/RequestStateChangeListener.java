@@ -7,8 +7,10 @@
 
 package com.flop.resttester.state;
 
+import com.flop.resttester.requesttree.RequestTreeNode;
+
 import java.util.EventListener;
 
-public interface StateChangeListener extends EventListener {
-    void onStateChange(String state);
+public interface RequestStateChangeListener extends EventListener {
+    void onStateChange(RequestTreeNode state);
 }

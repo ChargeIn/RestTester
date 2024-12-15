@@ -188,7 +188,7 @@ public class SettingsWindow {
         this.stateService.setSettingsState(-1, false, true);
         this.stateService.setAuthState(-1, AuthStateHelper.string2State(""));
         this.stateService.setVariablesState(-1, VariablesStateHelper.string2State(""));
-        this.stateService.setRequestState(-1, "");
+        this.stateService.setRequestState(-1, RequestStateHelper.string2State(""));
     }
 
     public void onInsomniaImport(ActionEvent event) {

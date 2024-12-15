@@ -7,8 +7,10 @@
 
 package com.flop.resttester.requesttree;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.EventListener;
 
 public interface RequestTreeSelectionListener extends EventListener {
-    void valueChanged(RequestTreeNodeData node);
+    void valueChanged(@Nullable RequestTreeNodeData node);
 }

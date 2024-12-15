@@ -11,6 +11,7 @@ import com.flop.resttester.RestTesterNotifier;
 import com.flop.resttester.auth.AuthenticationNode;
 import com.flop.resttester.enviroment.EnvChangeListener;
 import com.flop.resttester.enviroment.EnvironmentsSnapshot;
+import com.flop.resttester.requesttree.RequestTreeNode;
 import com.flop.resttester.requesttree.RequestTreeWindow;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -33,7 +34,7 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
     private static final String DEFAULT_ENVIRONMENT = "Default Environment";
     public static final Integer DEFAULT_ENVIRONMENT_ID = -1;
 
-    public List<StateChangeListener> requestChangeListener = new ArrayList<>();
+    public List<RequestStateChangeListener> requestChangeListener = new ArrayList<>();
     public List<AuthStateChangeListener> authChangeListener = new ArrayList<>();
     public List<VariablesStateChangeListener> variablesChangeListener = new ArrayList<>();
     public List<SettingsStateChangeListener> settingsChangeListener = new ArrayList<>();
@@ -71,7 +72,7 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
         if (state.version == SAVE_STATE_VERSION) {
             this.loadEnvFromStateVersion2(state.environmentState, state.selectedEnvironment);
         } else if (state.version == 1) {
-            this.loadEnvFromStateVersion1(state.authState, state.requestState, state.requestState);
+            this.loadEnvFromStateVersion1(state.authState, state.requestState, state.variablesState);
         } else {
             RestTesterNotifier.notifyError(null, "Incompatible rest tester state version: Expected version 2 or 1 and got " + state.version);
         }
@@ -127,7 +128,7 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
 
                 if (envObj.has(RestTesterGlobalState.REQUEST_STATE_KEY)) {
                     JsonElement requestState = envObj.get(RestTesterGlobalState.REQUEST_STATE_KEY);
-                    restState.requestState = requestState.getAsString();
+                    restState.requestState = RequestStateHelper.string2State(requestState.getAsString());
                 } else {
                     RestTesterNotifier.notifyError(null, "Rest Tester: Missing request data in environment state.");
                 }
@@ -158,7 +159,7 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
 
         RestTesterState defaultState = new RestTesterState(DEFAULT_ENVIRONMENT, DEFAULT_ENVIRONMENT_ID);
         defaultState.authState = AuthStateHelper.string2State(authState);
-        defaultState.requestState = requestState;
+        defaultState.requestState = RequestStateHelper.string2State(requestState);
         defaultState.variablesState = VariablesStateHelper.string2State(variablesState);
 
         this.state = defaultState;
@@ -172,7 +173,7 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
         return this.envChangeListener.size() - 1;
     }
 
-    public int addRequestStateChangeListener(StateChangeListener listener) {
+    public int addRequestStateChangeListener(RequestStateChangeListener listener) {
         this.requestChangeListener.add(listener);
         listener.onStateChange(this.state.requestState);
         return this.requestChangeListener.size() - 1;
@@ -246,7 +247,7 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
         return this.state.variablesState;
     }
 
-    public void setRequestState(int source, String state) {
+    public void setRequestState(int source, RequestTreeNode state) {
         this.state.requestState = state;
 
         for (int i = 0; i < this.requestChangeListener.size(); i++) {
@@ -284,12 +285,12 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
         this.setAuthState(-1, this.state.authState);
     }
 
-    public String getRequestState() {
+    public RequestTreeNode getRequestState() {
         return this.state.requestState;
     }
 
     public void addUpdate(StateUpdate update) {
-        String requestState = RequestTreeWindow.updateState(this.getRequestState(), update.nodes());
+        RequestTreeNode requestState = RequestTreeWindow.updateState(this.getRequestState(), update.nodes());
         this.setRequestState(-1, requestState);
 
         DefaultTableModel variableState = VariablesStateHelper.updateState(this.getVariableState(), update.evnVariables());
@@ -308,7 +309,7 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
 
             entrySaveState.addProperty(RestTesterGlobalState.AUTH_STATE_KEY, AuthStateHelper.state2String(entryState.authState));
             entrySaveState.addProperty(RestTesterGlobalState.VARIABLE_STATE_KEY, VariablesStateHelper.state2String(entryState.variablesState));
-            entrySaveState.addProperty(RestTesterGlobalState.REQUEST_STATE_KEY, entryState.requestState);
+            entrySaveState.addProperty(RestTesterGlobalState.REQUEST_STATE_KEY, RequestStateHelper.state2String(entryState.requestState));
 
             saveState.add(entry.getKey().toString(), entrySaveState);
         }

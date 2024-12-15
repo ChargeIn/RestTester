@@ -9,6 +9,8 @@ package com.flop.resttester.state;
 
 import com.flop.resttester.auth.AuthenticationData;
 import com.flop.resttester.auth.AuthenticationNode;
+import com.flop.resttester.requesttree.RequestTreeNode;
+import com.flop.resttester.requesttree.RequestTreeNodeData;
 
 import javax.swing.table.DefaultTableModel;
 
@@ -17,7 +19,7 @@ public class RestTesterState {
     public Integer id;
     public AuthenticationNode authState = new AuthenticationNode(new AuthenticationData("", ""));
     public DefaultTableModel variablesState = new DefaultTableModel();
-    public String requestState = "";
+    public RequestTreeNode requestState = new RequestTreeNode(new RequestTreeNodeData(""));
 
     public RestTesterState(String name, Integer id) {
         this.name = name;

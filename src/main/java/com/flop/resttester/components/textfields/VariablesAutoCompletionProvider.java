@@ -6,7 +6,7 @@
  */
 package com.flop.resttester.components.textfields;
 
-import com.flop.resttester.variables.VariablesHandler;
+import com.flop.resttester.variables.VariablesWindow;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.codeInsight.completion.CompletionResultSet;
 import com.intellij.codeInsight.completion.PrefixMatcher;
@@ -19,12 +19,12 @@ import java.util.List;
 import java.util.Map;
 
 public class VariablesAutoCompletionProvider extends TextFieldWithAutoCompletionListProvider<AutoCompletionProposal> {
-    private final VariablesHandler variableHandler;
+    private final VariablesWindow variableWindow;
     private final List<String> customCompletions;
 
-    public VariablesAutoCompletionProvider(VariablesHandler variableHandler, List<String> customCompletions) {
+    public VariablesAutoCompletionProvider(VariablesWindow variableWindow, List<String> customCompletions) {
         super(new ArrayList<>());
-        this.variableHandler = variableHandler;
+        this.variableWindow = variableWindow;
         this.customCompletions = customCompletions;
     }
 
@@ -57,7 +57,7 @@ public class VariablesAutoCompletionProvider extends TextFieldWithAutoCompletion
             }
         }
 
-        Map<String, String> variables = this.variableHandler.getVariables();
+        Map<String, String> variables = this.variableWindow.getVariables();
 
         for (String completion : variables.keySet()) {
 

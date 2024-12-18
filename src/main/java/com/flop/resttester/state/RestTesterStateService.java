@@ -75,10 +75,10 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
 
         if (state.version == SAVE_STATE_VERSION) {
             this.loadEnvFromStateVersion2(state.environmentState, state.selectedEnvironment);
-        } else if (state.version == 1) {
+        } else if (state.version == 1 || state.version == -1) {
             this.loadEnvFromStateVersion1(state.authState, state.requestState, state.variablesState);
         } else {
-            RestTesterNotifier.notifyError(null, "Incompatible rest tester state version: Expected version 2 or 1 and got " + state.version);
+            RestTesterNotifier.notifyError(null, "Incompatible rest tester state version: Expected version 2, 1 or -1 and got " + state.version);
         }
 
         this.validateSSL = state.validateSSL;

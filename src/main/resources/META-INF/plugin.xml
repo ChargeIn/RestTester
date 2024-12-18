@@ -40,6 +40,8 @@
         <h3>2.0.0 New Features</h3>
         <ul>
           <li>Added support for multiple environments.</li>
+          <li>Added support for base url.</li>
+          <li>Added support for default authentication profile.</li>
           <li>Added basic <a href="https://github.com/ChargeIn/RestTester">documentation</a></li>
         </ul>
 
@@ -56,7 +58,7 @@
         <h3>1.4.1 - 1.4.4 Bug Fixes</h3>
         <ul>
           <li>Added support for Intellij 24.3</li>
-          <li>Fix start up error for Intellij versions 2023 and lower</li>
+          <li>Fix start up error for Intellij versions 2023 and lower.</li>
           <li>Fix background color of main input for Intellij 24.x.</li>
           <li>Fix incorrect tooltips.</li>
           <li>Dangling slashes are no longer removed from the url.</li>

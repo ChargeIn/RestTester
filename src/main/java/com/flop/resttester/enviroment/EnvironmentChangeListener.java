@@ -7,8 +7,10 @@
 
 package com.flop.resttester.enviroment;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.EventListener;
 
-public interface EnvironmentNameChangeListener extends EventListener {
-    void onNameChange(String newName);
+public interface EnvironmentChangeListener extends EventListener {
+    void onValueChange(@Nullable String newName, @Nullable String authKey);
 }

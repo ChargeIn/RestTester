@@ -63,6 +63,7 @@ public class RestTesterStateV2Test {
 
         assertEquals("Default Environment", defaultEnvironment.name);
         assertEquals(-1, defaultEnvironment.id.intValue());
+        assertEquals("None", defaultEnvironment.defaultAuthKey);
 
         this.testDefaultAuthState(defaultEnvironment.authState);
         this.testDefaultVariablesState(defaultEnvironment.variablesState);
@@ -74,6 +75,8 @@ public class RestTesterStateV2Test {
         assertEquals(service.getAuthState(), selectedEnv.authState);
         assertEquals(service.getVariableState(), selectedEnv.variablesState);
         assertEquals(service.getRequestState(), selectedEnv.requestState);
+        assertEquals(service.getDefaultAuthKey(), selectedEnv.defaultAuthKey);
+        assertEquals("usr1", service.getDefaultAuthKey());
 
         this.testSelectedAuthState(selectedEnv.authState);
         this.testSelectedVariablesState(selectedEnv.variablesState);

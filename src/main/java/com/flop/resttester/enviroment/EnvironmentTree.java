@@ -117,6 +117,16 @@ public class EnvironmentTree extends JPanel {
         }
     }
 
+    public void changeDefaultAuth(String authKey) {
+        if (this.selectedNode != null) {
+            var state = (RestTesterState) this.selectedNode.getUserObject();
+
+            if (!Objects.equals(state.defaultAuthKey, authKey)) {
+                state.defaultAuthKey = authKey;
+            }
+        }
+    }
+
     /**
      * -----------------------------------------------------------------------------------------------------------------
      * Action Bar Logic

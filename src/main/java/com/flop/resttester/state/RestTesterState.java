@@ -18,6 +18,7 @@ public class RestTesterState {
     public String name;
     public Integer id;
     public String baseUrl = "";
+    public String defaultAuthKey = "";
     public AuthenticationNode authState = new AuthenticationNode(new AuthenticationData("", ""));
     public DefaultTableModel variablesState = new DefaultTableModel();
     public RequestTreeNode requestState = new RequestTreeNode(new RequestTreeNodeData(""));
@@ -32,6 +33,8 @@ public class RestTesterState {
         newState.authState = authState;
         newState.variablesState = variablesState;
         newState.requestState = requestState;
+        newState.defaultAuthKey = defaultAuthKey;
+        newState.baseUrl = baseUrl;
         return newState;
     }
 }

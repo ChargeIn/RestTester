@@ -130,6 +130,13 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
                     RestTesterNotifier.notifyError(null, "Rest Tester: Missing missing base URL data in environment state.");
                 }
 
+                if (envObj.has(RestTesterGlobalState.ENV_DEFAULT_AUTH_KEY)) {
+                    String authKey = envObj.get(RestTesterGlobalState.ENV_DEFAULT_AUTH_KEY).getAsString();
+                    restState.defaultAuthKey = authKey;
+                } else {
+                    RestTesterNotifier.notifyError(null, "Rest Tester: Missing missing default auth key in environment state.");
+                }
+
                 if (envObj.has(RestTesterGlobalState.AUTH_STATE_KEY)) {
                     JsonElement authState = envObj.get(RestTesterGlobalState.AUTH_STATE_KEY);
                     restState.authState = AuthStateHelper.string2State(authState.getAsString());
@@ -243,6 +250,10 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
         return this.state.authState;
     }
 
+    public String getDefaultAuthKey() {
+        return this.state.defaultAuthKey;
+    }
+
     public void setVariablesState(int source, DefaultTableModel model) {
         this.state.variablesState = model;
 
@@ -273,13 +284,8 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
         Map<Integer, RestTesterState> deepEnvCopy = new HashMap<>();
 
         for (Map.Entry<Integer, RestTesterState> entry : this.environments.entrySet()) {
-            var state = new RestTesterState(entry.getValue().name, entry.getKey());
-            var value = entry.getValue();
-            state.authState = value.authState;
-            state.requestState = value.requestState;
-            state.variablesState = value.variablesState;
-            state.baseUrl = value.baseUrl;
-
+            var oldState = entry.getValue();
+            var state = oldState.clone(oldState.name, entry.getKey());
             deepEnvCopy.put(entry.getKey(), state);
         }
 
@@ -319,6 +325,7 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
 
             entrySaveState.addProperty(RestTesterGlobalState.ENV_NAME_KEY, entryState.name);
             entrySaveState.addProperty(RestTesterGlobalState.ENV_BASE_URL_KEY, entryState.baseUrl);
+            entrySaveState.addProperty(RestTesterGlobalState.ENV_DEFAULT_AUTH_KEY, entryState.defaultAuthKey);
 
             entrySaveState.addProperty(RestTesterGlobalState.AUTH_STATE_KEY, AuthStateHelper.state2String(entryState.authState));
             entrySaveState.addProperty(RestTesterGlobalState.VARIABLE_STATE_KEY, VariablesStateHelper.state2String(entryState.variablesState));

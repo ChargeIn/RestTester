@@ -13,6 +13,7 @@ public class RestTesterGlobalState {
     static final String REQUEST_STATE_KEY = "requestState";
     static final String ENV_NAME_KEY = "envName";
     static final String ENV_BASE_URL_KEY = "envBaseUrl";
+    static final String ENV_DEFAULT_AUTH_KEY = "envDefaultAuth";
 
     public int version = -1;
     public boolean validateSSL = false;

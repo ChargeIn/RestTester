@@ -11,6 +11,7 @@ import com.flop.resttester.components.keyvaluelist.KeyValuePair;
 import com.flop.resttester.request.RequestBodyType;
 import com.flop.resttester.request.RequestType;
 import com.flop.resttester.response.ResponseData;
+import com.flop.resttester.state.RestTesterStateService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,11 +31,17 @@ public class RequestTreeNodeData implements Cloneable {
     public boolean expanded = false;
 
     public static RequestTreeNodeData getDefaultRequest(String name) {
+        var authKey = RestTesterStateService.getInstance().getDefaultAuthKey();
+
+        if (authKey == null || authKey.isBlank()) {
+            authKey = "None";
+        }
+
         return new RequestTreeNodeData(
                 "",
                 name,
                 RequestType.GET,
-                "None",
+                authKey,
                 new ArrayList<>(),
                 new ArrayList<>(),
                 "",

@@ -18,7 +18,7 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import java.awt.*;
 
-public class EnvironmentManagementDialog extends DialogWrapper implements EnvironmentSelectionListener, EnvironmentNameChangeListener {
+public class EnvironmentManagementDialog extends DialogWrapper implements EnvironmentSelectionListener, EnvironmentChangeListener {
     EnvironmentTree environmentTree;
     EnvironmentSettingsPanel settingsPanel;
 
@@ -84,9 +84,16 @@ public class EnvironmentManagementDialog extends DialogWrapper implements Enviro
     }
 
     @Override
-    public void onNameChange(String newName) {
+    public void onValueChange(@Nullable String newName, @Nullable String authKey) {
         if (this.environmentTree != null) {
-            this.environmentTree.renameSelection(newName);
+
+            if (newName != null) {
+                this.environmentTree.renameSelection(newName);
+            }
+
+            if (authKey != null) {
+                this.environmentTree.changeDefaultAuth(authKey);
+            }
         }
     }
 

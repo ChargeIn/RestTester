@@ -299,9 +299,9 @@ public class RestTesterStateService implements PersistentStateComponent<RestTest
         for (EnvChangeListener changeListener : this.envChangeListener) {
             changeListener.onStateChange();
         }
-        this.setRequestState(-1, this.state.requestState);
-        this.setVariablesState(-1, this.state.variablesState);
         this.setAuthState(-1, this.state.authState);
+        this.setVariablesState(-1, this.state.variablesState);
+        this.setRequestState(-1, this.state.requestState);
     }
 
     public RequestTreeNode getRequestState() {

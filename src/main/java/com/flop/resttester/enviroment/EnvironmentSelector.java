@@ -41,7 +41,7 @@ public class EnvironmentSelector implements EnvChangeListener {
     };
 
     // Add non-breaking space as workaround to make the popup bigger
-    AnAction creatEnvSelector = new AnAction(" Edit Environment…         ") {
+    AnAction creatEnvSelector = new AnAction(" Edit Environments…         ") {
         @Override
         public void actionPerformed(@NotNull AnActionEvent anActionEvent) {
             EnvironmentSelector.this.createNewEnv();

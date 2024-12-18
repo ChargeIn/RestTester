@@ -26,7 +26,7 @@ Set up variables which can be used across all request of the same environment, a
 "Variables" tab. A typical use-case is the base url of a rest server. To access a variables inside an input start typing
 two double curly brackets followed by the variable name and two closing curly brackets (E.g. "{{ baseUrl }}" ).
 
-![Variables Tab](https://github.com/ChargeIn/RestTester/blob/master/.github/variable-tab.png)
+![Variables Tab](https://github.com/ChargeIn/RestTester/blob/master/.github/variables-tab.png)
 
 ## Environments
 

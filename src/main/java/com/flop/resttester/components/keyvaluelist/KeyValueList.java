@@ -130,6 +130,10 @@ public abstract class KeyValueList extends JPanel {
         this.listeners.add(listener);
     }
 
+    public void removeChangeListener(KeyValueListChangeListener listener) {
+        this.listeners.remove(listener);
+    }
+
     @Override
     public void addNotify() {
         super.addNotify();

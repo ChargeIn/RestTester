@@ -63,6 +63,10 @@ public class RequestTreeWindow {
         this.copyButton.setEnabled(true);
         this.removeButton.setEnabled(true);
         this.removeButton.updateUI();
+
+        if (this.selectionListener != null) {
+            this.selectionListener.valueChanged(this.selectedNode.getRequestData());
+        }
     };
 
     private final TreeExpansionListener treeExpansionListener = new TreeExpansionListener() {
@@ -358,10 +362,6 @@ public class RequestTreeWindow {
 
     public void addSelectionListener(RequestTreeSelectionListener rtsl) {
         this.selectionListener = rtsl;
-        this.tree.addTreeSelectionListener((selection) -> {
-            RequestTreeNode node = (RequestTreeNode) selection.getPath().getLastPathComponent();
-            rtsl.valueChanged(node.getRequestData());
-        });
     }
 
     private void loadTree(RequestTreeNode state) {
@@ -382,6 +382,7 @@ public class RequestTreeWindow {
             this.removeClickListener();
 
             this.tree.removeAll();
+            this.tree.clearSelection();
             TreeModel model = new DefaultTreeModel(this.root);
             this.tree.setModel(model);
 

@@ -30,13 +30,13 @@ import org.jsoup.Jsoup;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.InputStream;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class ResponseWindow {
     private JPanel mainPanel;
@@ -311,14 +311,14 @@ public class ResponseWindow {
 
     private int appendRedirectInto(
             StringBuilder content,
-            Optional<HttpResponse<Stream<String>>> responseOpt,
+            Optional<HttpResponse<InputStream>> responseOpt,
             int redirectCount
     ) {
         if (responseOpt.isEmpty()) {
             return redirectCount;
         }
 
-        HttpResponse<Stream<String>> response = responseOpt.get();
+        HttpResponse<InputStream> response = responseOpt.get();
         redirectCount = this.appendRedirectInto(content, response.previousResponse(), redirectCount) + 1;
 
         content.append("\n\n =========== Redirect ").append(redirectCount).append(" (Response Headers) =========== \n");

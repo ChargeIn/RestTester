@@ -9,15 +9,15 @@ package com.flop.resttester.response;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.io.InputStream;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
-import java.util.stream.Stream;
 
 public record ResponseData(
         String url,
         @Nullable HttpRequest request,
-        @Nullable HttpResponse<Stream<String>> response,
+        @Nullable HttpResponse<InputStream> response,
         int code,
         byte[] content,
         List<String> contentType,

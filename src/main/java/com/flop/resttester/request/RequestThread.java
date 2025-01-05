@@ -17,6 +17,9 @@ import com.intellij.util.io.URLUtil;
 import org.apache.commons.codec.binary.Base64;
 
 import javax.net.ssl.*;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -31,7 +34,6 @@ import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class RequestThread extends Thread {
     private final Project project;
@@ -202,36 +204,60 @@ public class RequestThread extends Thread {
         AtomicReference<List<String>> contentType = new AtomicReference<>(Collections.emptyList());
 
         try {
-            HttpResponse<Stream<String>> response = this.httpClient.send(request, HttpResponse.BodyHandlers.ofLines());
+            HttpResponse<InputStream> response = this.httpClient.send(
+                    request,
+                    HttpResponse.BodyHandlers.ofInputStream()
+            );
             int responseCode = response.statusCode();
 
-            // The response can hase multiple sync messages, e.g. in case of a sse event request.
-            response.body().forEach(line -> {
-                responseBody.append(line);
+            try {
+                contentType.set(response.headers().map().get("Content-Type"));
+            } catch (Exception ignore) {
+            }
 
-                if (!line.isBlank()) {
-                    responseBody.append("\n");
-                }
+            var type = contentType.get().getFirst();
+            var stream = response.body();
 
-                if (!this.stopped) {
-                    try {
-                        contentType.set(response.headers().map().get("Content-Type"));
-                    } catch (Exception ignore) {
+            if (type.contains("image") && !type.contains("svg")) {
+                ResponseData data = new ResponseData(
+                        request.uri().toString(),
+                        request,
+                        response,
+                        responseCode,
+                        stream.readAllBytes(),
+                        contentType.get(),
+                        "".getBytes(),
+                        this.getElapsedTime()
+                );
+                this.responseListener.onRequestResponse(data);
+            } else {
+                // The response can hase multiple sync messages, e.g. in case of a sse event request.
+                var reader = new BufferedReader(new InputStreamReader(response.body(), StandardCharsets.UTF_8));
+                reader.lines().forEach(line -> {
+                    responseBody.append(line);
+
+                    if (!line.isBlank()) {
+                        responseBody.append("\n");
                     }
 
-                    ResponseData data = new ResponseData(
-                            request.uri().toString(),
-                            request,
-                            response,
-                            responseCode,
-                            responseBody.toString().getBytes(),
-                            contentType.get(),
-                            "".getBytes(),
-                            this.getElapsedTime()
-                    );
-                    this.responseListener.onRequestResponse(data);
-                }
-            });
+                    if (!this.stopped) {
+                        ResponseData data = new ResponseData(
+                                request.uri().toString(),
+                                request,
+                                response,
+                                responseCode,
+                                responseBody.toString().getBytes(),
+                                contentType.get(),
+                                "".getBytes(),
+                                this.getElapsedTime()
+                        );
+                        this.responseListener.onRequestResponse(data);
+                    }
+                });
+                reader.close();
+            }
+            stream.close();
+
         } catch (Exception e) {
             if (!this.stopped) {
                 if (e instanceof SSLHandshakeException) {

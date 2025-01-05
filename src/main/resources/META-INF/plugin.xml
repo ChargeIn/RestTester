@@ -37,7 +37,7 @@
     </description>
 
     <change-notes><![CDATA[
-        <h3>2.2.0 New Features and Bug Fixes</h3>
+        <h3>2.1.0 New Features and Bug Fixes</h3>
         <ul>
           <li>Added SSE request support.</li>
           <li>Fixed images not being displayed correctly.</li>

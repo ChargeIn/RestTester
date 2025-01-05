@@ -11,13 +11,17 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
+import java.util.stream.Stream;
 
 public record ResponseData(
         String url,
         @Nullable HttpRequest request,
-        @Nullable HttpResponse<String> response,
+        @Nullable HttpResponse<Stream<String>> response,
         int code,
         byte[] content,
+        List<String> contentType,
+        byte[] error,
         String elapsedTime
 ) {
 }

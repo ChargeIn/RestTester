@@ -21,6 +21,7 @@ import com.flop.resttester.state.RestTesterStateService;
 import com.flop.resttester.variables.VariablesWindow;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.JBColor;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -116,31 +117,52 @@ public class RestTesterWindow {
 
     private void sendRequest() {
         if (this.requestThread != null) {
-            // old request is still running
+            // old request is still running, cancel it
+            this.responseWindow.setCanceled(this.requestThread.getElapsedTime());
             this.cancelRequest();
             return;
         }
 
-        this.responseWindow.setLoading("");
+        this.responseWindow.setLoadingStart();
 
         this.loadingTimer = new Timer();
-        this.loadingTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                SwingUtilities.invokeLater(() -> {
-                    if (RestTesterWindow.this.requestThread != null) {
-                        RestTesterWindow.this.responseWindow.setLoading(RestTesterWindow.this.requestThread.getElapsedTime());
+        this.loadingTimer.schedule(
+                new TimerTask() {
+                    @Override
+                    public void run() {
+                        SwingUtilities.invokeLater(() -> {
+                            if (RestTesterWindow.this.requestThread != null) {
+                                RestTesterWindow.this.responseWindow.setLoading(RestTesterWindow.this.requestThread.getElapsedTime());
+                            }
+                        });
                     }
-                });
-            }
-        }, 0, 100);
+                }, 0, 100
+        );
 
+        RequestData data = this.getRequestData();
+
+        this.requestThread = new RequestThread(
+                this.project,
+                data,
+                (response) -> SwingUtilities.invokeLater(() -> {
+                    this.responseWindow.setResult(response);
+
+                    if (this.selection != null) {
+                        this.selection.setResponseCache(response);
+                    }
+                }),
+                this::cancelRequest
+        );
+        this.requestThread.start();
+    }
+
+    private @NotNull RequestData getRequestData() {
         RequestTreeNodeData nodeData = this.requestWindow.getRequestData();
         AuthenticationData authData = this.requestWindow.getAuthData();
 
         RestTesterState environment = this.state.getEnvironment();
 
-        RequestData data = new RequestData(
+        return new RequestData(
                 nodeData.getUrl(),
                 environment.baseUrl,
                 nodeData.getType(),
@@ -152,32 +174,20 @@ public class RestTesterWindow {
                 this.state.getValidateSSL(),
                 this.state.getAllowRedirects()
         );
-
-        this.requestThread = new RequestThread(
-                this.project,
-                data, (response) ->
-                SwingUtilities.invokeLater(() -> {
-                            this.requestThread = null;
-                            this.loadingTimer.cancel();
-                            this.responseWindow.setResult(response);
-
-                            if (this.selection != null) {
-                                this.selection.setResponseCache(response);
-                            }
-
-                            this.requestWindow.setRequestStarted(false);
-                        }
-                ));
-        this.requestThread.start();
     }
 
     private void cancelRequest() {
         if (this.requestThread != null) {
-            this.requestThread.stopRequest();
-            this.responseWindow.setCanceled(this.requestThread.getElapsedTime());
-            this.requestThread = null;
-            this.requestWindow.setRequestStarted(false);
-            this.loadingTimer.cancel();
+            SwingUtilities.invokeLater(() -> {
+                // set canceled state
+                this.requestWindow.setRequestStarted(false);
+                this.loadingTimer.cancel();
+                // clean up thread
+                var thread = this.requestThread;
+                this.requestThread = null;
+                thread.stopRequest();
+                thread.interrupt();
+            });
         }
     }
 }

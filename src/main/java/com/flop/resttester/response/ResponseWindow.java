@@ -32,9 +32,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class ResponseWindow {
     private JPanel mainPanel;
@@ -52,6 +54,12 @@ public class ResponseWindow {
     private LanguageTextField resultHtmlPane;
 
     private Project project;
+
+    /**
+     * Whether there is already response text displayed.
+     * This is relevant for request which can have multiple response messages such as sse events.
+     */
+    private boolean hasResponse = false;
 
     public JPanel getContent() {
         return this.mainPanel;
@@ -179,28 +187,46 @@ public class ResponseWindow {
     }
 
     public void setCanceled(String elapsedTime) {
-        this.headersTextPane.setText("Canceled after " + elapsedTime + "econds.");
-        this.resultJsonPane.setText("Canceled after " + elapsedTime + "econds.");
-        this.resultHtmlPane.setText("Canceled after " + elapsedTime + "econds.");
-        this.resultCodeField.setText("Canceled");
-        this.resultCodeField.setBackground(new Color(200, 150, 50));
-        this.resultCodeField.setForeground(Color.white);
-        this.resultSizeField.setText("0 B");
-        this.resultTypeField.setText("");
-        this.resultTimeField.setText(elapsedTime);
+        // In case of sse event there could already be a response present, in this case only add the cancel text
+        if (this.hasResponse) {
+            this.headersTextPane.setText(this.headersTextPane.getText() + "\nRequest canceled after " + elapsedTime + "econds.");
+            this.resultJsonPane.setText(this.resultJsonPane.getText() + "\nRequest canceled after " + elapsedTime + "econds.");
+            this.resultHtmlPane.setText(this.resultHtmlPane.getText() + "\nRequest canceled after " + elapsedTime + "econds.");
+        } else {
+            this.headersTextPane.setText("Canceled after " + elapsedTime + "econds.");
+            this.resultJsonPane.setText("Canceled after " + elapsedTime + "econds.");
+            this.resultHtmlPane.setText("Canceled after " + elapsedTime + "econds.");
+            this.resultCodeField.setText("Canceled");
+            this.resultCodeField.setBackground(new Color(200, 150, 50));
+            this.resultCodeField.setForeground(Color.white);
+            this.resultSizeField.setText("0 B");
+            this.resultTypeField.setText("");
+            this.resultTimeField.setText(elapsedTime);
+            this.resultTextWrapper.setVisible(true);
+            this.imagePanel.setVisible(false);
+        }
+    }
 
+    public void setLoadingStart() {
+        this.hasResponse = false;
+        this.updateResponseCode(-2);
         this.resultTextWrapper.setVisible(true);
         this.imagePanel.setVisible(false);
+        this.resultTimeField.setText("");
+        this.resultSizeField.setText("");
+        this.resultTypeField.setText("");
+        this.headersTextPane.setText("Loading... ");
+        this.resultJsonPane.setText("Loading... ");
+        this.resultHtmlPane.setText("Loading... ");
     }
 
     public void setLoading(String elapsedTime) {
-        if (elapsedTime.isBlank()) {
-            this.updateResponseCode(-2);
-            this.resultTextWrapper.setVisible(true);
-            this.imagePanel.setVisible(false);
-            this.resultTimeField.setText("");
-            this.resultSizeField.setText("");
-            this.resultTypeField.setText("");
+        this.resultTimeField.setText(elapsedTime);
+
+        // Check if there is already a response displayed e.g. from previous sse event responses.
+        // in this case we should only show the loading state in the result time field.
+        if (this.hasResponse) {
+            return;
         }
         this.headersTextPane.setText("Loading... " + elapsedTime);
         this.resultJsonPane.setText("Loading... " + elapsedTime);
@@ -208,6 +234,7 @@ public class ResponseWindow {
     }
 
     public void setResult(ResponseData responseData) {
+        this.hasResponse = true;
         this.handleResponse(responseData);
     }
 
@@ -215,60 +242,54 @@ public class ResponseWindow {
         if (data != null) {
             this.handleResponse(data);
         } else {
-            this.handleResponse(new ResponseData("", null, null, -2, "".getBytes(StandardCharsets.UTF_8), ""));
+            this.handleResponse(new ResponseData(
+                    "",
+                    null,
+                    null,
+                    -2,
+                    "".getBytes(),
+                    Collections.emptyList(),
+                    "".getBytes(),
+                    ""
+            ));
         }
     }
 
     private void handleResponse(ResponseData responseData) {
         this.updateResponseCode(responseData.code());
 
-        // error case
-        if (responseData.code() < 0) {
-            this.parseAsError(responseData);
-            return;
-        }
-
         this.parseHeadersInfo(responseData);
-        List<String> contentType = null;
 
-        if (responseData.response() != null) {
-            try {
-                contentType = responseData.response().headers().map().get("Content-Type");
-            } catch (Exception ignore) {
+        if (responseData.contentType() == null || responseData.contentType().isEmpty()) {
+            this.parseAsHtml(responseData);
+            this.resultTypeField.setText("text/plain");
+        } else {
+            String type = responseData.contentType().getFirst();
+            this.resultTypeField.setText(type.split(";")[0]);
+            type = type.toLowerCase();
+
+            if (type.contains("image") && !type.contains("svg")) {
+                this.parseAsImage(responseData);
+            } else if (type.contains("html") || type.contains("xml")) {
+                this.parseAsHtml(responseData);
+            } else {
+                this.parseAsJson(responseData);
             }
         }
 
-        if (contentType == null || contentType.isEmpty()) {
-            this.parseAsHtml(responseData);
-            this.resultTypeField.setText("text/plain");
-            return;
-        }
-
-        String type = contentType.get(0);
-        this.resultTypeField.setText(type.split(";")[0]);
-        type = type.toLowerCase();
-
-        if (type.contains("image") && !type.contains("svg")) {
-            this.parseAsImage(responseData);
-        } else if (type.contains("html") || type.contains("xml")) {
-            this.parseAsHtml(responseData);
-        } else {
-            this.parseAsJson(responseData);
+        // add error message
+        if (responseData.error().length != 0) {
+            this.parseError(responseData);
         }
     }
 
     private void parseHeadersInfo(ResponseData data) {
         StringBuilder content = new StringBuilder();
 
-        content
-                .append(" ============= General Info ============= \n")
-                .append("  URL: ")
-                .append(data.url());
+        content.append(" ============= General Info ============= \n").append("  URL: ").append(data.url());
 
         if (data.request() != null) {
-            content
-                    .append("\n  Request Method: ")
-                    .append(data.request().method());
+            content.append("\n  Request Method: ").append(data.request().method());
         }
 
         if (data.request() != null) {
@@ -288,12 +309,16 @@ public class ResponseWindow {
         this.headersTextPane.setText(content.toString());
     }
 
-    private int appendRedirectInto(StringBuilder content, Optional<HttpResponse<String>> responseOpt, int redirectCount) {
+    private int appendRedirectInto(
+            StringBuilder content,
+            Optional<HttpResponse<Stream<String>>> responseOpt,
+            int redirectCount
+    ) {
         if (responseOpt.isEmpty()) {
             return redirectCount;
         }
 
-        HttpResponse<String> response = responseOpt.get();
+        HttpResponse<Stream<String>> response = responseOpt.get();
         redirectCount = this.appendRedirectInto(content, response.previousResponse(), redirectCount) + 1;
 
         content.append("\n\n =========== Redirect ").append(redirectCount).append(" (Response Headers) =========== \n");
@@ -321,13 +346,16 @@ public class ResponseWindow {
         String content = new String(data.content(), StandardCharsets.UTF_8);
         String byteSize = FileUtils.byteCountToDisplaySize(data.content().length);
 
-        String jsonString;
-        try {
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            JsonElement el = JsonParser.parseString(content);
-            jsonString = gson.toJson(el);
-        } catch (Exception ignore) {
-            jsonString = content;
+        String jsonString = "";
+
+        if (!content.isBlank()) {
+            try {
+                Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                JsonElement el = JsonParser.parseString(content);
+                jsonString = gson.toJson(el);
+            } catch (Exception ignore) {
+                jsonString = content;
+            }
         }
 
         this.resultJsonPane.setText(jsonString);
@@ -344,7 +372,11 @@ public class ResponseWindow {
         String content = new String(data.content(), StandardCharsets.UTF_8);
         String byteSize = FileUtils.byteCountToDisplaySize(data.content().length);
 
-        String htmlString = Jsoup.parseBodyFragment(content).html();
+        String htmlString = "";
+
+        if (!content.isBlank()) {
+            htmlString = Jsoup.parseBodyFragment(content).html();
+        }
 
         this.resultHtmlPane.setText(htmlString);
         this.resultTimeField.setText(data.elapsedTime());
@@ -367,16 +399,28 @@ public class ResponseWindow {
         this.imagePanel.setVisible(true);
     }
 
-    private void parseAsError(ResponseData responseData) {
-        this.resultHtmlPane.setText(new String(responseData.content(), StandardCharsets.UTF_8));
-        this.headersTextPane.setText(new String(responseData.content(), StandardCharsets.UTF_8));
-        this.resultTimeField.setText(responseData.elapsedTime());
-        this.resultSizeField.setText("0 B");
-        this.resultTypeField.setText("");
+    private void parseError(ResponseData responseData) {
+        String error = new String(responseData.error(), StandardCharsets.UTF_8);
 
-        this.resultTextWrapper.setVisible(true);
-        this.resultJsonPane.setVisible(false);
-        this.resultHtmlPane.setVisible(true);
-        this.imagePanel.setVisible(false);
+        var headerText = this.headersTextPane.getText();
+
+        if (!headerText.isBlank()) {
+            headerText += '\n';
+        }
+        this.headersTextPane.setText(headerText + error);
+
+        var jsonText = this.resultJsonPane.getText();
+
+        if (!jsonText.isBlank()) {
+            jsonText += '\n';
+        }
+        this.resultJsonPane.setText(jsonText + error);
+
+        var htmlText = this.resultHtmlPane.getText();
+
+        if (!htmlText.isBlank()) {
+            htmlText += '\n';
+        }
+        this.resultHtmlPane.setText(htmlText + error);
     }
 }

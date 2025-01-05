@@ -28,23 +28,31 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class RequestThread extends Thread {
     private final Project project;
     private final RequestData data;
-    private final RequestFinishedListener finishedListener;
+    private final RequestResponseListener responseListener;
+    private final RequestFinishedListener requestFinishedListener;
     private boolean stopped = false;
     private long startTime = 0;
 
-    public RequestThread(Project project, RequestData data, RequestFinishedListener finishedListener) {
+    private HttpClient httpClient;
+
+    public RequestThread(
+            Project project,
+            RequestData data,
+            RequestResponseListener responseListener,
+            RequestFinishedListener requestFinishedListener
+    ) {
         this.project = project;
         this.data = data;
-        this.finishedListener = finishedListener;
+        this.responseListener = responseListener;
+        this.requestFinishedListener = requestFinishedListener;
     }
 
     @Override
@@ -61,11 +69,9 @@ public class RequestThread extends Thread {
         urlString.append(url);
 
         if (this.data.queryParams() != null && !this.data.queryParams().isEmpty()) {
-            String params = this.data.queryParams().stream()
-                    .filter(param -> !param.key.isEmpty())
+            String params = this.data.queryParams().stream().filter(param -> !param.key.isEmpty())
                     // unsafe characters will be replaced at the end
-                    .map(param -> param.key + '=' + param.value)
-                    .collect(Collectors.joining("&"));
+                    .map(param -> param.key + '=' + param.value).collect(Collectors.joining("&"));
 
             if (this.data.url().indexOf('?') == -1) {
                 urlString.append('?');
@@ -82,8 +88,18 @@ public class RequestThread extends Thread {
             uri = new URI(encodedUrl);
         } catch (URISyntaxException e) {
             if (!this.stopped) {
-                ResponseData data = new ResponseData(urlString.toString(), null, null, -1, e.getMessage().getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
-                this.finishedListener.onRequestFinished(data);
+                ResponseData data = new ResponseData(
+                        urlString.toString(),
+                        null,
+                        null,
+                        -1,
+                        "".getBytes(),
+                        Collections.emptyList(),
+                        e.getMessage().getBytes(StandardCharsets.UTF_8),
+                        this.getElapsedTime()
+                );
+                this.responseListener.onRequestResponse(data);
+                this.requestFinishedListener.onRequestFinished();
             }
             return;
         }
@@ -94,11 +110,24 @@ public class RequestThread extends Thread {
 
         // create a request
         try {
-            builder = HttpRequest.newBuilder(uri).method(this.data.type().toString(), HttpRequest.BodyPublishers.ofString(this.data.body()));
+            builder = HttpRequest.newBuilder(uri).method(
+                    this.data.type().toString(),
+                    HttpRequest.BodyPublishers.ofString(this.data.body())
+            );
         } catch (Exception e) {
             if (!this.stopped) {
-                ResponseData data = new ResponseData(urlString.toString(), null, null, -1, e.getMessage().getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
-                this.finishedListener.onRequestFinished(data);
+                ResponseData data = new ResponseData(
+                        urlString.toString(),
+                        null,
+                        null,
+                        -1,
+                        "".getBytes(),
+                        Collections.emptyList(),
+                        e.getMessage().getBytes(StandardCharsets.UTF_8),
+                        this.getElapsedTime()
+                );
+                this.responseListener.onRequestResponse(data);
+                this.requestFinishedListener.onRequestFinished();
             }
             return;
         }
@@ -126,7 +155,10 @@ public class RequestThread extends Thread {
                     try {
                         builder = builder.header(header.key, header.value);
                     } catch (IllegalArgumentException ignored) {
-                        RestTesterNotifier.notifyInfo(this.project, "Rest Tester: Request contained invalid header '" + header.key + "' with value '" + header.value + "'.");
+                        RestTesterNotifier.notifyInfo(
+                                this.project,
+                                "Rest Tester: Request contained invalid header '" + header.key + "' with value '" + header.value + "'."
+                        );
                     }
                     headersMap.put(header.key.toLowerCase(), header.value);
                 }
@@ -161,24 +193,61 @@ public class RequestThread extends Thread {
             clientBuilder = clientBuilder.followRedirects(HttpClient.Redirect.NORMAL);
         }
 
-        HttpClient client = clientBuilder.build();
+        this.httpClient = clientBuilder.build();
         HttpRequest request = builder.build();
 
-        try {
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            int responseCode = response.statusCode();
-            byte[] bytes = response.body().getBytes();
+        // store body and content type for later, so we can display the data in case of an error
+        // should only be relevant in case of event streams which can have multiple responses
+        StringBuilder responseBody = new StringBuilder();
+        AtomicReference<List<String>> contentType = new AtomicReference<>(Collections.emptyList());
 
-            if (!this.stopped) {
-                ResponseData data = new ResponseData(request.uri().toString(), request, response, responseCode, bytes, this.getElapsedTime());
-                this.finishedListener.onRequestFinished(data);
-            }
+        try {
+            HttpResponse<Stream<String>> response = this.httpClient.send(request, HttpResponse.BodyHandlers.ofLines());
+            int responseCode = response.statusCode();
+
+            // The response can hase multiple sync messages, e.g. in case of a sse event request.
+            response.body().forEach(line -> {
+                responseBody.append(line);
+
+                if (!line.isBlank()) {
+                    responseBody.append("\n");
+                }
+
+                if (!this.stopped) {
+                    try {
+                        contentType.set(response.headers().map().get("Content-Type"));
+                    } catch (Exception ignore) {
+                    }
+
+                    ResponseData data = new ResponseData(
+                            request.uri().toString(),
+                            request,
+                            response,
+                            responseCode,
+                            responseBody.toString().getBytes(),
+                            contentType.get(),
+                            "".getBytes(),
+                            this.getElapsedTime()
+                    );
+                    this.responseListener.onRequestResponse(data);
+                }
+            });
         } catch (Exception e) {
             if (!this.stopped) {
                 if (e instanceof SSLHandshakeException) {
                     String error = e.getMessage() + "\n\nTry changing the rest tester setting to allow requests without ssl validation.";
-                    ResponseData data = new ResponseData(urlString.toString(), request, null, -1, error.getBytes(StandardCharsets.UTF_8), this.getElapsedTime());
-                    this.finishedListener.onRequestFinished(data);
+                    ResponseData data = new ResponseData(
+                            urlString.toString(),
+                            request,
+                            null,
+                            -1,
+                            "".getBytes(),
+                            Collections.emptyList(),
+                            error.getBytes(StandardCharsets.UTF_8),
+                            this.getElapsedTime()
+                    );
+                    this.responseListener.onRequestResponse(data);
+                    this.requestFinishedListener.onRequestFinished();
                     return;
                 }
 
@@ -188,14 +257,33 @@ public class RequestThread extends Thread {
                     messageBytes = e.getMessage().getBytes(StandardCharsets.UTF_8);
                 }
 
-                ResponseData data = new ResponseData(urlString.toString(), request, null, -1, messageBytes, this.getElapsedTime());
-                this.finishedListener.onRequestFinished(data);
+                ResponseData data = new ResponseData(
+                        urlString.toString(),
+                        request,
+                        null,
+                        -1,
+                        responseBody.toString().getBytes(),
+                        contentType.get(),
+                        messageBytes,
+                        this.getElapsedTime()
+                );
+                this.responseListener.onRequestResponse(data);
             }
+        } finally {
+            this.requestFinishedListener.onRequestFinished();
+        }
+
+        if (this.httpClient != null) {
+            this.httpClient.shutdown();
         }
     }
 
     public void stopRequest() {
         this.stopped = true;
+        if (this.httpClient != null) {
+            this.httpClient.shutdownNow();
+            this.httpClient = null;
+        }
     }
 
     public String getElapsedTime() {
